@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ProfileView } from './ProfileView';
+import * as S from './TeamView.styled';
 import { Search, Users, Mail, Phone, MoreHorizontal, Hash, ChevronLeft, ArrowRight, Monitor } from 'lucide-react';
 
 export const TeamView = ({ user, teams, employees, vacationLogs = [], creators = [] }) => {
@@ -115,149 +116,150 @@ export const TeamView = ({ user, teams, employees, vacationLogs = [], creators =
         };
 
         return (
-            <div className="flex-1 h-screen overflow-y-auto bg-white p-8 animate-[fadeIn_0.2s_ease-out]">
-                <div className="max-w-[1600px] mx-auto">
+            <S.Container>
+                <S.ContentWrapper>
                     {/* Header */}
-                    <div className="flex justify-between items-end mb-8">
+                    <S.DetailHeader>
                         <div>
-                            <button
-                                onClick={() => { setSelectedTeam(null); setSearchQuery(''); }}
-                                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 w-fit group"
-                            >
-                                <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-                                <span className="font-medium">팀 목록으로 돌아가기</span>
-                            </button>
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2 mb-2">
+                            <S.BackButton onClick={() => { setSelectedTeam(null); setSearchQuery(''); }}>
+                                <ChevronLeft size={16} />
+                                <span>팀 목록으로 돌아가기</span>
+                            </S.BackButton>
+                            <S.Title>
                                 {selectedTeam.name}
-                            </h1>
-                            <p className="text-sm text-gray-500">
+                            </S.Title>
+                            <S.SubTitle>
                                 {selectedTeam.description}
-                            </p>
+                            </S.SubTitle>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             {/* Search */}
-                            <div className="relative group">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gray-600" />
-                                <input
+                            <S.SearchInputWrapper>
+                                <S.SearchIconWrapper>
+                                    <Search size={16} />
+                                </S.SearchIconWrapper>
+                                <S.SearchInput
                                     type="text"
                                     placeholder="이름, 직무 검색..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg w-64 focus:outline-none focus:border-gray-400 focus:bg-white transition-all"
                                 />
-                            </div>
+                            </S.SearchInputWrapper>
                         </div>
-                    </div>
+                    </S.DetailHeader>
 
                     {/* Content: Card Grid only */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <S.MemberGrid>
                         {filteredMembers.map((member) => (
-                            <div
+                            <S.MemberCard
                                 key={member.id}
                                 onClick={() => handleMemberClick(member)}
-                                className="group border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 bg-white h-full flex flex-col"
                             >
-                                <div className="h-24 bg-gray-50 relative overflow-hidden shrink-0">
+                                <S.CoverImage>
                                     {member.coverUrl ? (
-                                        <img src={member.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                                        <img src={member.coverUrl} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
-                                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-gray-50 to-gray-100"></div>
+                                        <S.CoverPlaceholder />
                                     )}
-                                </div>
-                                <div className="px-5 pb-6 pt-14 relative flex-1 flex flex-col items-center">
-                                    <div className="w-20 h-20 rounded-full border-4 border-white shadow-sm overflow-hidden absolute -top-10 left-1/2 -translate-x-1/2 bg-white">
+                                </S.CoverImage>
+                                <S.MemberContent>
+                                    <S.AvatarWrapper>
                                         {member.avatarUrl ? (
-                                            <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                                            <img src={member.avatarUrl} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl font-bold text-gray-400">
+                                            <S.AvatarPlaceholder>
                                                 {member.name.charAt(0)}
-                                            </div>
+                                            </S.AvatarPlaceholder>
                                         )}
-                                    </div>
-                                    <div className="text-center w-full">
-                                        <h3 className="text-lg font-bold text-gray-900 flex items-center justify-center gap-1">
+                                    </S.AvatarWrapper>
+                                    <div style={{ textAlign: 'center', width: '100%' }}>
+                                        <S.MemberName>
                                             {member.name}
-                                            {member.type === 'creator' && <Monitor size={14} className="text-purple-500" />}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 mb-3 truncate px-2">{member.role}</p>
-                                        <div className="flex justify-center items-center gap-2 mt-auto">
-                                            <span className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-medium truncate max-w-[80px]">
+                                            {member.type === 'creator' && <Monitor size={14} color="#a855f7" />}
+                                        </S.MemberName>
+                                        <S.MemberRole>{member.role}</S.MemberRole>
+                                        <S.BadgeContainer>
+                                            <S.Badge>
                                                 {member.nickname || member.name}
-                                            </span>
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${member.workStatus === '출근' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                member.type === 'creator' && member.workStatus === '활동중' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                    'bg-gray-50 text-gray-500 border-gray-100'
-                                                }`}>
+                                            </S.Badge>
+                                            <S.StatusBadge $type={
+                                                member.workStatus === '출근' || (member.type === 'creator' && member.workStatus === '활동중')
+                                                    ? 'active'
+                                                    : 'inactive'
+                                            }>
                                                 {member.workStatus}
-                                            </span>
-                                        </div>
+                                            </S.StatusBadge>
+                                        </S.BadgeContainer>
                                     </div>
-                                </div>
-                            </div>
+                                </S.MemberContent>
+                            </S.MemberCard>
                         ))}
-                    </div>
-                </div>
-            </div>
+                    </S.MemberGrid>
+                </S.ContentWrapper>
+            </S.Container>
         );
     }
 
     // Level 1: Team List (Empty State or List)
     if (myTeams.length === 0) {
         return (
-            <div className="flex-1 h-screen flex items-center justify-center bg-white">
-                <div className="text-center text-gray-500">
-                    <Users size={48} className="mx-auto mb-4 text-gray-300" />
-                    <h2 className="text-lg font-bold text-gray-700 mb-1">소속된 팀이 없습니다.</h2>
-                    <p className="text-sm">관리자에게 팀 배정을 요청해주세요.</p>
-                </div>
-            </div>
+            <S.EmptyState>
+                <S.EmptyContent>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <Users size={48} color="#d1d5db" />
+                    </div>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.25rem', color: '#374151' }}>
+                        소속된 팀이 없습니다.
+                    </h2>
+                    <p style={{ fontSize: '0.875rem' }}>관리자에게 팀 배정을 요청해주세요.</p>
+                </S.EmptyContent>
+            </S.EmptyState>
         );
     }
 
     return (
-        <div className="flex-1 h-screen overflow-y-auto bg-white p-8">
-            <div className="max-w-[1600px] mx-auto">
-                <div className="mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-                        <Users className="text-gray-800" size={32} /> 팀 현황
-                    </h1>
-                    <p className="text-sm text-gray-500">
+        <S.Container>
+            <S.ContentWrapper>
+                <S.Header>
+                    <S.Title>
+                        <Users color="#1f2937" size={32} /> 팀 현황
+                    </S.Title>
+                    <S.SubTitle>
                         소속된 팀을 선택하여 구성원 정보를 확인하세요.
-                    </p>
-                </div>
+                    </S.SubTitle>
+                </S.Header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-[fadeIn_0.2s_ease-out]">
+                <S.Grid>
                     {myTeams.map(team => (
-                        <div
+                        <S.TeamCard
                             key={team.id}
                             onClick={() => setSelectedTeam(team)}
-                            className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer hover:-translate-y-1 relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <S.CardBgIcon>
                                 <Users size={64} />
-                            </div>
-                            <div className="relative z-10">
-                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 border border-blue-100">
+                            </S.CardBgIcon>
+                            <S.CardContent>
+                                <S.IconWrapper>
                                     <Users size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">{team.name}</h3>
-                                <p className="text-sm text-gray-500 mb-6 h-10 line-clamp-2">{team.description}</p>
+                                </S.IconWrapper>
+                                <S.CardTitle>{team.name}</S.CardTitle>
+                                <S.CardDescription>{team.description}</S.CardDescription>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <Users size={16} className="text-gray-400" />
-                                        <span className="font-medium">{team.memberIds.length}명</span>
-                                    </div>
-                                    <div className="text-blue-600 text-sm font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <S.CardFooter>
+                                    <S.MemberCount>
+                                        <Users size={16} color="#9ca3af" />
+                                        <S.CountText>{team.memberIds.length}명</S.CountText>
+                                    </S.MemberCount>
+                                    <S.ViewAction>
                                         팀원 조회 <ArrowRight size={14} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                    </S.ViewAction>
+                                </S.CardFooter>
+                            </S.CardContent>
+                        </S.TeamCard>
                     ))}
-                </div>
-            </div>
-        </div>
+                </S.Grid>
+            </S.ContentWrapper>
+        </S.Container>
     );
 };

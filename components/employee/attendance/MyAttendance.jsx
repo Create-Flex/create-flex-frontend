@@ -1,5 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { AlertCircle, Timer, Briefcase, Filter, ArrowRight } from 'lucide-react';
+import { Briefcase, Filter, ArrowRight } from 'lucide-react';
+import {
+    Container, TableContainer, FilterHeader, FilterGroup, DateRangePicker, FilterLabel, DateInput,
+    SelectContainer, StatusSelect, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, NoDataCell,
+    StatusBadge, TypeIcon, StyledArrowRight, StyledFilterIcon
+} from './MyAttendance.styled';
 
 const formatDate = (date) => {
     const y = date.getFullYear();
@@ -92,18 +97,20 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
     };
 
     const getStatusBadge = (status) => {
+        let label = '-';
         switch (status) {
-            case 'normal': return <span className="text-[#00C471] text-xs font-bold">정상 근무</span>;
-            case 'late': return <span className="text-orange-600 text-xs font-bold">지각</span>;
-            case 'overtime': return <span className="text-purple-600 text-xs font-bold">초과 근무</span>;
-            default: return <span className="text-gray-400 text-xs font-medium">-</span>;
+            case 'normal': label = '정상 근무'; break;
+            case 'late': label = '지각'; break;
+            case 'overtime': label = '초과 근무'; break;
+            default: label = '-';
         }
+        return <StatusBadge $status={status}>{label}</StatusBadge>;
     };
 
     const getTypeIcon = (type) => {
         switch (type) {
-            case 'wfh': return <span className="text-xs text-gray-500 flex items-center gap-1"><Briefcase size={12} /> 재택</span>;
-            case 'office': return <span className="text-xs text-gray-500 flex items-center gap-1"><Briefcase size={12} /> 출근</span>;
+            case 'wfh': return <TypeIcon><Briefcase size={12} /> 재택</TypeIcon>;
+            case 'office': return <TypeIcon><Briefcase size={12} /> 출근</TypeIcon>;
             default: return null;
         }
     }
@@ -115,67 +122,72 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
     });
 
     return (
-        <div className="animate-[fadeIn_0.2s_ease-out]">
+        <Container>
             {/* Work Logs Table & Filters */}
+            <TableContainer>
+                <FilterHeader>
+                    <FilterGroup>
+                        <DateRangePicker>
+                            <FilterLabel>기간</FilterLabel>
+                            <DateInput
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                            <StyledArrowRight><ArrowRight size={14} /></StyledArrowRight>
+                            <DateInput
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </DateRangePicker>
 
-            {/* Work Logs Table & Filters */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-20">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mr-1">기간</span>
-                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="text-sm bg-transparent focus:outline-none cursor-pointer" />
-                            <ArrowRight size={14} className="text-gray-300 mx-1" />
-                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-transparent focus:outline-none cursor-pointer" />
-                        </div>
-
-                        <div className="relative">
-                            <select
+                        <SelectContainer>
+                            <StatusSelect
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="pl-3 pr-9 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-black appearance-none cursor-pointer shadow-sm min-w-[140px]"
                             >
                                 <option value="All">모든 상태</option>
                                 <option value="정상 근무">정상 근무</option>
                                 <option value="지각">지각</option>
                                 <option value="초과 근무">초과 근무</option>
-                            </select>
-                            <Filter size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        </div>
-                    </div>
-                </div>
+                            </StatusSelect>
+                            <StyledFilterIcon><Filter size={14} /></StyledFilterIcon>
+                        </SelectContainer>
+                    </FilterGroup>
+                </FilterHeader>
 
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-400 border-b border-gray-200 text-[11px] font-bold uppercase tracking-wider">
+                <Table>
+                    <TableHead>
                         <tr>
-                            <th className="px-6 py-4 w-1/4">날짜</th>
-                            <th className="px-6 py-4">출근 시간</th>
-                            <th className="px-6 py-4">퇴근 시간</th>
-                            <th className="px-6 py-4">실제 근무</th>
-                            <th className="px-6 py-4 text-right">근태 상태</th>
+                            <TableHeaderCell $width="25%">날짜</TableHeaderCell>
+                            <TableHeaderCell>출근 시간</TableHeaderCell>
+                            <TableHeaderCell>퇴근 시간</TableHeaderCell>
+                            <TableHeaderCell>실제 근무</TableHeaderCell>
+                            <TableHeaderCell $align="right">근태 상태</TableHeaderCell>
                         </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    </TableHead>
+                    <TableBody>
                         {filteredWorkLogs.length > 0 ? (
                             filteredWorkLogs.map((log) => (
-                                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">{log.date}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">{log.in}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">{log.out}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-800 font-bold">{log.hours}</td>
-                                    <td className="px-6 py-4 text-right">{getStatusBadge(log.status)}</td>
-                                </tr>
+                                <TableRow key={log.id}>
+                                    <TableCell $bold $color="#111827">{log.date}</TableCell>
+                                    <TableCell $mono $color={log.in > '09:00' ? '#ef4444' : '#2563eb'}>{log.in}</TableCell>
+                                    <TableCell $mono $color={log.out !== '-' && log.out < '18:00' ? '#ef4444' : '#2563eb'}>{log.out}</TableCell>
+                                    <TableCell $bold $color="#1f2937">{log.hours}</TableCell>
+                                    <TableCell $align="right">{getStatusBadge(log.status)}</TableCell>
+                                </TableRow>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-20 text-center text-gray-400 font-medium">
+                                <NoDataCell colSpan={5}>
                                     조회된 근무 내역이 없습니다.
-                                </td>
+                                </NoDataCell>
                             </tr>
                         )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Container>
     );
 };

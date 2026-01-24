@@ -6,6 +6,10 @@ import { ContractManagement } from './admin/creator/ContractManagement';
 import { CreatorModal } from './admin/creator/CreatorModal';
 import { AssignManagerModal } from './admin/creator/AssignManagerModal';
 
+import {
+    Container, InnerContainer, Breadcrumb, HeaderSection, HeaderContent, IconBox, Title, Description
+} from './AdminCreatorView.styled';
+
 export const AdminCreatorView = ({
     user,
     creators,
@@ -125,27 +129,27 @@ export const AdminCreatorView = ({
 
     const renderHeaderIcon = () => {
         switch (currentView) {
-            case 'admin-creator-contract': return <FileText size={24} className="text-gray-600" />;
-            case 'admin-creator-health': return <Activity size={24} className="text-gray-600" />;
-            default: return <Users size={24} className="text-gray-600" />;
+            case 'admin-creator-contract': return <FileText size={24} />;
+            case 'admin-creator-health': return <Activity size={24} />;
+            default: return <Users size={24} />;
         }
     };
 
     return (
-        <div className="flex-1 h-screen overflow-y-auto bg-white p-8">
-            <div className="max-w-[1600px] mx-auto">
-                <div className="text-xs text-gray-500 mb-2">HR 관리 / 크리에이터 관리</div>
-                <div className="mb-8 border-b border-gray-100 pb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
+        <Container>
+            <InnerContainer>
+                <Breadcrumb>HR 관리 / 크리에이터 관리</Breadcrumb>
+                <HeaderSection>
+                    <HeaderContent>
+                        <IconBox>
                             {renderHeaderIcon()}
-                        </div>
+                        </IconBox>
                         <div>
-                            <h1 className="text-xl font-bold text-gray-900">{renderTitle()}</h1>
-                            <p className="text-xs text-gray-500">{renderDescription()}</p>
+                            <Title>{renderTitle()}</Title>
+                            <Description>{renderDescription()}</Description>
                         </div>
-                    </div>
-                </div>
+                    </HeaderContent>
+                </HeaderSection>
 
                 {(currentView === 'admin-creator-list' || !currentView || currentView === 'creator') && (
                     <CreatorList
@@ -188,7 +192,7 @@ export const AdminCreatorView = ({
                     creatorId={assignCreatorId || ''}
                     employees={employees}
                 />
-            </div>
-        </div>
+            </InnerContainer>
+        </Container>
     );
 };

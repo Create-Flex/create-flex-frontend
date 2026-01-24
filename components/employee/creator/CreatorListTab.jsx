@@ -11,6 +11,14 @@ import {
     Trash2,
 } from 'lucide-react';
 import { renderPlatformIcon } from '../../creator/shared/utils';
+import {
+    Container, DetailHeader, BackButton, BackText, CoverSection, CoverImageWrapper, CoverImg, EmptyCover, EmptyCoverText,
+    AvatarSection, AvatarWrapper, AvatarImg, EmptyAvatar, InfoSection, CreatorName, MetaInfo, MetaItem, DotSeparator, StatusBadge, Divider,
+    TaskSection, TaskHeader, TaskTitle, TaskCount, TaskLegend, LegendItem, LegendDot, LegendValue,
+    TaskList, ListHeader, ListHeaderItem, ListBody, TaskItem, TaskContent, CheckButton, TaskText, TaskStatus, StatusTag,
+    TaskAssignee, AssigneeInfo, AssigneeAvatar, AssigneeName, DeleteButton, AddTaskRow, AddTaskInputWrapper, AddTaskInput,
+    CreatorGrid, CreatorCard, CardCover, CardOverlay, CardContent, CardAvatar, CardInfo, CardName, CardSubscribers, CardStatus, CardStatusBadge
+} from './CreatorListTab.styled';
 
 const CreatorDetailView = ({
     creator,
@@ -34,144 +42,134 @@ const CreatorDetailView = ({
     };
 
     return (
-        <div className="bg-white relative animate-[fadeIn_0.2s_ease-out]">
-            <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-1.5 p-1.5 -ml-1.5 pr-3 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900 transition-all group"
-                >
-                    <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-                    <span className="text-sm font-medium">목록으로 돌아가기</span>
-                </button>
-            </div>
+        <Container $bgWhite>
+            <DetailHeader>
+                <BackButton onClick={onBack}>
+                    <ChevronLeft size={20} />
+                    <BackText>목록으로 돌아가기</BackText>
+                </BackButton>
+            </DetailHeader>
 
-            <div className="relative mb-12">
-                <div className="h-48 w-full bg-gray-100 flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
+            <CoverSection>
+                <CoverImageWrapper>
                     {creator.coverUrl ? (
-                        <img src={creator.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                        <CoverImg src={creator.coverUrl} alt="cover" />
                     ) : (
-                        <div className="text-gray-300 flex flex-col items-center">
+                        <EmptyCover>
                             <ImageIcon size={32} />
-                            <span className="text-xs mt-2">커버 이미지 없음</span>
-                        </div>
+                            <EmptyCoverText>커버 이미지 없음</EmptyCoverText>
+                        </EmptyCover>
                     )}
-                </div>
+                </CoverImageWrapper>
 
-                <div className="absolute -bottom-10 left-8 z-10">
-                    <div className="w-24 h-24 rounded-lg border-4 border-white shadow-md overflow-hidden bg-white">
+                <AvatarSection>
+                    <AvatarWrapper>
                         {creator.avatarUrl ? (
-                            <img src={creator.avatarUrl} alt="profile" className="w-full h-full object-cover" />
+                            <AvatarImg src={creator.avatarUrl} alt="profile" />
                         ) : (
-                            <div className="w-full h-full bg-gray-5 flex items-center justify-center text-gray-400">
+                            <EmptyAvatar>
                                 <UserIcon size={40} />
-                            </div>
+                            </EmptyAvatar>
                         )}
-                    </div>
-                </div>
-            </div>
+                    </AvatarWrapper>
+                </AvatarSection>
+            </CoverSection>
 
-            <div className="pl-36 mb-8 flex items-start justify-between">
+            <InfoSection>
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-1">{creator.name}</h1>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
-                        <span className="flex items-center gap-1"><Monitor size={14} /> {creator.platform}</span>
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        <span className="flex items-center gap-1"><Users size={14} /> {creator.subscribers}</span>
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        <span className={`text-xs font-bold ${creator.status === '활동중' ? 'text-[#00C471]' : 'text-gray-500'}`}>
+                    <CreatorName>{creator.name}</CreatorName>
+                    <MetaInfo>
+                        <MetaItem><Monitor size={14} /> {creator.platform}</MetaItem>
+                        <DotSeparator />
+                        <MetaItem><Users size={14} /> {creator.subscribers}</MetaItem>
+                        <DotSeparator />
+                        <StatusBadge $active={creator.status === '활동중'}>
                             {creator.status}
-                        </span>
+                        </StatusBadge>
                         {creator.contactInfo && (
                             <>
-                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                <span className="text-gray-500 flex items-center gap-1"><Smartphone size={12} /> {creator.contactInfo}</span>
+                                <DotSeparator />
+                                <MetaItem><Smartphone size={12} /> {creator.contactInfo}</MetaItem>
                             </>
                         )}
-                    </div>
+                    </MetaInfo>
                 </div>
-            </div>
+            </InfoSection>
 
-            <div className="h-px bg-gray-200 w-full mb-8"></div>
+            <Divider />
 
-            <div className="animate-[fadeIn_0.2s_ease-out]">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                        <CheckSquare size={20} className="text-gray-700" />
+            <TaskSection>
+                <TaskHeader>
+                    <TaskTitle>
+                        <CheckSquare size={20} className="text-gray-700" style={{ color: '#374151' }} />
                         업무 현황
-                        <span className="text-sm font-normal text-gray-500 ml-1">({tasks.length})</span>
-                    </h3>
-                    <div className="flex gap-4 text-sm">
-                        <span className="text-gray-600 flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                            진행중 <span className="font-bold text-gray-900 ml-1">{tasks.filter(t => t.status === '진행중').length}</span>
-                        </span>
-                        <span className="text-gray-600 flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            완료됨 <span className="font-bold text-gray-900 ml-1">{tasks.filter(t => t.status === '완료됨').length}</span>
-                        </span>
-                    </div>
-                </div>
+                        <TaskCount>({tasks.length})</TaskCount>
+                    </TaskTitle>
+                    <TaskLegend>
+                        <LegendItem>
+                            <LegendDot $color="#facc15" />
+                            진행중 <LegendValue>{tasks.filter(t => t.status === '진행중').length}</LegendValue>
+                        </LegendItem>
+                        <LegendItem>
+                            <LegendDot $color="#22c55e" />
+                            완료됨 <LegendValue>{tasks.filter(t => t.status === '완료됨').length}</LegendValue>
+                        </LegendItem>
+                    </TaskLegend>
+                </TaskHeader>
 
-                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-                    <div className="flex items-center bg-gray-50 px-4 py-2 border-b border-gray-200 text-xs font-medium text-gray-500">
-                        <div className="flex-1">이름</div>
-                        <div className="w-24">상태</div>
-                        <div className="w-24">담당자</div>
-                    </div>
-                    <div className="divide-y divide-gray-100">
+                <TaskList>
+                    <ListHeader>
+                        <ListHeaderItem $flex>이름</ListHeaderItem>
+                        <ListHeaderItem $width="6rem">상태</ListHeaderItem>
+                        <ListHeaderItem $width="6rem">담당자</ListHeaderItem>
+                    </ListHeader>
+                    <ListBody>
                         {tasks.map(task => (
-                            <div key={task.id} className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer text-sm">
-                                <div className="flex-1 text-gray-800 flex items-center gap-2">
-                                    <button
+                            <TaskItem key={task.id}>
+                                <TaskContent>
+                                    <CheckButton
                                         onClick={() => onToggleTask(task.id)}
-                                        className={`${task.status === '완료됨' ? 'text-[#00C471]' : 'text-gray-300 hover:text-gray-500'}`}
+                                        $completed={task.status === '완료됨'}
                                     >
                                         <CheckSquare size={16} />
-                                    </button>
-                                    <span className={task.status === '완료됨' ? 'text-gray-400 line-through' : ''}>
+                                    </CheckButton>
+                                    <TaskText $completed={task.status === '완료됨'}>
                                         {task.title}
-                                    </span>
-                                </div>
-                                <div className="w-24">
-                                    <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium border ${task.status === '진행중' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                        'bg-green-50 text-green-700 border-green-200'
-                                        }`}>
+                                    </TaskText>
+                                </TaskContent>
+                                <TaskStatus>
+                                    <StatusTag $status={task.status}>
                                         {task.status}
-                                    </span>
-                                </div>
-                                <div className="w-24 flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-4 h-4 rounded-full bg-orange-400 text-white flex items-center justify-center text-[9px] font-bold">
+                                    </StatusTag>
+                                </TaskStatus>
+                                <TaskAssignee>
+                                    <AssigneeInfo>
+                                        <AssigneeAvatar>
                                             {task.assignee.charAt(0)}
-                                        </div>
-                                        <span className="text-gray-600 text-xs">{task.assignee}</span>
-                                    </div>
-                                    <button
+                                        </AssigneeAvatar>
+                                        <AssigneeName>{task.assignee}</AssigneeName>
+                                    </AssigneeInfo>
+                                    <DeleteButton
                                         onClick={() => onDeleteTask(task.id)}
-                                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                         title="삭제"
                                     >
                                         <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            </div>
+                                    </DeleteButton>
+                                </TaskAssignee>
+                            </TaskItem>
                         ))}
 
                         {!isAddingTask ? (
-                            <div
-                                onClick={() => setIsAddingTask(true)}
-                                className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer text-gray-400 text-sm group"
-                            >
-                                <Plus size={14} className="mr-2 group-hover:text-gray-600" />
-                                <span className="group-hover:text-gray-600">새로 만들기...</span>
-                            </div>
+                            <AddTaskRow onClick={() => setIsAddingTask(true)}>
+                                <Plus size={14} style={{ marginRight: '0.5rem' }} />
+                                <span>새로 만들기...</span>
+                            </AddTaskRow>
                         ) : (
-                            <div className="flex items-center px-4 py-3 bg-gray-50/50">
-                                <div className="flex-1 flex items-center gap-2">
-                                    <div className="text-gray-400"><CheckSquare size={16} /></div>
-                                    <input
+                            <AddTaskRow $isEditing>
+                                <AddTaskInputWrapper>
+                                    <div style={{ color: '#9ca3af' }}><CheckSquare size={16} /></div>
+                                    <AddTaskInput
                                         autoFocus
-                                        className="w-full bg-transparent border-none focus:outline-none text-sm text-gray-900 placeholder-gray-400"
                                         placeholder="업무 내용을 입력하고 Enter를 누르세요"
                                         value={newTaskTitle}
                                         onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -180,13 +178,13 @@ const CreatorDetailView = ({
                                             if (!newTaskTitle.trim()) setIsAddingTask(false);
                                         }}
                                     />
-                                </div>
-                            </div>
+                                </AddTaskInputWrapper>
+                            </AddTaskRow>
                         )}
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </ListBody>
+                </TaskList>
+            </TaskSection>
+        </Container>
     );
 };
 
@@ -221,50 +219,47 @@ export const CreatorListTab = ({
     }
 
     return (
-        <div className="animate-[fadeIn_0.2s_ease-out]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <Container>
+            <CreatorGrid>
                 {myCreators.map(creator => (
-                    <div
+                    <CreatorCard
                         key={creator.id}
                         onClick={() => setSelectedCreatorId(creator.id)}
-                        className="group border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 bg-white relative"
                     >
-                        <div className="aspect-video bg-gray-100 relative flex items-center justify-center">
+                        <CardCover>
                             {creator.coverUrl ? (
-                                <img src={creator.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                                <CoverImg src={creator.coverUrl} alt="cover" />
                             ) : (
-                                <div className="text-gray-300">
+                                <EmptyCover>
                                     <ImageIcon size={32} />
-                                </div>
+                                </EmptyCover>
                             )}
-                            <div className="absolute top-0 left-0 w-full h-full bg-black/5 group-hover:bg-black/0 transition-colors"></div>
-                        </div>
-                        <div className="p-5 relative">
-                            <div className="w-16 h-16 rounded-lg border-4 border-white shadow-sm overflow-hidden absolute -top-10 left-5 bg-white">
+                            <CardOverlay />
+                        </CardCover>
+                        <CardContent>
+                            <CardAvatar>
                                 {creator.avatarUrl ? (
-                                    <img src={creator.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                                    <AvatarImg src={creator.avatarUrl} alt="avatar" />
                                 ) : (
-                                    <div className="w-full h-full bg-gray-5 flex items-center justify-center text-gray-400">
-                                        <UserIcon size={32} />
-                                    </div>
+                                    <UserIcon size={32} />
                                 )}
-                            </div>
-                            <div className="mt-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                            </CardAvatar>
+                            <CardInfo>
+                                <CardName>
                                     {creator.name}
                                     {renderPlatformIcon(creator.platform, 16)}
-                                </h3>
-                                <p className="text-sm text-gray-500 mb-3">{creator.subscribers}</p>
-                                <div className="flex gap-2">
-                                    <span className={`text-[10px] font-bold ${creator.status === '활동중' ? 'text-[#00C471]' : 'text-gray-500'}`}>
+                                </CardName>
+                                <CardSubscribers>{creator.subscribers}</CardSubscribers>
+                                <CardStatus>
+                                    <CardStatusBadge $active={creator.status === '활동중'}>
                                         {creator.status}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                    </CardStatusBadge>
+                                </CardStatus>
+                            </CardInfo>
+                        </CardContent>
+                    </CreatorCard>
                 ))}
-            </div>
-        </div>
+            </CreatorGrid>
+        </Container>
     );
 };

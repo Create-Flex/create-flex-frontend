@@ -1,5 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Clock, Calendar, ArrowRight, Filter, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
+import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
+import {
+    Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
+    LoadingContainer, FilterContainer, SearchWrapper, SearchInput, SearchIconWrapper, SelectWrapper, StatusSelect, SelectIconWrapper, DateRangePicker, DateInput, ResetButton, DateRangeArrow,
+    TableContainer, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
+    NameText, TimeRange, TimeText, NoDataText, Badge
+} from './AttendanceManagement.styled';
 
 export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -27,7 +33,6 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
             // Add Mock Past Logs
             dateRange.forEach(date => {
                 // ... (Existing mock logic for past dates)
-                const isToday = date === todayStr;
                 let status = '정상';
                 let inTime = '08:55';
                 let outTime = '18:05';
@@ -65,11 +70,6 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     status: realLog.status
                 });
             });
-        } else {
-            // If no real logs for today found (globally), maybe generate mocks for today as placeholder?
-            // Or leaving it empty means they haven't clocked in yet.
-            // Let's add "Not Clocked In" placeholder for today if missing?
-            // For now, let's assume the passed attendanceLogs covers "active" actions.
         }
 
         return logs.sort((a, b) => b.date.localeCompare(a.date));
@@ -96,131 +96,129 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         return matchesName && matchesDate && matchesStatus;
     }).sort((a, b) => b.date.localeCompare(a.date));
 
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case '정상': return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">정상</span>;
-            case '지각': return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200">지각</span>;
-            case '결근': return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">결근</span>;
-            case '휴가': return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">휴가</span>;
-            default: return null;
-        }
-    };
 
     const StatCard = ({ label, value, icon: Icon, subLabel }) => (
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex justify-between items-start mb-4">
-                <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider">{label}</span>
-                <Icon size={18} className="text-gray-800" />
-            </div>
-            <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-3xl font-bold text-gray-900 leading-tight">{value}</span>
-                {typeof value === 'number' && <span className="text-sm text-gray-400 font-medium">명</span>}
-            </div>
-            {subLabel && <p className="text-[11px] text-gray-400 mt-2">{subLabel}</p>}
-        </div>
+        <StatCardContainer>
+            <StatHeader>
+                <StatLabel>{label}</StatLabel>
+                <Icon size={18} color="#1f2937" />
+            </StatHeader>
+            <StatValueWrapper>
+                <StatValue>{value}</StatValue>
+                {typeof value === 'number' && <StatUnit>명</StatUnit>}
+            </StatValueWrapper>
+            {subLabel && <StatSubLabel>{subLabel}</StatSubLabel>}
+        </StatCardContainer>
     );
 
     return (
-        <div className="animate-[fadeIn_0.3s_ease-out]">
-            {/* 3x2 Grid Stats Dashboard - Unified Style */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <Container>
+            {/* 3x2 Grid Stats Dashboard */}
+            <StatsGrid>
                 <StatCard label="평균 출근시간" value={stats.avgIn} icon={Clock} subLabel="전 직원의 평균 출근 기록입니다." />
                 <StatCard label="평균 퇴근시간" value={stats.avgOut} icon={Timer} subLabel="전 직원의 평균 퇴근 기록입니다." />
                 <StatCard label="일평균 근무시간" value={stats.avgWork} icon={Timer} subLabel="휴게 시간을 제외한 실 근무 시간입니다." />
                 <StatCard label="오늘 정상출근" value={stats.todayNormal} icon={UserCheck} subLabel="현재까지 정상 출근한 인원입니다." />
                 <StatCard label="오늘 지각" value={stats.todayLate} icon={AlertCircle} subLabel="정규 시간 이후 출근한 인원입니다." />
                 <StatCard label="오늘 결근" value={stats.todayAbsent} icon={UserX} subLabel="현재까지 출근 기록이 없는 인원입니다." />
-            </div>
+            </StatsGrid>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
+            <LoadingContainer>
+                <FilterContainer>
+                    <SearchWrapper>
+                        <SearchIconWrapper>
+                            <Search size={14} />
+                        </SearchIconWrapper>
+                        <SearchInput
                             type="text"
                             placeholder="직원 이름 검색..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 pr-4 py-2 text-[14px] border border-gray-200 rounded-lg w-64 focus:outline-none focus:border-black transition-colors shadow-sm"
                         />
-                    </div>
+                    </SearchWrapper>
 
-                    <div className="relative">
-                        <select
+                    <SelectWrapper>
+                        <StatusSelect
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="appearance-none pl-4 pr-10 py-2 text-[14px] border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-black transition-colors shadow-sm cursor-pointer font-medium text-gray-700"
                         >
                             <option value="All">상태 전체</option>
                             <option value="정상">정상</option>
                             <option value="지각">지각</option>
                             <option value="결근">결근</option>
                             <option value="휴가">휴가</option>
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    </div>
+                        </StatusSelect>
+                        <SelectIconWrapper>
+                            <ChevronDown size={14} />
+                        </SelectIconWrapper>
+                    </SelectWrapper>
 
-                    <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm">
-                        <Calendar size={14} className="text-gray-400" />
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="text-[13px] bg-transparent focus:outline-none cursor-pointer font-medium text-gray-600" />
-                        <ArrowRight size={12} className="text-gray-300 mx-1" />
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="text-[13px] bg-transparent focus:outline-none cursor-pointer font-medium text-gray-600" />
-                    </div>
-                </div>
-                <button
+                    <DateRangePicker>
+                        <Calendar size={14} color="#9ca3af" />
+                        <DateInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                        <DateRangeArrow>
+                            <ArrowRight size={12} />
+                        </DateRangeArrow>
+                        <DateInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                    </DateRangePicker>
+                </FilterContainer>
+                <ResetButton
                     onClick={() => { setStartDate(todayStr); setEndDate(todayStr); setSearchQuery(''); setSelectedStatus('All'); }}
-                    className="text-[11px] text-gray-400 hover:text-black transition-colors font-bold uppercase tracking-widest"
                 >
                     필터 초기화
-                </button>
-            </div>
+                </ResetButton>
+            </LoadingContainer>
 
-            {/* Attendance Table - Refined Font Size & Headers */}
-            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm mb-20">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-gray-500 uppercase tracking-tight">
+            {/* Attendance Table */}
+            <TableContainer>
+                <Table>
+                    <TableHead>
                         <tr>
-                            <th className="px-6 py-4">이름</th>
-                            <th className="px-6 py-4">날짜</th>
-                            <th className="px-6 py-4">시간 (출근 ~ 퇴근)</th>
-                            <th className="px-6 py-4 text-center">근태 상태</th>
+                            <TableHeaderCell>이름</TableHeaderCell>
+                            <TableHeaderCell>날짜</TableHeaderCell>
+                            <TableHeaderCell>시간 (출근 ~ 퇴근)</TableHeaderCell>
+                            <TableHeaderCell $center>근태 상태</TableHeaderCell>
                         </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-[14px]">
+                    </TableHead>
+                    <TableBody>
                         {filteredLogs.length > 0 ? filteredLogs.map(log => (
-                            <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="font-bold text-gray-900">{log.name}</div>
-                                </td>
-                                <td className="px-6 py-4 text-gray-500 font-medium">
+                            <TableRow key={log.id}>
+                                <TableCell>
+                                    <NameText>{log.name}</NameText>
+                                </TableCell>
+                                <TableCell $color="#6b7280">
                                     {log.date}
-                                </td>
-                                <td className="px-6 py-4 font-mono text-gray-600">
+                                </TableCell>
+                                <TableCell>
                                     {log.status === '결근' || log.status === '휴가' ? (
-                                        <span className="text-gray-300">-</span>
+                                        <NoDataText>-</NoDataText>
                                     ) : (
-                                        <span className="flex items-center gap-3">
-                                            <span className="text-blue-600 font-semibold">{log.clockIn}</span>
-                                            <ArrowRight size={12} className="text-gray-300" />
-                                            <span className="text-gray-800 font-semibold">{log.clockOut}</span>
-                                        </span>
+                                        <TimeRange>
+                                            <TimeText $color={log.clockIn > '09:00' ? '#ef4444' : '#2563eb'}>
+                                                {log.clockIn}
+                                            </TimeText>
+                                            <ArrowRight size={12} color="#d1d5db" />
+                                            <TimeText $out $color={log.clockOut && log.clockOut < '18:00' ? '#ef4444' : '#2563eb'}>
+                                                {log.clockOut || '-'}
+                                            </TimeText>
+                                        </TimeRange>
                                     )}
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                    {getStatusBadge(log.status)}
-                                </td>
-                            </tr>
+                                </TableCell>
+                                <TableCell $center>
+                                    <Badge $status={log.status}>{log.status}</Badge>
+                                </TableCell>
+                            </TableRow>
                         )) : (
                             <tr>
-                                <td colSpan={4} className="px-6 py-20 text-center text-gray-400 font-medium">
+                                <TableCell colSpan={4} $center $color="#9ca3af">
                                     조회된 근태 기록이 없습니다.
-                                </td>
+                                </TableCell>
                             </tr>
                         )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Container>
     );
 };

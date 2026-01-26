@@ -3,12 +3,25 @@ import { ProfileView } from './ProfileView';
 import * as S from './TeamView.styled';
 import { Search, Users, Mail, Phone, MoreHorizontal, Hash, ChevronLeft, ArrowRight, Monitor } from 'lucide-react';
 
-export const TeamView = ({ user, teams, employees, vacationLogs = [], creators = [] }) => {
+import { useAuthStore } from '../stores/useAuthStore';
+import { useOrgStore } from '../stores/useOrgStore';
+import { useScheduleStore } from '../stores/useScheduleStore';
+import { useCreatorStore } from '../stores/useCreatorStore';
+
+export const TeamView = () => {
+    const { user } = useAuthStore();
+    const { teams, employees } = useOrgStore();
+    const { vacationLogs } = useScheduleStore();
+    const { creators } = useCreatorStore();
+
     const [selectedMember, setSelectedMember] = useState(null);
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Find the team(s) the current user belongs to
+    // Safety check for user
+    if (!user) return null;
+
     const myTeams = teams.filter(team => team.memberIds.includes(user.id));
 
     // Helper to convert Employee to UserProfile for display
@@ -51,17 +64,16 @@ export const TeamView = ({ user, teams, employees, vacationLogs = [], creators =
 
     // Level 3: Profile Detail
     if (selectedMember) {
+        // Render ProfileView for selected member.
+        // Requires ProfileView to support 'profile' prop which overrides store's userProfile.
         const isCreator = selectedMember.job === 'Creator' || selectedMember.rank === 'Creator';
         return (
             <ProfileView
-                profile={selectedMember}
-                onUpdateProfile={() => { }}
+                profile={selectedMember} // Pass external profile
                 readOnly={true}
                 onBack={() => setSelectedMember(null)}
-                vacationLogs={vacationLogs}
-                isCreator={isCreator}
                 hideVacationWidget={true}
-                hideTasks={true} // Only hide tasks when viewing through Team Status
+                hideTasks={true}
             />
         );
     }

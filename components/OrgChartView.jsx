@@ -3,7 +3,9 @@ import { Search, Phone, Building, Users, ChevronRight, X, User, Plus, Edit3, Tra
 import { UserRole } from '../enums';
 import * as S from './OrgChartView.styled';
 
-// Color Palette for Departments
+import { useAuthStore } from '../stores/useAuthStore';
+import { useOrgStore } from '../stores/useOrgStore';
+
 const DEPT_COLORS = [
     { label: 'Slate', value: 'bg-slate-800' },
     { label: 'Blue', value: 'bg-blue-600' },
@@ -17,7 +19,10 @@ const DEPT_COLORS = [
     { label: 'Teal', value: 'bg-teal-600' },
 ];
 
-export const OrgChartView = ({ user, departments, employees, onUpdateDepartments }) => {
+export const OrgChartView = () => {
+    const { user } = useAuthStore();
+    const { departments, setDepartments: onUpdateDepartments, employees } = useOrgStore();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState(null);
 

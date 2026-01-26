@@ -83,10 +83,10 @@ export const Legend = styled.div`
 
 // Helper map to convert PALETTE indices to hex values for Styled Components
 const COLOR_MAP = [
-    { dot: '#4b5563', bg: '#f3f4f6', text: '#111827', border: '#e5e7eb' }, // gray
-    { dot: '#00C471', bg: '#f9fafb', text: '#374151', border: '#e5e7eb' }, // green-ish default
-    { dot: '#2563eb', bg: '#f3f4f6', text: '#1f2937', border: '#e5e7eb' }, // blue
-    { dot: '#9333ea', bg: '#f9fafb', text: '#111827', border: '#e5e7eb' }, // purple
+  { dot: '#4b5563', bg: '#f3f4f6', text: '#111827', border: '#e5e7eb' }, // gray
+  { dot: '#00C471', bg: '#f9fafb', text: '#374151', border: '#e5e7eb' }, // green-ish default
+  { dot: '#2563eb', bg: '#f3f4f6', text: '#1f2937', border: '#e5e7eb' }, // blue
+  { dot: '#9333ea', bg: '#f9fafb', text: '#111827', border: '#e5e7eb' }, // purple
 ];
 
 export const LegendItem = styled.div`
@@ -102,15 +102,15 @@ export const LegendDot = styled.div`
   height: 0.5rem;
   border-radius: 9999px;
   background-color: ${props => {
-        // Map ID to color map index
-        const idx = parseInt(props.$id || '0', 10);
-        return COLOR_MAP[idx % COLOR_MAP.length].dot;
-    }};
+    // Map ID to color map index
+    const idx = parseInt(props.$id || '0', 10);
+    return COLOR_MAP[idx % COLOR_MAP.length].dot;
+  }};
 `;
 
 export const GridHeader = styled.div`
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
 `;
@@ -125,7 +125,7 @@ export const DayHeaderCell = styled.div`
 
 export const GridBody = styled.div`
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 `;
 
 export const DayCell = styled.div`
@@ -187,6 +187,8 @@ export const EventList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  width: 100%; /* Ensure list takes full width of cell */
+  overflow: hidden; /* Prevent list itself from overflowing */
 `;
 
 export const EventItem = styled.div`
@@ -200,21 +202,23 @@ export const EventItem = styled.div`
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
   border: 1px solid transparent;
+  overflow: hidden; /* Ensure container clips content */
+  max-width: 100%; /* Ensure item doesn't exceed list width */
   
   &:hover {
     filter: brightness(0.95);
   }
 
   ${props => {
-        // Determine style based on Creator ID
-        const idx = parseInt(props.$creatorId || '0', 10);
-        const theme = COLOR_MAP[idx % COLOR_MAP.length];
-        return css`
+    // Determine style based on Creator ID
+    const idx = parseInt(props.$creatorId || '0', 10);
+    const theme = COLOR_MAP[idx % COLOR_MAP.length];
+    return css`
       background-color: ${theme.bg};
       color: ${theme.text};
       border-color: ${theme.border};
     `;
-    }}
+  }}
 `;
 
 export const EventContent = styled.div`
@@ -225,6 +229,9 @@ export const EventContent = styled.div`
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  flex: 1; /* Take available space */
+  min-width: 0; /* Enable flex child shrinking */
+  max-width: 100%; /* Constraint width */
 `;
 
 export const EventDot = styled.div`
@@ -233,13 +240,16 @@ export const EventDot = styled.div`
   border-radius: 9999px;
   flex-shrink: 0;
   background-color: ${props => {
-        const idx = parseInt(props.$creatorId || '0', 10);
-        return COLOR_MAP[idx % COLOR_MAP.length].dot;
-    }};
+    const idx = parseInt(props.$creatorId || '0', 10);
+    return COLOR_MAP[idx % COLOR_MAP.length].dot;
+  }};
 `;
 
 export const EventText = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1; /* Allow shrinking */
+  min-width: 0; /* Enable truncation */
+  display: block; /* Ensure text-overflow works by being block-levelish inside flex */
 `;

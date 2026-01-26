@@ -8,12 +8,16 @@ import {
     ProgressBarBg, ProgressBarFill, TabsContainer, TabButton, VerticalStack
 } from './AttendanceView.styled';
 
-export const AttendanceView = ({
-    vacationLogs = [],
-    onUpdateVacationLogs,
-    userName,
-    attendanceLogs = []
-}) => {
+import { useOrgStore } from '../stores/useOrgStore';
+import { useScheduleStore } from '../stores/useScheduleStore';
+
+export const AttendanceView = () => {
+    const { userProfile, attendanceLogs } = useOrgStore();
+    const { vacationLogs, setVacationLogs } = useScheduleStore();
+
+    // Derived state
+    const userName = userProfile.name;
+
     const [activeTab, setActiveTab] = useState('work');
 
     // Stats Data (Mock)
@@ -28,9 +32,15 @@ export const AttendanceView = ({
         <Container>
             <ContentWrapper>
                 <Header>
-                    <Title>
-                        <Clock color="#1f2937" size={28} /> 나의 근태/휴가
-                    </Title>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Clock color="#1f2937" size={32} />
+                        <div>
+                            <Title>나의 근태/휴가</Title>
+                            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                나의 근태 현황과 휴가 사용 내역을 조회하고 관리합니다.
+                            </p>
+                        </div>
+                    </div>
                 </Header>
 
                 {/* Dashboard Cards */}
@@ -100,7 +110,7 @@ export const AttendanceView = ({
                 {activeTab === 'vacation' && (
                     <MyVacation
                         vacationLogs={vacationLogs}
-                        onUpdateVacationLogs={onUpdateVacationLogs}
+                        onUpdateVacationLogs={setVacationLogs}
                         userName={userName}
                     />
                 )}

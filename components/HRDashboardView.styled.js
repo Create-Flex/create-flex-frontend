@@ -9,8 +9,8 @@ export const DashboardContainer = styled.div`
 `;
 
 export const InnerContainer = styled.div`
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0;
 `;
 
 export const HeaderSection = styled.div`

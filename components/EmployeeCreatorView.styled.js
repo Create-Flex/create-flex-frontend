@@ -19,13 +19,12 @@ export const ViewContainer = styled.div`
 export const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 0; /* padding: 2rem removed to allow full-width header border */
   background-color: white;
 `;
 
 export const ContentWrapper = styled.div`
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100%;
 `;
 

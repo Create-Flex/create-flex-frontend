@@ -313,7 +313,7 @@ export const CreatorHealthView = ({
                     <LogList>
                         {filteredLogs.map(log => (
                             <LogItem key={log.id}>
-                                <LogStatusBadge $status={log.status}>{log.status}</LogStatusBadge>
+
                                 <LogHeader>
                                     <LogCreator>{log.creator}</LogCreator>
                                     <LogDate>{log.date}</LogDate>

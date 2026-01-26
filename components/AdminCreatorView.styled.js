@@ -15,8 +15,8 @@ export const Container = styled.div`
 `;
 
 export const InnerContainer = styled.div`
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0;
 `;
 
 export const Breadcrumb = styled.div`
@@ -45,12 +45,13 @@ export const IconBox = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 1.25rem; // text-xl
+  font-size: 1.875rem; // text-3xl
   font-weight: 700;
   color: #111827; // text-gray-900
+  margin-bottom: 0.25rem;
 `;
 
 export const Description = styled.p`
-  font-size: 0.75rem; // text-xs
+  font-size: 0.875rem; // text-sm
   color: #6b7280; // text-gray-500
 `;

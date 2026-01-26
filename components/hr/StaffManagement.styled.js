@@ -386,6 +386,7 @@ export const FormInput = styled.input`
   font-size: 0.875rem; // text-sm
   outline: none;
   background-color: transparent;
+  border: none;
   
   // Basic input style when not in wrapper
   ${props => props.$standalone && css`

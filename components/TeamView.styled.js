@@ -10,26 +10,25 @@ export const Container = styled.div`
   height: 100vh;
   overflow-y: auto;
   background-color: white;
-  padding: 2rem;
+  padding: 0; /* padding: 2rem removed */
   animation: ${fadeIn} 0.2s ease-out;
 `;
 
 export const ContentWrapper = styled.div`
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 `;
 
 export const Header = styled.div`
-  margin-bottom: 2.5rem; /* mb-10 */
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 2rem 2rem 1.5rem 2rem; /* Add padding relative to screen edge */
 `;
 
 export const Title = styled.h1`
   font-size: 1.875rem; /* text-3xl */
   font-weight: 700;
   color: #111827;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   margin-bottom: 0.5rem;
 `;
 
@@ -42,6 +41,7 @@ export const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  padding: 0 2rem 2rem 2rem; /* Add padding for content */
   animation: ${fadeIn} 0.2s ease-out;
 
   @media (min-width: 768px) {
@@ -176,11 +176,13 @@ export const DetailHeader = styled.div`
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 2rem;
+  padding: 2rem 2rem 0 2rem; /* Add top padding here or manage via Container? Let's add top/side padding */
 `;
 
 export const SearchInputWrapper = styled.div`
   position: relative;
 `;
+
 
 export const SearchInput = styled.input`
   padding-left: 2.25rem;
@@ -214,6 +216,7 @@ export const MemberGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  padding: 0 2rem 2rem 2rem;
 
   @media (min-width: 768px) { grid-template-columns: repeat(3, 1fr); }
   @media (min-width: 1024px) { grid-template-columns: repeat(4, 1fr); }
@@ -338,11 +341,11 @@ export const StatusBadge = styled.span`
   border: 1px solid;
   
   ${props => {
-        if (props.$type === 'active') { // 출근/활동중
-            return 'background-color: #f0fdf4; color: #16a34a; border-color: #dcfce7;';
-        }
-        return 'background-color: #f9fafb; color: #6b7280; border-color: #f3f4f6;';
-    }}
+    if (props.$type === 'active') { // 출근/활동중
+      return 'background-color: #f0fdf4; color: #16a34a; border-color: #dcfce7;';
+    }
+    return 'background-color: #f9fafb; color: #6b7280; border-color: #f3f4f6;';
+  }}
 `;
 
 export const EmptyState = styled.div`

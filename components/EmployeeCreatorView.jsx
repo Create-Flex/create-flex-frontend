@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     CheckCircle2,
     AlertCircle,
+    Calendar, Users, UserCircle, Megaphone, Activity, Scale
 } from 'lucide-react';
 import { UserRole } from '../enums';
 import { INITIAL_AD_PROPOSALS } from './creator/shared/constants';
@@ -190,63 +191,90 @@ export const EmployeeCreatorView = ({
     return (
         <ViewContainer>
             <ScrollArea>
-                <ContentWrapper>
-                    {activeTab === 'calendar' && (
-                        <CalendarTab
-                            allMyEvents={allMyEvents}
-                            creatorsMap={creatorsMap}
-                            currentDate={currentDate}
-                            onDateChange={setCurrentDate}
-                            onAddEvent={handleOpenEventModal}
-                            onEventClick={handleEventClick}
-                            myCreators={myCreators}
-                        />
-                    )}
+                <div style={{ padding: '2rem 2rem 1.5rem 2rem', borderBottom: '1px solid #e1e4e8', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {activeTab === 'calendar' && <Calendar size={32} />}
+                        {activeTab === 'list' && <UserCircle size={32} />}
+                        {activeTab === 'ads' && <Megaphone size={32} />}
+                        {activeTab === 'health' && <Activity size={32} />}
+                        {activeTab === 'support' && <Scale size={32} />}
+                        <div>
+                            <h2 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#111827', margin: '0 0 0.25rem 0' }}>
+                                {activeTab === 'calendar' && '일정 캘린더'}
+                                {activeTab === 'list' && '내 담당 크리에이터'}
+                                {activeTab === 'ads' && '광고 캠페인 관리'}
+                                {activeTab === 'health' && '크리에이터 건강관리'}
+                                {activeTab === 'support' && '법률/세무 연결'}
+                            </h2>
+                            <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                                {activeTab === 'calendar' && '크리에이터들의 통합 일정을 확인하고 관리합니다.'}
+                                {activeTab === 'list' && '담당하고 있는 크리에이터 목록과 현황을 조회합니다.'}
+                                {activeTab === 'ads' && '진행 중인 광고 캠페인 제안 및 승인 현황을 관리합니다.'}
+                                {activeTab === 'health' && '담당 크리에이터들의 건강 상태 및 이슈를 모니터링합니다.'}
+                                {activeTab === 'support' && '전문적인 법률 및 세무 상담 연결을 지원합니다.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div style={{ padding: '0 2rem 2rem 2rem' }}>
+                    <ContentWrapper>
+                        {activeTab === 'calendar' && (
+                            <CalendarTab
+                                allMyEvents={allMyEvents}
+                                creatorsMap={creatorsMap}
+                                currentDate={currentDate}
+                                onDateChange={setCurrentDate}
+                                onAddEvent={handleOpenEventModal}
+                                onEventClick={handleEventClick}
+                                myCreators={myCreators}
+                            />
+                        )}
 
-                    {activeTab === 'list' && (
-                        <CreatorListTab
-                            selectedCreatorId={selectedCreatorId}
-                            setSelectedCreatorId={setSelectedCreatorId}
-                            myCreators={myCreators}
-                            allTasks={allTasks}
-                            events={events}
-                            onAddEvent={handleOpenEventModal}
-                            onEventClick={handleEventClick}
-                            onAddTask={onAddTask}
-                            onToggleTask={onToggleTask}
-                            onDeleteTask={onDeleteTask}
-                        />
-                    )}
+                        {activeTab === 'list' && (
+                            <CreatorListTab
+                                selectedCreatorId={selectedCreatorId}
+                                setSelectedCreatorId={setSelectedCreatorId}
+                                myCreators={myCreators}
+                                allTasks={allTasks}
+                                events={events}
+                                onAddEvent={handleOpenEventModal}
+                                onEventClick={handleEventClick}
+                                onAddTask={onAddTask}
+                                onToggleTask={onToggleTask}
+                                onDeleteTask={onDeleteTask}
+                            />
+                        )}
 
-                    {activeTab === 'ads' && (
-                        <AdsTab
-                            filteredAds={filteredAds}
-                            adFilter={adFilter}
-                            setAdFilter={setAdFilter}
-                            myAdProposals={myAdProposals}
-                            onAdDecision={handleAdDecision}
-                            setIsAdModalOpen={setIsAdModalOpen}
-                            creators={creators}
-                        />
-                    )}
+                        {activeTab === 'ads' && (
+                            <AdsTab
+                                filteredAds={filteredAds}
+                                adFilter={adFilter}
+                                setAdFilter={setAdFilter}
+                                myAdProposals={myAdProposals}
+                                onAdDecision={handleAdDecision}
+                                setIsAdModalOpen={setIsAdModalOpen}
+                                creators={creators}
+                            />
+                        )}
 
-                    {activeTab === 'health' && (
-                        <HealthTab
-                            myCreators={myCreators}
-                            healthRecords={healthRecords}
-                            onUpdateHealthRecords={onUpdateHealthRecords}
-                            issueLogs={issueLogs}
-                            onUpdateIssueLogs={onUpdateIssueLogs}
-                        />
-                    )}
+                        {activeTab === 'health' && (
+                            <HealthTab
+                                myCreators={myCreators}
+                                healthRecords={healthRecords}
+                                onUpdateHealthRecords={onUpdateHealthRecords}
+                                issueLogs={issueLogs}
+                                onUpdateIssueLogs={onUpdateIssueLogs}
+                            />
+                        )}
 
-                    {activeTab === 'support' && (
-                        <SupportTab
-                            onOpenSupportModal={(type) => setSupportModal({ open: true, type })}
-                            supportRequests={supportRequests}
-                        />
-                    )}
-                </ContentWrapper>
+                        {activeTab === 'support' && (
+                            <SupportTab
+                                onOpenSupportModal={(type) => setSupportModal({ open: true, type })}
+                                supportRequests={supportRequests}
+                            />
+                        )}
+                    </ContentWrapper>
+                </div>
             </ScrollArea>
 
 

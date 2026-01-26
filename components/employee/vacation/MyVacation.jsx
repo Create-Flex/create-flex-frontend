@@ -1,8 +1,18 @@
 import React, { useState, useMemo } from 'react';
+import { VacationModal } from '../../modals/VacationModal';
 import {
     Plane, ArrowRight, Filter, Plus, Timer, CheckCircle2, XCircle,
     AlertCircle, MapPin, Gift, Info, X, Stethoscope
 } from 'lucide-react';
+import {
+    Container, TableContainer, ControlBar, FilterGroup, DateRangePicker, FilterLabel, DateInput,
+    SelectWrapper, TypeSelect, RequestButton, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
+    TypeBadge, StatusBadge, ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton,
+    ModalBody, ModalFooter, InfoLabel, InfoValue, DetailSection, DetailGrid, DetailInfoBox, DetailHeader, DetailRow,
+    PrimaryButton,
+    DetailDateRow, DetailDateItem, DateLabel, ReasonBox, RejectionBox, RejectionText,
+    SelectIcon, TruncatedContent, CenterContent, MonoText
+} from './MyVacation.styled';
 
 const getISODate = (date) => date.toISOString().split('T')[0];
 
@@ -19,7 +29,6 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
     const [vacationTypeFilter, setVacationTypeFilter] = useState('All');
 
     // 모달 상태
-    const [rejectionModalLog, setRejectionModalLog] = useState(null);
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
     const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
 
@@ -73,6 +82,7 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
             startDate: vacationForm.startDate,
             endDate: vacationForm.endDate,
             days: calculatedDays,
+            requestDate: new Date().toISOString().split('T')[0],
             status: '대기중',
             reason: vacationForm.reason || `${vacationForm.type} 신청`,
             location: vacationForm.location,
@@ -94,25 +104,22 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
     };
 
     return (
-        <div className="animate-[fadeIn_0.2s_ease-out]">
+        <Container>
             {/* Vacation Logs Table & Filters */}
+            <TableContainer>
+                <ControlBar>
+                    <FilterGroup>
+                        <DateRangePicker>
+                            <FilterLabel>기간</FilterLabel>
+                            <DateInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                            <ArrowRight size={14} color="#d1d5db" style={{ margin: '0 0.25rem' }} />
+                            <DateInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                        </DateRangePicker>
 
-            {/* Vacation Logs Table & Filters */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-20">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mr-1">기간</span>
-                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="text-sm bg-transparent focus:outline-none cursor-pointer" />
-                            <ArrowRight size={14} className="text-gray-300 mx-1" />
-                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-transparent focus:outline-none cursor-pointer" />
-                        </div>
-
-                        <div className="relative">
-                            <select
+                        <SelectWrapper>
+                            <TypeSelect
                                 value={vacationTypeFilter}
                                 onChange={(e) => setVacationTypeFilter(e.target.value)}
-                                className="pl-3 pr-9 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-black appearance-none cursor-pointer shadow-sm min-w-[140px]"
                             >
                                 <option value="All">모든 유형</option>
                                 <option value="연차">연차</option>
@@ -120,325 +127,173 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
                                 <option value="경조사">경조사</option>
                                 <option value="병가">병가</option>
                                 <option value="워케이션">워케이션</option>
-                            </select>
-                            <Filter size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        </div>
-                    </div>
+                            </TypeSelect>
+                            <SelectIcon>
+                                <Filter size={14} />
+                            </SelectIcon>
+                        </SelectWrapper>
+                    </FilterGroup>
 
-                    <button
-                        onClick={() => setIsVacationModalOpen(true)}
-                        className="text-xs bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5 font-bold shadow-sm"
-                    >
+                    <RequestButton onClick={() => setIsVacationModalOpen(true)}>
                         <Plus size={14} /> 휴가 신청
-                    </button>
-                </div>
+                    </RequestButton>
+                </ControlBar>
 
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-400 border-b border-gray-200 text-[11px] font-bold uppercase tracking-wider">
+                <Table>
+                    <TableHead>
                         <tr>
-                            <th className="px-6 py-4">휴가 기간</th>
-                            <th className="px-6 py-4">유형</th>
-                            <th className="px-6 py-4">사용 일수</th>
-                            <th className="px-6 py-4">사유</th>
-                            <th className="px-6 py-4 text-center">승인 상태</th>
+                            <TableHeaderCell>휴가 기간</TableHeaderCell>
+                            <TableHeaderCell>유형</TableHeaderCell>
+                            <TableHeaderCell>사용 일수</TableHeaderCell>
+                            <TableHeaderCell>신청 사유</TableHeaderCell>
+                            <TableHeaderCell $align="center">승인 상태</TableHeaderCell>
                         </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm">
+                    </TableHead>
+                    <TableBody>
                         {filteredVacations.map((log) => (
-                            <tr key={log.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedDetailLog(log)}>
-                                <td className="px-6 py-4 text-sm font-bold text-gray-900">{log.startDate} ~ {log.endDate}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[11px] px-2 py-0.5 rounded-full border font-bold ${log.type === '반차' ? 'bg-purple-50 border-purple-100 text-purple-700' : log.type === '워케이션' ? 'bg-indigo-50 border-indigo-100 text-indigo-700' : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
-                                        {log.type}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-800 font-bold">{log.days}일</td>
-                                <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-[200px]">{log.reason}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center justify-center">
-                                        {log.status === '반려됨' ? (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setRejectionModalLog(log); }}
-                                                className="text-red-500 text-[11px] font-bold flex items-center gap-1 hover:underline hover:text-red-600 transition-colors bg-red-50 px-2 py-1 rounded"
-                                            >
-                                                <XCircle size={12} /> 반려됨(반려 사유보기)
-                                            </button>
-                                        ) : log.status === '대기중' ? (
-                                            <span className="text-orange-600 text-[11px] font-bold flex items-center gap-1 bg-orange-50 px-2 py-1 rounded">
-                                                <Timer size={12} /> 승인대기중
-                                            </span>
-                                        ) : (
-                                            <span className="text-green-600 text-[11px] font-bold flex items-center gap-1 bg-green-50 px-2 py-1 rounded">
-                                                <CheckCircle2 size={12} /> {log.status}
-                                            </span>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
+                            <TableRow key={log.id} onClick={() => setSelectedDetailLog(log)}>
+                                <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
+                                <TableCell>
+                                    <TypeBadge $type={log.type}>{log.type}</TypeBadge>
+                                </TableCell>
+                                <TableCell $bold $color="#1f2937">{log.days}일</TableCell>
+                                <TableCell $color="#6b7280">
+                                    <TruncatedContent>{log.reason}</TruncatedContent>
+                                </TableCell>
+                                <TableCell>
+                                    <CenterContent>
+                                        <StatusBadge $status={log.status}>
+                                            {log.status === '대기중' && <Timer size={12} />}
+                                            {log.status === '승인됨' && <CheckCircle2 size={12} />}
+                                            {log.status === '반려됨' && <XCircle size={12} />}
+                                            {log.status === '대기중' ? '승인대기중' : log.status}
+                                        </StatusBadge>
+                                    </CenterContent>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 반려 사유 모달 */}
-            {rejectionModalLog && (
-                <div className="fixed inset-0 bg-black/30 z-[110] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setRejectionModalLog(null)}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border border-gray-200 animate-[fadeIn_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-red-50/30">
-                            <h3 className="font-bold text-gray-900 flex items-center gap-2"><AlertCircle size={18} className="text-red-500" /> 반려 사유 확인</h3>
-                            <button onClick={() => setRejectionModalLog(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        </div>
-                        <div className="p-6">
-                            <div className="mb-4">
-                                <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">신청 정보</div>
-                                <div className="text-sm font-bold text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                                    {rejectionModalLog.type} | {rejectionModalLog.startDate}
-                                </div>
-                            </div>
-                            <div>
-                                <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">인사 운영자 반려 사유</div>
-                                <div className="text-sm text-gray-700 leading-relaxed bg-red-50/50 p-4 rounded-lg border border-red-100 min-h-[80px]">
-                                    {rejectionModalLog.rejectionReason}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                            <button onClick={() => setRejectionModalLog(null)} className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 font-bold transition-colors shadow-sm">확인</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             {/* 휴가 상세 내역 모달 */}
             {selectedDetailLog && (
-                <div className="fixed inset-0 bg-black/40 z-[105] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedDetailLog(null)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 animate-[fadeIn_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <div className="flex items-center gap-2">
-                                <Plane size={20} className="text-blue-600" />
-                                <h3 className="font-bold text-gray-900 text-lg">휴가 신청 상세</h3>
-                            </div>
-                            <button onClick={() => setSelectedDetailLog(null)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-200 rounded-full transition-colors"><X size={20} /></button>
-                        </div>
+                <ModalOverlay $zIndex={105} onClick={() => setSelectedDetailLog(null)}>
+                    <ModalContent $maxWidth="28rem" onClick={e => e.stopPropagation()}>
+                        <ModalHeader $bg="#f9fafb">
+                            <ModalTitle>
+                                <Plane size={20} color="#2563eb" /> 휴가 신청 상세
+                            </ModalTitle>
+                            <CloseButton onClick={() => setSelectedDetailLog(null)}><X size={20} /></CloseButton>
+                        </ModalHeader>
 
-                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
-                            <div className="grid grid-cols-2 gap-6">
+                        <ModalBody>
+                            <DetailGrid>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 tracking-wider">휴가 종류</label>
-                                    <div className="text-sm font-bold text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                        {selectedDetailLog.type}
-                                    </div>
+                                    <InfoLabel>휴가 종류</InfoLabel>
+                                    <InfoValue>
+                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>{selectedDetailLog.type}
+                                    </InfoValue>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 tracking-wider">신청 상태</label>
-                                    <div className={`text-xs font-bold px-3 py-2 rounded-lg border flex items-center gap-2 ${selectedDetailLog.status === '승인됨' ? 'bg-green-50 text-green-700 border-green-100' :
-                                        selectedDetailLog.status === '대기중' ? 'bg-orange-50 text-orange-700 border-orange-100' :
-                                            'bg-red-50 text-red-700 border-red-100'
-                                        }`}>
+                                    <InfoLabel>신청 상태</InfoLabel>
+                                    <StatusBadge $status={selectedDetailLog.status}>
                                         {selectedDetailLog.status === '대기중' ? '승인대기중' : selectedDetailLog.status}
-                                    </div>
+                                    </StatusBadge>
                                 </div>
+                            </DetailGrid>
+
+                            <div className="mt-6">
+                                <InfoLabel>휴가 기간</InfoLabel>
+                                <InfoValue>
+                                    <DetailDateRow>
+                                        <DetailDateItem>
+                                            <DateLabel>시작일</DateLabel>
+                                            <span>{selectedDetailLog.startDate}</span>
+                                        </DetailDateItem>
+                                        <ArrowRight size={16} color="#d1d5db" />
+                                        <DetailDateItem $align="right">
+                                            <DateLabel>종료일</DateLabel>
+                                            <span>{selectedDetailLog.endDate}</span>
+                                        </DetailDateItem>
+                                    </DetailDateRow>
+                                </InfoValue>
                             </div>
 
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 tracking-wider">휴가 기간</label>
-                                <div className="text-sm font-bold text-gray-900 bg-white border border-gray-200 px-4 py-3 rounded-xl flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] text-gray-400 mb-0.5">시작일</span>
-                                        <span>{selectedDetailLog.startDate}</span>
-                                    </div>
-                                    <ArrowRight size={16} className="text-gray-300" />
-                                    <div className="flex flex-col text-right">
-                                        <span className="text-[10px] text-gray-400 mb-0.5">종료일</span>
-                                        <span>{selectedDetailLog.endDate}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 tracking-wider">신청 사유</label>
-                                <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100 leading-relaxed min-h-[60px]">
+                            <div className="mt-6">
+                                <InfoLabel>신청 사유</InfoLabel>
+                                <ReasonBox>
                                     {selectedDetailLog.reason || '입력된 사유가 없습니다.'}
-                                </div>
+                                </ReasonBox>
                             </div>
 
-                            {selectedDetailLog.type === '워케이션' && (
-                                <div className="space-y-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
-                                    <h4 className="text-xs font-bold text-blue-700 flex items-center gap-1.5"><Info size={14} /> 워케이션 상세 내역</h4>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-500">근무 장소</span>
-                                            <span className="font-bold text-gray-900">{selectedDetailLog.location || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-500">비상 연락망</span>
-                                            <span className="font-mono text-gray-900">{selectedDetailLog.emergencyContact || '-'}</span>
-                                        </div>
-                                        <div className="flex flex-col gap-1 pt-1 border-t border-blue-100/50">
-                                            <span className="text-xs text-gray-500">업무 목표</span>
-                                            <p className="text-xs text-gray-700 leading-relaxed">{selectedDetailLog.workGoals || '-'}</p>
-                                        </div>
-                                        <div className="flex flex-col gap-1 pt-1 border-t border-blue-100/50">
-                                            <span className="text-xs text-gray-500">업무 인계 사항</span>
-                                            <p className="text-xs text-gray-700 leading-relaxed">{selectedDetailLog.handover || '-'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {selectedDetailLog.type === '병가' && (
-                                <div className="space-y-3 p-4 bg-green-50/50 rounded-xl border border-green-100">
-                                    <h4 className="text-xs font-bold text-green-700 flex items-center gap-1.5"><Stethoscope size={14} /> 병가 상세 내역</h4>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">증상/사유</span>
-                                        <span className="font-bold text-gray-900">{selectedDetailLog.symptoms || '-'}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">진료 병원</span>
-                                        <span className="font-bold text-gray-900">{selectedDetailLog.hospital || '-'}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {selectedDetailLog.type === '경조사' && (
-                                <div className="space-y-3 p-4 bg-purple-50/50 rounded-xl border border-purple-100">
-                                    <h4 className="text-xs font-bold text-purple-700 flex items-center gap-1.5"><Gift size={14} /> 경조사 상세 내역</h4>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">대상(관계)</span>
-                                        <span className="font-bold text-gray-900">{selectedDetailLog.relationship || '-'}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">경조 내용</span>
-                                        <span className="font-bold text-gray-900">{selectedDetailLog.eventType || '-'}</span>
-                                    </div>
-                                </div>
-                            )}
+                            <div className="mt-6">
+                                {selectedDetailLog.type === '워케이션' && (
+                                    <DetailInfoBox $type="워케이션">
+                                        <DetailHeader $color="#1d4ed8"><Info size={14} /> 워케이션 상세 내역</DetailHeader>
+                                        <DetailRow>
+                                            <span>근무 장소</span><span>{selectedDetailLog.location || '-'}</span>
+                                        </DetailRow>
+                                        <DetailRow>
+                                            <span>비상 연락망</span><MonoText>{selectedDetailLog.emergencyContact || '-'}</MonoText>
+                                        </DetailRow>
+                                        <DetailRow $col $border $pt>
+                                            <span>업무 목표</span><span>{selectedDetailLog.workGoals || '-'}</span>
+                                        </DetailRow>
+                                        <DetailRow $col $border $pt>
+                                            <span>업무 인계 사항</span><span>{selectedDetailLog.handover || '-'}</span>
+                                        </DetailRow>
+                                    </DetailInfoBox>
+                                )}
+                                {selectedDetailLog.type === '병가' && (
+                                    <DetailInfoBox $type="병가">
+                                        <DetailHeader $color="#15803d"><Stethoscope size={14} /> 병가 상세 내역</DetailHeader>
+                                        <DetailRow>
+                                            <span>증상/사유</span><span>{selectedDetailLog.symptoms || '-'}</span>
+                                        </DetailRow>
+                                        <DetailRow>
+                                            <span>진료 병원</span><span>{selectedDetailLog.hospital || '-'}</span>
+                                        </DetailRow>
+                                    </DetailInfoBox>
+                                )}
+                                {selectedDetailLog.type === '경조사' && (
+                                    <DetailInfoBox $type="경조사">
+                                        <DetailHeader $color="#7e22ce"><Gift size={14} /> 경조사 상세 내역</DetailHeader>
+                                        <DetailRow>
+                                            <span>대상(관계)</span><span>{selectedDetailLog.relationship || '-'}</span>
+                                        </DetailRow>
+                                        <DetailRow>
+                                            <span>경조 내용</span><span>{selectedDetailLog.eventType || '-'}</span>
+                                        </DetailRow>
+                                    </DetailInfoBox>
+                                )}
+                            </div>
 
                             {selectedDetailLog.status === '반려됨' && selectedDetailLog.rejectionReason && (
-                                <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-                                    <h4 className="text-xs font-bold text-red-700 mb-2 flex items-center gap-1.5"><AlertCircle size={14} /> 관리자 반려 사유</h4>
-                                    <p className="text-xs text-red-800 leading-relaxed font-medium">
+                                <RejectionBox>
+                                    <DetailHeader $color="#b91c1c"><AlertCircle size={14} /> 관리자 반려 사유</DetailHeader>
+                                    <RejectionText>
                                         {selectedDetailLog.rejectionReason}
-                                    </p>
-                                </div>
+                                    </RejectionText>
+                                </RejectionBox>
                             )}
-                        </div>
-
-                        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
-                            <button
-                                onClick={() => setSelectedDetailLog(null)}
-                                className="px-6 py-2.5 text-sm bg-black text-white rounded-xl hover:bg-gray-800 font-bold transition-all shadow-md active:scale-95"
-                            >
-                                닫기
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                        </ModalBody>
+                        <ModalFooter>
+                            <PrimaryButton onClick={() => setSelectedDetailLog(null)}>닫기</PrimaryButton>
+                        </ModalFooter>
+                    </ModalContent>
+                </ModalOverlay>
             )}
 
-            {/* 휴가 신청 모달 */}
             {isVacationModalOpen && (
-                <div className="fixed inset-0 bg-black/30 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsVacationModalOpen(false)}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-gray-900">휴가 신청</h3>
-                            <button onClick={() => setIsVacationModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">휴가 종류</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['연차', '반차', '경조사', '병가', '워케이션'].map(type => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setVacationForm({ ...vacationForm, type })}
-                                            className={`py-2 rounded-lg text-sm border transition-all ${vacationForm.type === type ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold shadow-sm' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-                                        >
-                                            {type}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {vacationForm.type === '워케이션' && (
-                                <div className="space-y-4 p-4 bg-blue-50/30 rounded-lg border border-blue-100 animate-[fadeIn_0.2s]">
-                                    <h4 className="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1"><MapPin size={12} /> 워케이션 필수 정보</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">근무 장소</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white" placeholder="예: 제주 오피스" value={vacationForm.location} onChange={e => setVacationForm({ ...vacationForm, location: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">비상 연락망</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white" placeholder="예: 010-0000-0000" value={vacationForm.emergencyContact} onChange={e => setVacationForm({ ...vacationForm, emergencyContact: e.target.value })} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5">업무 계획 및 목표</label>
-                                        <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white resize-none" rows={2} placeholder="기간 내 달성할 주요 목표를 입력하세요" value={vacationForm.workGoals} onChange={e => setVacationForm({ ...vacationForm, workGoals: e.target.value })} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5">업무 인계 사항</label>
-                                        <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white resize-none" rows={2} placeholder="부재 시 비상 대응 담당자 및 인계 내용을 입력하세요" value={vacationForm.handover} onChange={e => setVacationForm({ ...vacationForm, handover: e.target.value })} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {vacationForm.type === '경조사' && (
-                                <div className="space-y-4 p-4 bg-purple-50/30 rounded-lg border border-purple-100 animate-[fadeIn_0.2s]">
-                                    <h4 className="text-xs font-bold text-purple-700 mb-2 flex items-center gap-1"><Gift size={12} /> 경조사 필수 정보</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">대상(관계)</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 본인, 부모 등" value={vacationForm.relationship} onChange={e => setVacationForm({ ...vacationForm, relationship: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">경조 내용</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 결혼, 장례 등" value={vacationForm.eventType} onChange={e => setVacationForm({ ...vacationForm, eventType: e.target.value })} />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {vacationForm.type === '병가' && (
-                                <div className="space-y-4 p-4 bg-green-50/30 rounded-lg border border-green-100 animate-[fadeIn_0.2s]">
-                                    <h4 className="text-xs font-bold text-green-700 mb-2 flex items-center gap-1"><Stethoscope size={14} /> 병가 필수 정보</h4>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5">증상 및 사유</label>
-                                        <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 독감으로 인한 고열 및 몸살" value={vacationForm.symptoms} onChange={e => setVacationForm({ ...vacationForm, symptoms: e.target.value })} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5">진료 예정 병원</label>
-                                        <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 강남세브란스병원" value={vacationForm.hospital} onChange={e => setVacationForm({ ...vacationForm, hospital: e.target.value })} />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">시작일</label>
-                                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black" value={vacationForm.startDate} onChange={e => setVacationForm({ ...vacationForm, startDate: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">종료일</label>
-                                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black" value={vacationForm.endDate} onChange={e => setVacationForm({ ...vacationForm, endDate: e.target.value })} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">상세 사유 (선택)</label>
-                                <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-black" rows={3} placeholder="추가적인 사유가 있다면 입력하세요" value={vacationForm.reason} onChange={e => setVacationForm({ ...vacationForm, reason: e.target.value })} />
-                            </div>
-                        </div>
-
-                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 sticky bottom-0">
-                            <button onClick={() => setIsVacationModalOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition-colors">취소</button>
-                            <button onClick={handleVacationSubmit} className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 font-bold shadow-sm transition-colors">신청 완료</button>
-                        </div>
-                    </div>
-                </div>
+                <VacationModal
+                    isOpen={isVacationModalOpen}
+                    onClose={() => setIsVacationModalOpen(false)}
+                    form={vacationForm}
+                    setForm={setVacationForm}
+                    onSubmit={handleVacationSubmit}
+                />
             )}
-        </div>
+        </Container>
     );
 };

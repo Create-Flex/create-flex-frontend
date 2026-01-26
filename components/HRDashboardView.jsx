@@ -5,6 +5,14 @@ import { HealthManagement } from './hr/HealthManagement';
 import { VacationManagement } from './hr/VacationManagement';
 import { TeamManagement } from './hr/TeamManagement';
 import { SupportManagement } from './hr/SupportManagement';
+import {
+    DashboardContainer,
+    InnerContainer,
+    HeaderSection,
+    Title,
+    Description,
+    ContentSection
+} from './HRDashboardView.styled';
 
 export const HRDashboardView = ({
     vacationLogs = [],
@@ -71,17 +79,17 @@ export const HRDashboardView = ({
     };
 
     return (
-        <div className="flex-1 h-screen overflow-y-auto bg-white relative">
-            <div className="max-w-[1600px] mx-auto">
-                <div className="px-8 pt-8 mb-8 border-b border-gray-100 pb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{getTitle()}</h1>
-                    <p className="text-gray-500 text-sm">{getDescription()}</p>
-                </div>
+        <DashboardContainer>
+            <InnerContainer>
+                <HeaderSection>
+                    <Title>{getTitle()}</Title>
+                    <Description>{getDescription()}</Description>
+                </HeaderSection>
 
-                <div className="p-8 pt-2">
+                <ContentSection>
                     {renderContent()}
-                </div>
-            </div>
-        </div>
+                </ContentSection>
+            </InnerContainer>
+        </DashboardContainer>
     );
 };

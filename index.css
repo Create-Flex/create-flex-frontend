@@ -1,5 +1,2 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Additional global styles can be added here */
+/* Tailwind directives removed */
+/* Global styles are now handled by GlobalStyles.js via styled-components */

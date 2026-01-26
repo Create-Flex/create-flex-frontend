@@ -1,7 +1,9 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { getCreatorColorStyles } from './utils';
-import { PALETTE } from './constants';
+import {
+    CalendarContainer, CalendarHeader, NavGroup, MonthNav, NavButton, Title, TodayButton, Legend, LegendItem, LegendDot,
+    GridHeader, DayHeaderCell, GridBody, DayCell, DateRow, DateNum, AddIconWrapper, EventList, EventItem, EventContent, EventDot, EventText
+} from './Calendar.styled';
 
 export const CreatorCalendar = ({
     events,
@@ -30,7 +32,7 @@ export const CreatorCalendar = ({
 
     // Empty slots
     for (let i = 0; i < firstDay; i++) {
-        days.push(<div key={`empty-${i}`} className="min-h-[120px] bg-white border-r border-b border-gray-200"></div>);
+        days.push(<DayCell key={`empty-${i}`} style={{ backgroundColor: 'white', cursor: 'default' }} />);
     }
 
     // Days
@@ -40,59 +42,50 @@ export const CreatorCalendar = ({
         const dayEvents = events.filter(e => e.date === dateStr);
 
         days.push(
-            <div
+            <DayCell
                 key={d}
                 onClick={() => !readOnly && onAddEvent(dateStr)} // Whole cell clickable
-                className={`min-h-[120px] bg-white border-r border-b border-gray-200 p-1 relative group transition-colors ${!readOnly ? 'hover:bg-gray-50 cursor-pointer' : ''}`}
+                $readOnly={readOnly}
             >
                 {/* Date Header */}
-                <div className="flex justify-between items-start mb-1 p-1">
-                    <span
-                        className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-[4px]
-                        ${isToday ? 'bg-[#00C471] text-white' : 'text-gray-500'}`}
-                    >
+                <DateRow>
+                    <DateNum $isToday={isToday}>
                         {d}
-                    </span>
+                    </DateNum>
                     {!readOnly && (
-                        <div className="opacity-0 group-hover:opacity-100 text-[#00C471] transition-opacity p-0.5">
+                        <AddIconWrapper>
                             <Plus size={14} />
-                        </div>
+                        </AddIconWrapper>
                     )}
-                </div>
+                </DateRow>
 
                 {/* Events */}
-                <div className="space-y-1 px-1">
+                <EventList>
                     {dayEvents.map(evt => {
                         const creator = creatorsMap[evt.creatorId];
-                        const styles = creator ? getCreatorColorStyles(creator.id) : PALETTE[0];
-
                         return (
-                            <div
+                            <EventItem
                                 key={evt.id}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent onAddEvent trigger
                                     onEventClick(evt);
                                 }}
-                                className={`
-                                    px-2 py-1 rounded-[3px] text-xs flex justify-between items-center group/item cursor-pointer shadow-sm
-                                    transition-all hover:brightness-95 border
-                                    ${styles.bg} ${styles.text} ${styles.border}
-                                `}
+                                $creatorId={creator?.id}
                             >
-                                <div className="truncate font-medium flex items-center gap-1.5">
-                                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${styles.dot}`}></div>
-                                    <span className="truncate">
+                                <EventContent>
+                                    <EventDot $creatorId={creator?.id} />
+                                    <EventText>
                                         {creator?.name} -
                                         {evt.type === 'meeting' ? ' [미팅]' :
                                             evt.type === 'live' ? ' [라이브]' :
                                                 evt.type === 'joint' && !evt.title.includes('[합방]') ? ' [합방]' : ''} {evt.title}
-                                    </span>
-                                </div>
-                            </div>
+                                    </EventText>
+                                </EventContent>
+                            </EventItem>
                         );
                     })}
-                </div>
-            </div>
+                </EventList>
+            </DayCell>
         );
     }
 
@@ -100,52 +93,51 @@ export const CreatorCalendar = ({
     const legendList = legendCreators || Object.values(creatorsMap);
 
     return (
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+        <CalendarContainer>
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                        <button onClick={(e) => { e.stopPropagation(); changeMonth(-1); }} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"><ChevronLeft size={18} /></button>
-                        <span className="text-lg font-bold text-gray-800 min-w-[120px] text-center">
+            <CalendarHeader>
+                <NavGroup>
+                    <MonthNav>
+                        <NavButton onClick={(e) => { e.stopPropagation(); changeMonth(-1); }}>
+                            <ChevronLeft size={18} />
+                        </NavButton>
+                        <Title>
                             {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
-                        </span>
-                        <button onClick={(e) => { e.stopPropagation(); changeMonth(1); }} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"><ChevronRight size={18} /></button>
-                    </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); goToToday(); }}
-                        className="text-xs text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-md shadow-sm transition-all"
-                    >
+                        </Title>
+                        <NavButton onClick={(e) => { e.stopPropagation(); changeMonth(1); }}>
+                            <ChevronRight size={18} />
+                        </NavButton>
+                    </MonthNav>
+                    <TodayButton onClick={(e) => { e.stopPropagation(); goToToday(); }}>
                         오늘
-                    </button>
-                </div>
+                    </TodayButton>
+                </NavGroup>
 
                 {/* Creator Legend */}
-                <div className="flex gap-3 text-xs overflow-x-auto max-w-[500px] py-1 scrollbar-hide">
-                    {legendList.map((c) => {
-                        const style = getCreatorColorStyles(c.id);
-                        return (
-                            <div key={c.id} className="flex items-center gap-1 text-gray-600 shrink-0">
-                                <div className={`w-2 h-2 rounded-full ${style.dot}`}></div>
-                                {c.name}
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
+                <Legend>
+                    {legendList.map((c) => (
+                        <LegendItem key={c.id}>
+                            <LegendDot $id={c.id} />
+                            {c.name}
+                        </LegendItem>
+                    ))}
+                </Legend>
+            </CalendarHeader>
 
             {/* Grid Header */}
-            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+            <GridHeader>
                 {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
-                    <div key={day} className={`py-2 text-center text-xs font-medium ${i === 0 ? 'text-[#00C471]' : 'text-gray-500'}`}>
+                    <DayHeaderCell key={day} $isSunday={i === 0}>
                         {day}
-                    </div>
+                    </DayHeaderCell>
                 ))}
-            </div>
+            </GridHeader>
 
             {/* Grid Body */}
-            <div className="grid grid-cols-7">
+            <GridBody>
                 {days}
-            </div>
-        </div>
+            </GridBody>
+        </CalendarContainer>
     );
 };
+

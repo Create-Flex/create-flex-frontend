@@ -7,6 +7,7 @@ import { getCreatorColorStyles } from './creator/shared/utils';
 import { CalendarIcon, Activity, CheckSquare, ClipboardList, X, Trash2, Plus, Search, Check, Users } from 'lucide-react';
 import { CreatorSchedule } from './creator/schedule/CreatorSchedule';
 import { CreatorHealth } from './creator/health/CreatorHealth';
+import * as S from './CreatorManagerView.styled';
 
 // --- Creator Self View (Refactored) ---
 const CreatorSelfView = ({
@@ -26,9 +27,9 @@ const CreatorSelfView = ({
 
     if (!myCreator) {
         return (
-            <div className="flex-1 h-screen flex items-center justify-center text-gray-500">
+            <S.MessageContainer>
                 연결된 크리에이터 정보를 찾을 수 없습니다.
-            </div>
+            </S.MessageContainer>
         );
     }
 

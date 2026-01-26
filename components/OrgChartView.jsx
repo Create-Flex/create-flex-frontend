@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Phone, Building, Users, ChevronRight, X, User, Plus, Edit3, Trash2 } from 'lucide-react';
 import { UserRole } from '../enums';
+import * as S from './OrgChartView.styled';
 
 // Color Palette for Departments
 const DEPT_COLORS = [
@@ -88,226 +89,218 @@ export const OrgChartView = ({ user, departments, employees, onUpdateDepartments
     };
 
     return (
-        <div className="flex-1 h-screen overflow-y-auto bg-white p-8">
-            <div className="max-w-[1600px] mx-auto">
+        <S.Container>
+            <S.ContentWrapper>
                 {/* Header */}
-                <div className="flex justify-between items-end mb-10">
+                <S.Header>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-                            <Building className="text-gray-800" size={32} /> 회사 조직도
-                        </h1>
-                        <p className="text-sm text-gray-500">
+                        <S.Title>
+                            <Building color="#1f2937" size={32} /> 회사 조직도
+                        </S.Title>
+                        <S.SubTitle>
                             부서별 연락처 및 구성원을 확인할 수 있습니다.
-                        </p>
+                        </S.SubTitle>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <S.HeaderActions>
                         {/* Search */}
-                        <div className="relative group">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gray-600" />
-                            <input
+                        <S.SearchInputWrapper>
+                            <S.SearchIconWrapper>
+                                <Search size={16} />
+                            </S.SearchIconWrapper>
+                            <S.SearchInput
                                 type="text"
                                 placeholder="부서명 검색..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg w-64 focus:outline-none focus:border-gray-400 focus:bg-white transition-all"
                             />
-                        </div>
+                        </S.SearchInputWrapper>
 
                         {isAdmin && (
-                            <button
-                                onClick={handleOpenAdd}
-                                className="flex items-center gap-1 bg-black text-white px-3 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-gray-800 transition-colors"
-                            >
+                            <S.AddButton onClick={handleOpenAdd}>
                                 <Plus size={16} /> 조직 추가
-                            </button>
+                            </S.AddButton>
                         )}
-                    </div>
-                </div>
+                    </S.HeaderActions>
+                </S.Header>
 
                 {/* Department Card Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-[fadeIn_0.2s_ease-out]">
+                <S.DeptGrid>
                     {filteredDepartments.map((dept) => {
                         const memberCount = getDeptMembers(dept.name).length;
 
                         return (
-                            <div
+                            <S.DeptCard
                                 key={dept.id}
                                 onClick={() => setSelectedDept(dept)}
-                                className="group bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 flex flex-col h-full relative"
                             >
                                 {/* Color Bar */}
-                                <div className={`h-2 w-full ${dept.color}`}></div>
+                                <S.DeptColorBar className={dept.color}></S.DeptColorBar>
 
-                                <div className="p-6 flex-1 flex flex-col">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className={`p-3 rounded-xl bg-gray-50 text-gray-700 group-hover:bg-gray-100 transition-colors`}>
+                                <S.DeptContent>
+                                    <S.DeptHeader>
+                                        <S.DeptIcon>
                                             <Building size={24} />
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg text-xs font-bold text-gray-600">
+                                        </S.DeptIcon>
+                                        <S.DeptMeta>
+                                            <S.MemberBadge>
                                                 <Users size={12} />
                                                 <span>{memberCount}명</span>
-                                            </div>
+                                            </S.MemberBadge>
                                             {isAdmin && (
-                                                <button
+                                                <S.EditButton
                                                     onClick={(e) => handleOpenEdit(dept, e)}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                                     title="수정"
                                                 >
                                                     <Edit3 size={14} />
-                                                </button>
+                                                </S.EditButton>
                                             )}
-                                        </div>
-                                    </div>
+                                        </S.DeptMeta>
+                                    </S.DeptHeader>
 
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">{dept.name}</h3>
-                                    <p className="text-xs text-gray-500 mb-6 line-clamp-2 flex-1">{dept.description}</p>
+                                    <S.DeptName>{dept.name}</S.DeptName>
+                                    <S.DeptDescription>{dept.description}</S.DeptDescription>
 
-                                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Phone size={14} className="text-gray-400" />
-                                            <span className="font-mono">{dept.phone}</span>
-                                        </div>
-                                        <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-600 transition-colors" />
-                                    </div>
-                                </div>
-                            </div>
+                                    <S.DeptFooter>
+                                        <S.DeptPhone>
+                                            <Phone size={14} color="#9ca3af" />
+                                            <span>{dept.phone}</span>
+                                        </S.DeptPhone>
+                                        <ChevronRight size={16} color="#d1d5db" />
+                                    </S.DeptFooter>
+                                </S.DeptContent>
+                            </S.DeptCard>
                         );
                     })}
-                </div>
-            </div>
+                </S.DeptGrid>
+            </S.ContentWrapper>
 
             {/* Member List Modal */}
             {selectedDept && (
-                <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedDept(null)}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-200 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <S.ModalOverlay onClick={() => setSelectedDept(null)}>
+                    <S.ModalContainer onClick={e => e.stopPropagation()}>
                         {/* Modal Header */}
-                        <div className={`px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50`}>
+                        <S.ModalHeader>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <S.ModalTitle>
                                     {selectedDept.name}
-                                </h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                    <span className="flex items-center gap-1"><Phone size={12} /> {selectedDept.phone}</span>
-                                    <span className="w-px h-3 bg-gray-300"></span>
+                                </S.ModalTitle>
+                                <S.ModalMeta>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Phone size={12} /> {selectedDept.phone}</span>
+                                    <span style={{ width: '1px', height: '0.75rem', backgroundColor: '#d1d5db' }}></span>
                                     <span>총 {getDeptMembers(selectedDept.name).length}명</span>
-                                </div>
+                                </S.ModalMeta>
                             </div>
-                            <button onClick={() => setSelectedDept(null)} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                            <S.CloseButton onClick={() => setSelectedDept(null)}>
                                 <X size={20} />
-                            </button>
-                        </div>
+                            </S.CloseButton>
+                        </S.ModalHeader>
 
                         {/* Modal Body (List) */}
-                        <div className="overflow-y-auto p-6 flex-1">
+                        <S.ModalBody>
                             {getDeptMembers(selectedDept.name).length > 0 ? (
-                                <div className="space-y-3">
+                                <S.MemberList>
                                     {getDeptMembers(selectedDept.name).map(member => (
-                                        <div key={member.id} className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors bg-white shadow-sm">
-                                            <div className="w-12 h-12 rounded-full border border-gray-200 overflow-hidden flex-shrink-0 bg-gray-50 flex items-center justify-center">
+                                        <S.MemberItem key={member.id}>
+                                            <S.Avatar>
                                                 {member.avatarUrl ? (
-                                                    <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                                                    <img src={member.avatarUrl} alt={member.name} />
                                                 ) : (
-                                                    <User className="text-gray-400" size={20} />
+                                                    <User color="#9ca3af" size={20} />
                                                 )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <span className="font-bold text-gray-900">{member.name}</span>
-                                                    <span className="text-xs text-gray-400">({member.engName})</span>
-                                                </div>
-                                                <div className="text-sm text-gray-600 font-medium">{member.role}</div>
-                                            </div>
+                                            </S.Avatar>
+                                            <S.MemberInfo>
+                                                <S.MemberNameRow>
+                                                    <S.MemberName>{member.name}</S.MemberName>
+                                                    <S.MemberEngName>({member.engName})</S.MemberEngName>
+                                                </S.MemberNameRow>
+                                                <S.MemberRole>{member.role}</S.MemberRole>
+                                            </S.MemberInfo>
                                             <div>
-                                                {member.workStatus === '출근' && <span className="px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded">출근</span>}
-                                                {member.workStatus === '퇴근' && <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded">퇴근</span>}
-                                                {member.workStatus === '휴가' && <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded">휴가</span>}
-                                                {member.workStatus === '병가' && <span className="px-2 py-1 bg-red-50 text-red-700 text-xs font-bold rounded">병가</span>}
+                                                <S.StatusBadge $status={member.workStatus}>
+                                                    {member.workStatus}
+                                                </S.StatusBadge>
                                             </div>
-                                        </div>
+                                        </S.MemberItem>
                                     ))}
-                                </div>
+                                </S.MemberList>
                             ) : (
-                                <div className="h-40 flex flex-col items-center justify-center text-gray-400">
-                                    <Users size={40} className="mb-2 opacity-50" />
-                                    <p className="text-sm">소속된 부서원이 없습니다.</p>
-                                </div>
+                                <S.EmptyState>
+                                    <Users size={40} color="#d1d5db" />
+                                    <p>소속된 부서원이 없습니다.</p>
+                                </S.EmptyState>
                             )}
-                        </div>
+                        </S.ModalBody>
 
                         {/* Modal Footer (Delete Button) */}
                         {isAdmin && (
-                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                                <button
+                            <div style={{ padding: '1rem', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end' }}>
+                                <S.DeleteButton
                                     onClick={() => handleDeleteDepartment(selectedDept.id)}
-                                    className="flex items-center gap-1.5 px-4 py-2 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition-colors"
                                 >
                                     <Trash2 size={16} /> 부서 삭제
-                                </button>
+                                </S.DeleteButton>
                             </div>
                         )}
-                    </div>
-                </div>
+                    </S.ModalContainer>
+                </S.ModalOverlay>
             )}
 
             {/* Add/Edit Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/30 z-[60] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-900">{modalMode === 'add' ? '새 조직 추가' : '조직 정보 수정'}</h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5">조직 이름</label>
-                                <input
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
+                <S.ModalOverlay onClick={() => setIsModalOpen(false)}>
+                    <S.ModalContainer onClick={e => e.stopPropagation()} $maxWidth="28rem">
+                        <S.ModalHeader>
+                            <h3 style={{ fontWeight: 700, color: '#111827' }}>{modalMode === 'add' ? '새 조직 추가' : '조직 정보 수정'}</h3>
+                            <S.CloseButton onClick={() => setIsModalOpen(false)}><X size={20} /></S.CloseButton>
+                        </S.ModalHeader>
+                        <S.FormContainer>
+                            <S.FormField>
+                                <S.Label>조직 이름</S.Label>
+                                <S.Input
                                     placeholder="예: 마케팅팀 (Marketing)"
                                     value={deptForm.name}
                                     onChange={e => setDeptForm({ ...deptForm, name: e.target.value })}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5">조직 설명</label>
-                                <textarea
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black h-20 resize-none"
+                            </S.FormField>
+                            <S.FormField>
+                                <S.Label>조직 설명</S.Label>
+                                <S.TextArea
                                     placeholder="조직의 역할과 업무에 대해 설명해주세요."
                                     value={deptForm.description}
                                     onChange={e => setDeptForm({ ...deptForm, description: e.target.value })}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5">대표 전화번호</label>
-                                <input
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
+                            </S.FormField>
+                            <S.FormField>
+                                <S.Label>대표 전화번호</S.Label>
+                                <S.Input
                                     placeholder="예: 02-1234-5678"
                                     value={deptForm.phone}
                                     onChange={e => setDeptForm({ ...deptForm, phone: e.target.value })}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5">테마 색상</label>
-                                <div className="flex flex-wrap gap-2">
+                            </S.FormField>
+                            <S.FormField>
+                                <S.Label>테마 색상</S.Label>
+                                <S.ColorGrid>
                                     {DEPT_COLORS.map((c) => (
-                                        <button
+                                        <S.ColorButton
                                             key={c.value}
                                             onClick={() => setDeptForm({ ...deptForm, color: c.value })}
-                                            className={`w-6 h-6 rounded-full ${c.value} border-2 ${deptForm.color === c.value ? 'border-black scale-110 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'} transition-all`}
+                                            className={c.value}
+                                            $isSelected={deptForm.color === c.value}
                                             title={c.label}
                                         />
                                     ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
-                            <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition-colors">취소</button>
-                            <button onClick={handleSave} className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 font-bold shadow-sm transition-colors">저장</button>
-                        </div>
-                    </div>
-                </div>
+                                </S.ColorGrid>
+                            </S.FormField>
+                        </S.FormContainer>
+                        <S.ModalFooter>
+                            <S.FooterButton onClick={() => setIsModalOpen(false)}>취소</S.FooterButton>
+                            <S.FooterButton $primary onClick={handleSave}>저장</S.FooterButton>
+                        </S.ModalFooter>
+                    </S.ModalContainer>
+                </S.ModalOverlay>
             )}
-        </div>
+        </S.Container>
     );
 };

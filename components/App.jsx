@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { GlobalStyles } from './GlobalStyles';
+import * as S from './App.styled';
 /* Fix: Corrected relative paths for components in the same directory */
-import { Login } from './Login';
+import { Login } from './auth/login/Login';
 import { Sidebar } from './Sidebar';
 import { ProfileView } from './ProfileView';
 import { ScheduleView } from './ScheduleView';
@@ -16,9 +18,9 @@ import {
     INITIAL_TEAMS, INITIAL_EMPLOYEES, INITIAL_HEALTH_RECORDS, INITIAL_SCHEDULE_EVENTS, INITIAL_SCHEDULE_TEMPLATES,
     INITIAL_DEPARTMENTS
 } from '../constants';
-/* Fix: Corrected relative path for CreatorShared in the same directory */
 import { INITIAL_CREATORS, INITIAL_EVENTS, INITIAL_TASKS } from './creator/shared/constants';
 import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift } from 'lucide-react';
+import { VacationModal } from './modals/VacationModal';
 
 const INITIAL_CREATOR_HEALTH = [
     { id: '1', name: '슈카월드', lastCheck: '2023-12-10', score: 95, result: '정상', status: '재직중' },
@@ -287,226 +289,138 @@ function App() {
     const creatorTasks = isCreator && user.id ? allTasks.filter(t => t.creatorId === user.id) : [];
 
     return (
-        <div className="flex h-screen bg-white relative">
-            <Sidebar
-                user={user}
-                userProfile={userProfile}
-                onLogout={handleLogout}
-                currentView={currentView}
-                onNavigate={setCurrentView}
-                currentDate={currentDate}
-                onDateChange={setCurrentDate}
-                pendingApprovals={vacationLogs.filter(v => v.status === '대기중' && v.type !== '워케이션').length}
-                onOpenVacationModal={() => setIsVacationModalOpen(true)}
-                onOpenPhqModal={() => setIsPhqModalOpen(true)}
-                attendanceLogs={attendanceLogs}
-                onAddAttendanceLog={handleAddAttendanceLog}
-            />
-
-            {currentView === 'mypage' && (
-                <ProfileView
-                    profile={userProfile}
-                    onUpdateProfile={handleUpdateProfile}
-                    vacationLogs={vacationLogs}
-                    onAddHealthRecord={handleAddHealthRecord}
-                    isCreator={isCreator}
-                    tasks={creatorTasks}
-                    onOpenPhqModal={() => setIsPhqModalOpen(true)}
-                    onAddTask={(title) => isCreator && handleAddTask(title, user.id)}
-                    onToggleTask={handleToggleTask}
-                    onDeleteTask={handleDeleteTask}
-                    onOpenVacationModal={() => setIsVacationModalOpen(true)}
-                />
-            )}
-
-            {currentView === 'schedule' && (
-                <ScheduleView
+        <>
+            <GlobalStyles />
+            <S.AppContainer>
+                <Sidebar
                     user={user}
+                    userProfile={userProfile}
+                    onLogout={handleLogout}
+                    currentView={currentView}
+                    onNavigate={setCurrentView}
                     currentDate={currentDate}
                     onDateChange={setCurrentDate}
-                    events={scheduleEvents}
-                    onUpdateEvents={setScheduleEvents}
-                    templates={scheduleTemplates}
-                    onUpdateTemplates={setScheduleTemplates}
-                />
-            )}
-
-            {currentView === 'attendance' && (
-                <AttendanceView
-                    vacationLogs={vacationLogs}
-                    onUpdateVacationLogs={setVacationLogs}
-                    userName={userProfile.name}
+                    pendingApprovals={vacationLogs.filter(v => v.status === '대기중').length}
+                    onOpenVacationModal={() => setIsVacationModalOpen(true)}
+                    onOpenPhqModal={() => setIsPhqModalOpen(true)}
                     attendanceLogs={attendanceLogs}
+                    onAddAttendanceLog={handleAddAttendanceLog}
                 />
-            )}
 
-            {(currentView === 'hr-staff' || currentView === 'hr-attendance' || currentView === 'hr-health' || currentView === 'hr-vacation' || currentView === 'hr-teams' || currentView === 'hr-support') && (
-                <HRDashboardView
-                    vacationLogs={vacationLogs}
-                    onUpdateVacationLogs={setVacationLogs}
-                    teams={teams}
-                    onUpdateTeams={setTeams}
-                    employees={employees}
-                    onUpdateEmployees={setEmployees}
-                    creators={creators}
-                    employeeHealthRecords={employeeHealthRecords}
-                    supportRequests={supportRequests}
-                    onUpdateSupportRequests={setSupportRequests}
-                    departments={departments}
-                    attendanceLogs={attendanceLogs}
-                    initialTab={
-                        currentView === 'hr-staff' ? 'staff' :
-                            currentView === 'hr-attendance' ? 'attendance' :
-                                currentView === 'hr-health' ? 'health' :
-                                    currentView === 'hr-vacation' ? 'vacation' :
-                                        currentView === 'hr-support' ? 'support' : 'teams'
-                    }
-                />
-            )}
-
-            {currentView === 'org-chart' && (
-                <OrgChartView
-                    user={user}
-                    departments={departments}
-                    employees={employees}
-                    onUpdateDepartments={setDepartments}
-                />
-            )}
-
-            {currentView === 'team' && (
-                <TeamView
-                    user={user}
-                    teams={teams}
-                    employees={employees}
-                    vacationLogs={vacationLogs}
-                    creators={creators}
-                />
-            )}
-
-            {(currentView === 'creator' || currentView === 'my-creator' || currentView === 'creator-schedule' || currentView === 'creator-health' || currentView === 'admin-creator-list' || currentView === 'admin-creator-contract' || currentView === 'admin-creator-health' ||
-                currentView === 'employee-creator-calendar' || currentView === 'employee-creator-list' || currentView === 'employee-creator-ads' || currentView === 'employee-creator-health' || currentView === 'employee-creator-support') && (
-                    <CreatorManagerView
-                        user={user}
-                        creators={creators}
-                        onUpdateCreators={handleUpdateCreators}
-                        healthRecords={creatorHealthRecords}
-                        onUpdateHealthRecords={setCreatorHealthRecords}
-                        issueLogs={creatorIssueLogs}
-                        onUpdateIssueLogs={setCreatorIssueLogs}
-                        employees={employees}
-                        events={creatorEvents}
-                        onUpdateEvents={setCreatorEvents}
-                        onAddSupportRequest={handleAddSupportRequest}
-                        currentView={currentView}
-                        allTasks={allTasks}
-                        onAddTask={handleAddTask}
+                {currentView === 'mypage' && (
+                    <ProfileView
+                        profile={userProfile}
+                        onUpdateProfile={handleUpdateProfile}
+                        vacationLogs={vacationLogs}
+                        onAddHealthRecord={handleAddHealthRecord}
+                        isCreator={isCreator}
+                        tasks={creatorTasks}
+                        onOpenPhqModal={() => setIsPhqModalOpen(true)}
+                        onAddTask={(title) => isCreator && handleAddTask(title, user.id)}
                         onToggleTask={handleToggleTask}
                         onDeleteTask={handleDeleteTask}
-                        supportRequests={supportRequests}
+                        onOpenVacationModal={() => setIsVacationModalOpen(true)}
                     />
                 )}
 
-            {isVacationModalOpen && (
-                <div className="fixed inset-0 bg-black/30 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsVacationModalOpen(false)}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-gray-900">휴가 신청</h3>
-                            <button onClick={() => setIsVacationModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">휴가 종류</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['연차', '반차', '경조사', '병가', '워케이션'].map(type => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setVacationForm({ ...vacationForm, type })}
-                                            className={`py-2 rounded-lg text-sm border transition-all ${vacationForm.type === type ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold shadow-sm' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-                                        >
-                                            {type}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                {currentView === 'schedule' && (
+                    <ScheduleView
+                        user={user}
+                        currentDate={currentDate}
+                        onDateChange={setCurrentDate}
+                        events={scheduleEvents}
+                        onUpdateEvents={setScheduleEvents}
+                        templates={scheduleTemplates}
+                        onUpdateTemplates={setScheduleTemplates}
+                    />
+                )}
 
-                            {vacationForm.type === '워케이션' && (
-                                <div className="space-y-4 p-4 bg-blue-50/30 rounded-lg border border-blue-100 animate-[fadeIn_0.2s]">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><MapPin size={12} /> 근무 장소</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white" placeholder="예: 제주 오피스" value={vacationForm.location} onChange={e => setVacationForm({ ...vacationForm, location: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><Phone size={12} /> 비상 연락망</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white" placeholder="예: 010-0000-0000" value={vacationForm.emergencyContact} onChange={e => setVacationForm({ ...vacationForm, emergencyContact: e.target.value })} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><Target size={12} /> 업무 계획</label>
-                                        <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white resize-none" rows={2} placeholder="주요 업무 목표를 입력하세요" value={vacationForm.workGoals} onChange={e => setVacationForm({ ...vacationForm, workGoals: e.target.value })} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><ClipboardList size={12} /> 업무 인계 사항</label>
-                                        <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white resize-none" rows={2} placeholder="부재 시 담당자 및 업무 전달사항" value={vacationForm.handover} onChange={e => setVacationForm({ ...vacationForm, handover: e.target.value })} />
-                                    </div>
-                                </div>
-                            )}
+                {currentView === 'attendance' && (
+                    <AttendanceView
+                        vacationLogs={vacationLogs}
+                        onUpdateVacationLogs={setVacationLogs}
+                        userName={userProfile.name}
+                        attendanceLogs={attendanceLogs}
+                    />
+                )}
 
-                            {vacationForm.type === '경조사' && (
-                                <div className="space-y-4 p-4 bg-purple-50/30 rounded-lg border border-purple-100 animate-[fadeIn_0.2s]">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">대상(관계)</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 본인, 부모 등" value={vacationForm.relationship} onChange={e => setVacationForm({ ...vacationForm, relationship: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5">경조 내용</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 결혼, 장례 등" value={vacationForm.eventType} onChange={e => setVacationForm({ ...vacationForm, eventType: e.target.value })} />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                {(currentView === 'hr-staff' || currentView === 'hr-attendance' || currentView === 'hr-health' || currentView === 'hr-vacation' || currentView === 'hr-teams' || currentView === 'hr-support') && (
+                    <HRDashboardView
+                        vacationLogs={vacationLogs}
+                        onUpdateVacationLogs={setVacationLogs}
+                        teams={teams}
+                        onUpdateTeams={setTeams}
+                        employees={employees}
+                        onUpdateEmployees={setEmployees}
+                        creators={creators}
+                        employeeHealthRecords={employeeHealthRecords}
+                        supportRequests={supportRequests}
+                        onUpdateSupportRequests={setSupportRequests}
+                        departments={departments}
+                        attendanceLogs={attendanceLogs}
+                        initialTab={
+                            currentView === 'hr-staff' ? 'staff' :
+                                currentView === 'hr-attendance' ? 'attendance' :
+                                    currentView === 'hr-health' ? 'health' :
+                                        currentView === 'hr-vacation' ? 'vacation' :
+                                            currentView === 'hr-support' ? 'support' : 'teams'
+                        }
+                    />
+                )}
 
-                            {vacationForm.type === '병가' && (
-                                <div className="space-y-4 p-4 bg-green-50/30 rounded-lg border border-green-100 animate-[fadeIn_0.2s]">
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><Stethoscope size={14} /> 증상 및 사유</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="예: 독감으로 인한 고열 및 몸살" value={vacationForm.symptoms} onChange={e => setVacationForm({ ...vacationForm, symptoms: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1"><ClipboardList size={14} /> 진료 병원</label>
-                                            <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" placeholder="병원명을 입력하세요" value={vacationForm.hospital} onChange={e => setVacationForm({ ...vacationForm, hospital: e.target.value })} />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                {currentView === 'org-chart' && (
+                    <OrgChartView
+                        user={user}
+                        departments={departments}
+                        employees={employees}
+                        onUpdateDepartments={setDepartments}
+                    />
+                )}
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">시작일</label>
-                                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black" value={vacationForm.startDate} onChange={e => setVacationForm({ ...vacationForm, startDate: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">종료일</label>
-                                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black" value={vacationForm.endDate} onChange={e => setVacationForm({ ...vacationForm, endDate: e.target.value })} />
-                                </div>
-                            </div>
+                {currentView === 'team' && (
+                    <TeamView
+                        user={user}
+                        teams={teams}
+                        employees={employees}
+                        vacationLogs={vacationLogs}
+                        creators={creators}
+                    />
+                )}
 
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">상세 사유 (선택)</label>
-                                <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-black" rows={3} placeholder="추가적인 사유가 있다면 입력하세요" value={vacationForm.reason} onChange={e => setVacationForm({ ...vacationForm, reason: e.target.value })} />
-                            </div>
-                        </div>
+                {(currentView === 'creator' || currentView === 'my-creator' || currentView === 'creator-schedule' || currentView === 'creator-health' || currentView === 'admin-creator-list' || currentView === 'admin-creator-contract' || currentView === 'admin-creator-health' ||
+                    currentView === 'employee-creator-calendar' || currentView === 'employee-creator-list' || currentView === 'employee-creator-ads' || currentView === 'employee-creator-health' || currentView === 'employee-creator-support') && (
+                        <CreatorManagerView
+                            user={user}
+                            creators={creators}
+                            onUpdateCreators={handleUpdateCreators}
+                            healthRecords={creatorHealthRecords}
+                            onUpdateHealthRecords={setCreatorHealthRecords}
+                            issueLogs={creatorIssueLogs}
+                            onUpdateIssueLogs={setCreatorIssueLogs}
+                            employees={employees}
+                            events={creatorEvents}
+                            onUpdateEvents={setCreatorEvents}
+                            onAddSupportRequest={handleAddSupportRequest}
+                            currentView={currentView}
+                            allTasks={allTasks}
+                            onAddTask={handleAddTask}
+                            onToggleTask={handleToggleTask}
+                            onDeleteTask={handleDeleteTask}
+                            supportRequests={supportRequests}
+                        />
+                    )}
 
-                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 sticky bottom-0">
-                            <button onClick={() => setIsVacationModalOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition-colors">취소</button>
-                            <button onClick={handleVacationSubmit} className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 font-bold shadow-sm transition-colors">신청 완료</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                {isVacationModalOpen && (
+                    <VacationModal
+                        isOpen={isVacationModalOpen}
+                        onClose={() => setIsVacationModalOpen(false)}
+                        form={vacationForm}
+                        setForm={setVacationForm}
+                        onSubmit={handleVacationSubmit}
+                    />
+                )}
+            </S.AppContainer>
+        </>
     );
 }
 

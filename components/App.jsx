@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { GlobalStyles } from './GlobalStyles';
 import * as S from './App.styled';
-/* Fix: Corrected relative paths for components in the same directory */
 import { Login } from './auth/login/Login';
 import { Sidebar } from './Sidebar';
 import { ProfileView } from './ProfileView';
@@ -11,96 +10,56 @@ import { CreatorManagerView } from './CreatorManagerView';
 import { AttendanceView } from './AttendanceView';
 import { HRDashboardView } from './HRDashboardView';
 import { TeamView } from './TeamView';
-/* Fix: Corrected relative paths for types and constants located in the parent directory */
-import { UserRole } from '../enums';
-import {
-    EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA, INITIAL_VACATION_LOGS,
-    INITIAL_TEAMS, INITIAL_EMPLOYEES, INITIAL_HEALTH_RECORDS, INITIAL_SCHEDULE_EVENTS, INITIAL_SCHEDULE_TEMPLATES,
-    INITIAL_DEPARTMENTS
-} from '../constants';
-import { INITIAL_CREATORS, INITIAL_EVENTS, INITIAL_TASKS } from './creator/shared/constants';
-import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift } from 'lucide-react';
+
+import { PhqSurveyModal } from './creator/shared/Health';
 import { VacationModal } from './modals/VacationModal';
 
-const INITIAL_CREATOR_HEALTH = [
-    { id: '1', name: '슈카월드', lastCheck: '2023-12-10', score: 95, result: '정상', status: '재직중' },
-    { id: '2', name: '침착맨', lastCheck: '2023-11-05', score: 65, result: '주의', status: '재직중' },
-    { id: '3', name: '요리보고', lastCheck: '2024-01-05', score: 88, result: '정상', status: '대기중' },
-    { id: '4', name: '여행가제이', lastCheck: '2023-09-20', score: 45, result: '위험', status: '재직중' },
-    { id: '6', name: '치즈냥이', lastCheck: '2024-01-10', score: 0, result: '재검필요', status: '재직중' },
-];
+import { useAuthStore } from '../stores/useAuthStore';
+import { useUIStore } from '../stores/useUIStore';
+import { useOrgStore } from '../stores/useOrgStore';
+import { useCreatorStore } from '../stores/useCreatorStore';
+import { useScheduleStore } from '../stores/useScheduleStore';
+import { UserRole } from '../enums';
+import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../constants';
 
-const INITIAL_CREATOR_ISSUES = [
-    { id: 1, creator: '침착맨', date: '2024-01-15', category: '경미', description: '최근 방송 중 피로감 호소, 가벼운 번아웃 증상', status: '상담중' },
-    { id: 2, creator: '치즈냥이', date: '2024-01-18', category: '심각', description: '불면증 및 무기력증 호소, 전문 상담 권고', status: '휴식권고' },
-    { id: 3, creator: '슈카월드', date: '2023-12-20', category: '정상', description: '정기 심리 상담 결과 양호, 특이사항 없음', status: '모니터링' },
-];
-
-const INITIAL_SUPPORT_REQUESTS = [
-    { id: 'sr-1', creatorId: '2', creatorName: '침착맨', type: 'legal', title: '저작권 관련 문의', content: '유튜브 영상 내 BGM 사용 관련 저작권 침해 경고 발생 건', requestDate: '2024-01-25', status: '진행중' },
-    { id: 'sr-2', creatorId: '5', creatorName: '겜돌이', type: 'tax', title: '종합소득세 신고', content: '2023년 귀속 종합소득세 신고 자료 준비 요청', requestDate: '2024-01-20', status: '완료' },
-];
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 function App() {
-    const [user, setUser] = useState(null);
-    const [currentView, setCurrentView] = useState('mypage');
-    const [userProfile, setUserProfile] = useState(EMPLOYEE_PROFILE_DATA);
-    const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
-    const [creators, setCreators] = useState(INITIAL_CREATORS);
-    const [vacationLogs, setVacationLogs] = useState(INITIAL_VACATION_LOGS);
-    const [teams, setTeams] = useState(INITIAL_TEAMS);
-    const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
-    const [departments, setDepartments] = useState(INITIAL_DEPARTMENTS);
+    const { user, login } = useAuthStore();
+    const {
+        isVacationModalOpen, setChatOpen, closeVacationModal,
+        isPhqModalOpen, closePhqModal,
+        vacationForm, setVacationForm, resetVacationForm,
+        setCurrentView // Keeping for now if needed, but primary nav is Router
+    } = useUIStore();
+    const {
+        setUserProfile, setEmployees, initAttendanceLogs,
+        addVacationLog: unusedAddVacationLog
+    } = useOrgStore();
 
-    // Shared States (Global)
-    const [employeeHealthRecords, setEmployeeHealthRecords] = useState(INITIAL_HEALTH_RECORDS);
-    const [scheduleEvents, setScheduleEvents] = useState(INITIAL_SCHEDULE_EVENTS);
-    const [scheduleTemplates, setScheduleTemplates] = useState(INITIAL_SCHEDULE_TEMPLATES);
+    const navigate = useNavigate();
 
-    // Task State - Globalized for synchronization
-    const [allTasks, setAllTasks] = useState(() => {
-        const flatList = [];
-        Object.entries(INITIAL_TASKS).forEach(([cId, tasks]) => {
-            tasks.forEach(t => flatList.push({ ...t, creatorId: cId }));
-        });
-        return flatList;
-    });
+    const { creators, creatorIssueLogs, setCreatorIssueLogs } = useCreatorStore();
+    const { addVacationLog, vacationLogs } = useScheduleStore();
+    const { userProfile } = useOrgStore();
 
-    // Creator Health & Events & Support
-    const [creatorHealthRecords, setCreatorHealthRecords] = useState(INITIAL_CREATOR_HEALTH);
-    const [creatorIssueLogs, setCreatorIssueLogs] = useState(INITIAL_CREATOR_ISSUES);
-    const [creatorEvents, setCreatorEvents] = useState(INITIAL_EVENTS);
-    const [supportRequests, setSupportRequests] = useState(INITIAL_SUPPORT_REQUESTS);
+    const handleLoginWrapper = (loggedInUser) => {
+        login(loggedInUser);
 
-    // Chat & Global Modal States
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
+        let newProfile = EMPLOYEE_PROFILE_DATA;
+        let redirectPath = '/mypage';
 
-    // PHQ-9 Survey State (Employee Self-Check)
-    const [isPhqModalOpen, setIsPhqModalOpen] = useState(false);
-
-    // Global Vacation Form State
-    const [vacationForm, setVacationForm] = useState({
-        type: '연차', startDate: '', endDate: '', reason: '',
-        location: '', emergencyContact: '', workGoals: '', handover: '',
-        relationship: '', eventType: '', symptoms: '', hospital: ''
-    });
-
-    const handleLogin = (loggedInUser) => {
-        setUser(loggedInUser);
         if (loggedInUser.role === UserRole.ADMIN) {
-            setUserProfile(ADMIN_PROFILE_DATA);
-            setCurrentView('mypage');
+            newProfile = ADMIN_PROFILE_DATA;
+            redirectPath = '/mypage';
         } else if (loggedInUser.role === UserRole.CREATOR) {
-            // Find existing creator data if possible to populate profile
             const existingCreator = creators.find(c => c.id === loggedInUser.id);
-            setUserProfile({
+            newProfile = {
                 ...EMPLOYEE_PROFILE_DATA,
                 name: loggedInUser.name,
                 job: 'Creator',
                 org: 'MCN',
                 rank: '-',
-                // Use fresh data from creators list if available, otherwise login data
                 avatarUrl: existingCreator?.avatarUrl || loggedInUser.avatarUrl,
                 coverUrl: existingCreator?.coverUrl || '',
                 employeeId: loggedInUser.id,
@@ -111,136 +70,26 @@ function App() {
                 category: existingCreator?.category,
                 platform: existingCreator?.platform,
                 manager: existingCreator?.manager,
-            });
-            setCurrentView('creator-schedule');
-        } else {
-            setUserProfile(EMPLOYEE_PROFILE_DATA);
-            setCurrentView('mypage');
+            };
+            redirectPath = '/creator-schedule';
         }
+
+        setUserProfile(newProfile);
+        // setCurrentView is no longer the primary driver, we navigate
+        navigate(redirectPath);
     };
 
-    const handleLogout = () => {
-        setUser(null);
-        setIsChatOpen(false);
-    };
-
-    const handleUpdateProfile = (updatedProfile) => {
-        setUserProfile(updatedProfile);
-
-        // Sync with Employees list
-        setEmployees(prevEmployees => prevEmployees.map(emp =>
-            emp.id === updatedProfile.employeeId
-                ? {
-                    ...emp,
-                    name: updatedProfile.name,
-                    engName: updatedProfile.engName,
-                    nickname: updatedProfile.nickname,
-                    email: updatedProfile.email,
-                    personalEmail: updatedProfile.personalEmail,
-                    phone: updatedProfile.phone,
-                    avatarUrl: updatedProfile.avatarUrl,
-                    coverUrl: updatedProfile.coverUrl
-                }
-                : emp
-        ));
-
-        // Sync with Creators list (If the user is a Creator)
-        if (user?.role === UserRole.CREATOR) {
-            setCreators(prevCreators => prevCreators.map(creator =>
-                creator.id === user.id
-                    ? {
-                        ...creator,
-                        name: updatedProfile.name,
-                        avatarUrl: updatedProfile.avatarUrl,
-                        coverUrl: updatedProfile.coverUrl || creator.coverUrl,
-                        contactInfo: updatedProfile.phone,
-                        // Keep other fields intact
-                    }
-                    : creator
-            ));
-        }
-    };
-
-    // Task Handlers moved to App for global sync
-    const handleAddTask = (title, creatorId) => {
-        const newTask = {
-            id: Date.now().toString(),
-            title,
-            status: '진행중',
-            assignee: user?.name || '미정',
-            creatorId: creatorId
-        };
-        setAllTasks([...allTasks, newTask]);
-    };
-
-    const handleToggleTask = (taskId) => {
-        setAllTasks(prev => prev.map(t =>
-            t.id === taskId
-                ? { ...t, status: t.status === '진행중' ? '완료됨' : '진행중' }
-                : t
-        ));
-    };
-
-    const handleDeleteTask = (taskId) => {
-        if (window.confirm('업무를 삭제하시겠습니까?')) {
-            setAllTasks(prev => prev.filter(t => t.id !== taskId));
-        }
-    };
-
-    const handleUpdateCreators = (updatedCreators) => {
-        setCreators(updatedCreators);
-    };
-
-    const handleAddHealthRecord = (newRecord) => {
-        setEmployeeHealthRecords([newRecord, ...employeeHealthRecords]);
-    };
-
-    const handleAddSupportRequest = (newRequest) => {
-        setSupportRequests([newRequest, ...supportRequests]);
-    };
-
-    // Attendance State (Global)
-    const [attendanceLogs, setAttendanceLogs] = useState(() => {
-        const logs = [];
-        const todayStr = new Date().toISOString().split('T')[0];
-        // Mock data for other employees
-        employees.forEach(emp => {
-            if (emp.name === '이채연') return; // Skip current user in mock generation
-            logs.push({
-                id: `${emp.id}-${todayStr}`,
-                employeeId: emp.id,
-                name: emp.name,
-                date: todayStr,
-                clockIn: '08:55',
-                clockOut: '18:10',
-                status: '정상',
-                type: 'office'
-            });
-        });
-        return logs;
-    });
-
-    const handleAddAttendanceLog = (log) => {
-        setAttendanceLogs(prev => {
-            const existingIndex = prev.findIndex(l => l.date === log.date && l.name === log.name);
-            if (existingIndex >= 0) {
-                const newLogs = [...prev];
-                newLogs[existingIndex] = { ...newLogs[existingIndex], ...log };
-                return newLogs;
-            }
-            return [log, ...prev];
-        });
-    };
+    useEffect(() => {
+        initAttendanceLogs();
+    }, [initAttendanceLogs]);
 
     const handleVacationSubmit = () => {
         if (!vacationForm.startDate || !vacationForm.endDate) return alert('날짜를 선택해주세요.');
 
         const start = new Date(vacationForm.startDate);
         const end = new Date(vacationForm.endDate);
-
         if (end < start) return alert('종료일이 시작일보다 빠를 수 없습니다.');
 
-        // 일수 계산 로직
         let calculatedDays = 1;
         if (vacationForm.type === '반차') {
             calculatedDays = 0.5;
@@ -269,154 +118,93 @@ function App() {
             hospital: vacationForm.hospital
         };
 
-        setVacationLogs([newLog, ...vacationLogs]);
-        setIsVacationModalOpen(false);
+        addVacationLog(newLog);
+        closeVacationModal();
         alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
-        setVacationForm({
-            type: '연차', startDate: '', endDate: '', reason: '',
-            location: '', emergencyContact: '', workGoals: '', handover: '',
-            relationship: '', eventType: '', symptoms: '', hospital: ''
-        });
+        resetVacationForm();
+        alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
+        resetVacationForm();
     };
 
-    const pendingApprovals = vacationLogs.filter(log => log.status === '대기중').length;
+    const handlePhqSubmit = (result) => {
+        const newLog = {
+            id: Date.now(),
+            creator: user.name, // Assuming logged in user is the creator
+            date: result.date,
+            category: result.category,
+            description: `[PHQ-9 자가진단] 총점 ${result.score}점 - ${result.description}`,
+            status: result.status,
+            score: result.score
+        };
+        setCreatorIssueLogs([newLog, ...creatorIssueLogs]);
+        alert('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
+        closePhqModal();
+    };
 
     if (!user) {
-        return <Login onLogin={handleLogin} />;
+        return <Login onLogin={handleLoginWrapper} />;
     }
-
-    const isCreator = user.role === UserRole.CREATOR;
-    const creatorTasks = isCreator && user.id ? allTasks.filter(t => t.creatorId === user.id) : [];
 
     return (
         <>
             <GlobalStyles />
             <S.AppContainer>
-                <Sidebar
-                    user={user}
-                    userProfile={userProfile}
-                    onLogout={handleLogout}
-                    currentView={currentView}
-                    onNavigate={setCurrentView}
-                    currentDate={currentDate}
-                    onDateChange={setCurrentDate}
-                    pendingApprovals={vacationLogs.filter(v => v.status === '대기중').length}
-                    onOpenVacationModal={() => setIsVacationModalOpen(true)}
-                    onOpenPhqModal={() => setIsPhqModalOpen(true)}
-                    attendanceLogs={attendanceLogs}
-                    onAddAttendanceLog={handleAddAttendanceLog}
-                />
+                <Sidebar onLogout={() => { login(null); setChatOpen(false); navigate('/'); }} />
 
-                {currentView === 'mypage' && (
-                    <ProfileView
-                        profile={userProfile}
-                        onUpdateProfile={handleUpdateProfile}
-                        vacationLogs={vacationLogs}
-                        onAddHealthRecord={handleAddHealthRecord}
-                        isCreator={isCreator}
-                        tasks={creatorTasks}
-                        onOpenPhqModal={() => setIsPhqModalOpen(true)}
-                        onAddTask={(title) => isCreator && handleAddTask(title, user.id)}
-                        onToggleTask={handleToggleTask}
-                        onDeleteTask={handleDeleteTask}
-                        onOpenVacationModal={() => setIsVacationModalOpen(true)}
-                    />
-                )}
+                <Routes>
+                    <Route path="/" element={<Navigate to="/mypage" replace />} />
+                    <Route path="/mypage" element={<ProfileView />} />
+                    <Route path="/schedule" element={<ScheduleView />} />
+                    <Route path="/attendance" element={<AttendanceView />} />
 
-                {currentView === 'schedule' && (
-                    <ScheduleView
-                        user={user}
-                        currentDate={currentDate}
-                        onDateChange={setCurrentDate}
-                        events={scheduleEvents}
-                        onUpdateEvents={setScheduleEvents}
-                        templates={scheduleTemplates}
-                        onUpdateTemplates={setScheduleTemplates}
-                    />
-                )}
+                    {/* HR Dashboard Routes */}
+                    <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />
+                    <Route path="/hr/attendance" element={<HRDashboardView view="hr-attendance" />} />
+                    <Route path="/hr/health" element={<HRDashboardView view="hr-health" />} />
+                    <Route path="/hr/vacation" element={<HRDashboardView view="hr-vacation" />} />
+                    <Route path="/hr/teams" element={<HRDashboardView view="hr-teams" />} />
+                    <Route path="/hr/support" element={<HRDashboardView view="hr-support" />} />
 
-                {currentView === 'attendance' && (
-                    <AttendanceView
-                        vacationLogs={vacationLogs}
-                        onUpdateVacationLogs={setVacationLogs}
-                        userName={userProfile.name}
-                        attendanceLogs={attendanceLogs}
-                    />
-                )}
+                    <Route path="/org-chart" element={<OrgChartView />} />
+                    <Route path="/team" element={<TeamView />} />
 
-                {(currentView === 'hr-staff' || currentView === 'hr-attendance' || currentView === 'hr-health' || currentView === 'hr-vacation' || currentView === 'hr-teams' || currentView === 'hr-support') && (
-                    <HRDashboardView
-                        vacationLogs={vacationLogs}
-                        onUpdateVacationLogs={setVacationLogs}
-                        teams={teams}
-                        onUpdateTeams={setTeams}
-                        employees={employees}
-                        onUpdateEmployees={setEmployees}
-                        creators={creators}
-                        employeeHealthRecords={employeeHealthRecords}
-                        supportRequests={supportRequests}
-                        onUpdateSupportRequests={setSupportRequests}
-                        departments={departments}
-                        attendanceLogs={attendanceLogs}
-                        initialTab={
-                            currentView === 'hr-staff' ? 'staff' :
-                                currentView === 'hr-attendance' ? 'attendance' :
-                                    currentView === 'hr-health' ? 'health' :
-                                        currentView === 'hr-vacation' ? 'vacation' :
-                                            currentView === 'hr-support' ? 'support' : 'teams'
-                        }
-                    />
-                )}
+                    {/* Creator Routes */}
+                    <Route path="/creator/*" element={<CreatorManagerView />} />
 
-                {currentView === 'org-chart' && (
-                    <OrgChartView
-                        user={user}
-                        departments={departments}
-                        employees={employees}
-                        onUpdateDepartments={setDepartments}
-                    />
-                )}
+                    {/* Admin Views */}
+                    <Route path="/admin-creator-list" element={<CreatorManagerView view="admin-creator-list" />} />
+                    <Route path="/admin-creator-contract" element={<CreatorManagerView view="admin-creator-contract" />} />
+                    <Route path="/admin-creator-health" element={<CreatorManagerView view="admin-creator-health" />} />
 
-                {currentView === 'team' && (
-                    <TeamView
-                        user={user}
-                        teams={teams}
-                        employees={employees}
-                        vacationLogs={vacationLogs}
-                        creators={creators}
-                    />
-                )}
+                    {/* Employee Views */}
+                    <Route path="/employee-creator-list" element={<CreatorManagerView view="employee-creator-list" />} />
+                    <Route path="/employee-creator-calendar" element={<CreatorManagerView view="employee-creator-calendar" />} />
+                    <Route path="/employee-creator-ads" element={<CreatorManagerView view="employee-creator-ads" />} />
+                    <Route path="/employee-creator-health" element={<CreatorManagerView view="employee-creator-health" />} />
+                    <Route path="/employee-creator-support" element={<CreatorManagerView view="employee-creator-support" />} />
 
-                {(currentView === 'creator' || currentView === 'my-creator' || currentView === 'creator-schedule' || currentView === 'creator-health' || currentView === 'admin-creator-list' || currentView === 'admin-creator-contract' || currentView === 'admin-creator-health' ||
-                    currentView === 'employee-creator-calendar' || currentView === 'employee-creator-list' || currentView === 'employee-creator-ads' || currentView === 'employee-creator-health' || currentView === 'employee-creator-support') && (
-                        <CreatorManagerView
-                            user={user}
-                            creators={creators}
-                            onUpdateCreators={handleUpdateCreators}
-                            healthRecords={creatorHealthRecords}
-                            onUpdateHealthRecords={setCreatorHealthRecords}
-                            issueLogs={creatorIssueLogs}
-                            onUpdateIssueLogs={setCreatorIssueLogs}
-                            employees={employees}
-                            events={creatorEvents}
-                            onUpdateEvents={setCreatorEvents}
-                            onAddSupportRequest={handleAddSupportRequest}
-                            currentView={currentView}
-                            allTasks={allTasks}
-                            onAddTask={handleAddTask}
-                            onToggleTask={handleToggleTask}
-                            onDeleteTask={handleDeleteTask}
-                            supportRequests={supportRequests}
-                        />
-                    )}
+                    {/* Fallback for "my-creator", "creator-schedule" etc legacy names if needed, mapping to CreatorManagerView */}
+                    <Route path="/creator-schedule" element={<CreatorManagerView view="creator-schedule" />} />
+                    <Route path="/creator-health" element={<CreatorManagerView view="creator-health" />} />
+                    <Route path="/my-creator" element={<CreatorManagerView view="my-creator" />} />
+
+                    <Route path="*" element={<Navigate to="/mypage" replace />} />
+                </Routes>
 
                 {isVacationModalOpen && (
                     <VacationModal
                         isOpen={isVacationModalOpen}
-                        onClose={() => setIsVacationModalOpen(false)}
+                        onClose={closeVacationModal}
                         form={vacationForm}
                         setForm={setVacationForm}
                         onSubmit={handleVacationSubmit}
+                    />
+                )}
+
+                {isPhqModalOpen && (
+                    <PhqSurveyModal
+                        onClose={closePhqModal}
+                        onSubmit={handlePhqSubmit}
                     />
                 )}
             </S.AppContainer>

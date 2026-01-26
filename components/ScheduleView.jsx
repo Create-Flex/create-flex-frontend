@@ -11,7 +11,10 @@ import {
     DateNumberContainer, StyledCheck, FormStack
 } from './ScheduleView.styled';
 
-// Color Palette Definitions (Converted to CSS styles)
+import { useAuthStore } from '../stores/useAuthStore';
+import { useUIStore } from '../stores/useUIStore';
+import { useScheduleStore } from '../stores/useScheduleStore';
+
 const EVENT_COLORS = {
     blue: {
         bg: '#e0f2fe', text: '#0369a1', border: '#b9e6fe',
@@ -47,10 +50,17 @@ const EVENT_COLORS = {
     },
 };
 
-export const ScheduleView = ({
-    user, currentDate, onDateChange, events, onUpdateEvents, templates, onUpdateTemplates
-}) => {
-    const isAdmin = user.role === UserRole.ADMIN;
+export const ScheduleView = () => {
+    // Stores
+    const { user } = useAuthStore();
+    const { currentDate, setCurrentDate } = useUIStore();
+    const {
+        scheduleEvents: events,
+        setScheduleEvents: onUpdateEvents,
+        scheduleTemplates: templates
+    } = useScheduleStore();
+
+    const isAdmin = user?.role === UserRole.ADMIN;
 
     // Filter State
     const [filter, setFilter] = useState('all'); // 'all' or templateId
@@ -82,11 +92,11 @@ export const ScheduleView = ({
     };
 
     const changeMonth = (offset) => {
-        onDateChange(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
     };
 
     const goToToday = () => {
-        onDateChange(new Date());
+        setCurrentDate(new Date());
     };
 
     const openAddModal = (dateStr, templateId) => {
@@ -221,19 +231,30 @@ export const ScheduleView = ({
             {/* Header */}
             <Header>
                 <HeaderLeft>
-                    <Title>
-                        나의 일정
-                    </Title>
-                    <DateNavigation>
-                        <NavButton onClick={() => changeMonth(-1)}><ChevronLeft size={18} /></NavButton>
-                        <CurrentDate>
-                            {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
-                        </CurrentDate>
-                        <NavButton onClick={() => changeMonth(1)}><ChevronRight size={18} /></NavButton>
-                    </DateNavigation>
-                    <TodayButton onClick={goToToday}>
-                        오늘
-                    </TodayButton>
+                    <div>
+                        <Title>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>
+                                나의 일정
+                            </span>
+                        </Title>
+                        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0px', marginLeft: '2px' }}>
+                            개인 일정과 회사 일정을 통합 관리합니다.
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '24px', borderLeft: '1px solid #e5e7eb', paddingLeft: '24px', height: '40px' }}>
+                        <DateNavigation>
+                            <NavButton onClick={() => changeMonth(-1)}><ChevronLeft size={18} /></NavButton>
+                            <CurrentDate>
+                                {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
+                            </CurrentDate>
+                            <NavButton onClick={() => changeMonth(1)}><ChevronRight size={18} /></NavButton>
+                        </DateNavigation>
+                        <TodayButton onClick={goToToday}>
+                            오늘
+                        </TodayButton>
+                    </div>
                 </HeaderLeft>
 
                 <HeaderRight>

@@ -10,13 +10,13 @@ export const Container = styled.div`
   height: 100vh;
   overflow-y: auto;
   background-color: white;
-  padding: 2rem;
+  padding: 0; /* padding: 2rem removed */
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
 export const ContentWrapper = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 `;
 
 export const Header = styled.div`
@@ -24,15 +24,15 @@ export const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 2rem 2rem 1.5rem 2rem; /* Added padding */
 `;
 
 export const Title = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.875rem;
   font-weight: 700;
   color: #111827;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  margin: 0;
 `;
 
 export const CardsGrid = styled.div`
@@ -40,6 +40,7 @@ export const CardsGrid = styled.div`
   grid-template-columns: 1fr;
   gap: 1.5rem;
   margin-bottom: 2.5rem;
+  padding: 0 2rem; /* Added padding */
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(3, 1fr);
@@ -135,6 +136,7 @@ export const TabsContainer = styled.div`
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   gap: 1.5rem;
+  padding: 0 2rem;
 `;
 
 export const TabButton = styled.button`

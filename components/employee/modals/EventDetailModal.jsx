@@ -43,6 +43,10 @@ const Title = styled.h3`
     font-size: 1.25rem;
     font-weight: 700;
     color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 `;
 
 const DateText = styled.p`
@@ -178,8 +182,8 @@ export const EventDetailModal = ({
                 <ColorBar style={{ backgroundColor: barColor }} />
                 <ContentWrapper>
                     <Header>
-                        <div>
-                            <Title>{event.title}</Title>
+                        <div style={{ overflow: 'hidden' }}>
+                            <Title title={event.title}>{event.title}</Title>
                             <DateText>
                                 <CalendarIcon size={14} /> {event.date}
                             </DateText>

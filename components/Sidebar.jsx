@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { UserRole } from '../enums';
 import * as S from './Sidebar.styled';
@@ -9,7 +8,15 @@ import {
     ChevronDown, ChevronRight
 } from 'lucide-react';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { useAuthStore } from '../stores/useAuthStore';
+import { useUIStore } from '../stores/useUIStore';
+import { useOrgStore } from '../stores/useOrgStore';
+import { useScheduleStore } from '../stores/useScheduleStore';
+
 const CalendarWidget = () => {
+    // Local state for calendar widget navigation is fine to keep local
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const getDaysInMonth = (date) => {
@@ -75,10 +82,27 @@ const CalendarWidget = () => {
     )
 }
 
-export const Sidebar = ({
-    user, userProfile, onLogout, currentView, onNavigate, currentDate, onDateChange,
-    pendingApprovals = 0, onOpenVacationModal, onOpenPhqModal, attendanceLogs = [], onAddAttendanceLog
-}) => {
+export const Sidebar = ({ onLogout }) => {
+    // onLogout is passed from App.jsx's wrapper to handle multiple store updates if needed, 
+    // or we can consume useAuthStore directly for the actual logout action.
+    // App.jsx passed `() => { login(null); setChatOpen(false); }` as onLogout.
+    // So we use the prop or implementing it here? 
+    // I prefer using the prop if passed, but for "pure store" approach, we can do it here. 
+    // However, App.jsx already passes it. I'll use the prop to align with App.jsx refactor.
+
+    const { user } = useAuthStore();
+    const {
+        openVacationModal, openPhqModal
+    } = useUIStore();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { userProfile, attendanceLogs, addAttendanceLog } = useOrgStore();
+    const { vacationLogs } = useScheduleStore();
+
+    if (!user) return null; // Safety check
+
+    const pendingApprovals = vacationLogs.filter(v => v.status === '대기중').length;
+
     const isAdmin = user.role === UserRole.ADMIN;
     const isCreator = user.role === UserRole.CREATOR;
 
@@ -168,7 +192,7 @@ export const Sidebar = ({
     }, []);
 
     const handleClockInOut = () => {
-        if (!onAddAttendanceLog || !user) return;
+        if (!addAttendanceLog || !user) return;
 
         const now = new Date();
         const timeString = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -186,7 +210,7 @@ export const Sidebar = ({
             setAttendanceState(prev => ({ ...prev, inTime: timeString, isLate: isLate, outTime: null, isEarlyLeave: false }));
 
             // Add Log to Global State
-            onAddAttendanceLog({
+            addAttendanceLog({
                 id: `${user.id}-${todayStr}`,
                 employeeId: user.id,
                 name: user.name,
@@ -208,7 +232,7 @@ export const Sidebar = ({
 
             // Update Log in Global State
             const hoursStr = formatHours(workSeconds);
-            onAddAttendanceLog({
+            addAttendanceLog({
                 name: user.name,
                 date: todayStr,
                 clockOut: timeString,
@@ -254,13 +278,13 @@ export const Sidebar = ({
                 {!isCollapsed ? (
                     <>
                         <S.SectionTitle>내 정보</S.SectionTitle>
-                        <S.UserProfileCard onClick={() => onNavigate('mypage')}>
+                        <S.UserProfileCard onClick={() => navigate('/mypage')}>
                             <S.UserAvatar src={user.avatarUrl || userProfile.avatarUrl} alt="profile" />
                             <S.UserInfo>
                                 <S.UserName>{user.name}</S.UserName>
                                 <S.UserRoleText>{user.jobTitle}</S.UserRoleText>
                                 <S.TagGroup>
-                                    {user.tags.map((tag, i) => (
+                                    {user.tags && user.tags.map((tag, i) => (
                                         <S.Tag key={i} $active={tag === '재직중' || tag === '계약중'}>
                                             {tag}
                                         </S.Tag>
@@ -269,6 +293,7 @@ export const Sidebar = ({
                             </S.UserInfo>
                         </S.UserProfileCard>
 
+                        {/* ... Logic for displaying actions ... */}
                         {!isCreator ? (
                             <S.ActionButtonGroup>
                                 <S.ActionButton
@@ -279,14 +304,14 @@ export const Sidebar = ({
                                 </S.ActionButton>
                                 <S.ActionButton
                                     $variant="default"
-                                    onClick={onOpenVacationModal}
+                                    onClick={openVacationModal}
                                 >
                                     휴가 신청
                                 </S.ActionButton>
                             </S.ActionButtonGroup>
                         ) : (
                             <S.Section>
-                                <S.CreatorSurveyButton onClick={onOpenPhqModal}>
+                                <S.CreatorSurveyButton onClick={openPhqModal}>
                                     <ClipboardList size={16} /> 설문조사
                                 </S.CreatorSurveyButton>
                                 <S.SurveyText>정기적인 건강 설문으로 상태를 체크하세요.</S.SurveyText>
@@ -318,7 +343,7 @@ export const Sidebar = ({
                         )}
                     </>
                 ) : (
-                    <S.UserProfileCard onClick={() => onNavigate('mypage')} style={{ justifyContent: 'center', marginBottom: '1rem' }}>
+                    <S.UserProfileCard onClick={() => navigate('/mypage')} style={{ justifyContent: 'center', marginBottom: '1rem' }}>
                         <S.UserAvatar $small src={user.avatarUrl || userProfile.avatarUrl} alt="profile" title={user.name} />
                     </S.UserProfileCard>
                 )}
@@ -329,13 +354,13 @@ export const Sidebar = ({
                     <>
                         {!isCollapsed && <S.SectionTitle $mt $px>개인 업무</S.SectionTitle>}
                         <S.NavContainer>
-                            <S.NavItem onClick={() => onNavigate('mypage')} $isActive={currentView === 'mypage'} $center={isCollapsed} title="마이페이지">
+                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('schedule')} $isActive={currentView === 'schedule'} $center={isCollapsed} title="나의 일정">
+                            <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('attendance')} $isActive={currentView === 'attendance'} $center={isCollapsed} title="나의 근태/휴가">
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
                                 <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
@@ -357,23 +382,23 @@ export const Sidebar = ({
 
                         {(isHrExpanded || isCollapsed) && (
                             <S.NavContainer $animate>
-                                <S.NavItem onClick={() => onNavigate('hr-staff')} $isActive={currentView === 'hr-staff'} $center={isCollapsed} title="직원 관리">
+                                <S.NavItem onClick={() => navigate('/hr/staff')} $isActive={location.pathname === '/hr/staff'} $center={isCollapsed} title="직원 관리">
                                     <Users size={16} />{!isCollapsed && <S.NavText>직원 관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('hr-attendance')} $isActive={currentView === 'hr-attendance'} $center={isCollapsed} title="근태 관리">
+                                <S.NavItem onClick={() => navigate('/hr/attendance')} $isActive={location.pathname === '/hr/attendance'} $center={isCollapsed} title="근태 관리">
                                     <BarChart4 size={16} />{!isCollapsed && <S.NavText>근태 관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('hr-health')} $isActive={currentView === 'hr-health'} $center={isCollapsed} title="건강 관리">
+                                <S.NavItem onClick={() => navigate('/hr/health')} $isActive={location.pathname === '/hr/health'} $center={isCollapsed} title="건강 관리">
                                     <Activity size={16} />{!isCollapsed && <S.NavText>건강 관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('hr-vacation')} $isActive={currentView === 'hr-vacation'} $center={isCollapsed} title="휴가 관리">
+                                <S.NavItem onClick={() => navigate('/hr/vacation')} $isActive={location.pathname === '/hr/vacation'} $center={isCollapsed} title="휴가 관리">
                                     <Palmtree size={16} />
                                     {!isCollapsed && <S.NavText>휴가 관리</S.NavText>}
                                     {pendingApprovals > 0 && (
                                         <S.Badge $isCollapsed={isCollapsed}>{pendingApprovals}</S.Badge>
                                     )}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('org-chart')} $isActive={currentView === 'org-chart'} $center={isCollapsed} title="회사 조직도">
+                                <S.NavItem onClick={() => navigate('/org-chart')} $isActive={location.pathname === '/org-chart'} $center={isCollapsed} title="회사 조직도">
                                     <Briefcase size={16} />{!isCollapsed && <S.NavText>회사 조직도</S.NavText>}
                                 </S.NavItem>
                             </S.NavContainer>
@@ -396,19 +421,19 @@ export const Sidebar = ({
 
                         {(isCreatorExpanded || isCollapsed) && (
                             <S.NavContainer $animate>
-                                <S.NavItem onClick={() => onNavigate('admin-creator-list')} $isActive={currentView === 'admin-creator-list'} $center={isCollapsed} title="크리에이터 목록관리">
+                                <S.NavItem onClick={() => navigate('/admin-creator-list')} $isActive={location.pathname === '/admin-creator-list'} $center={isCollapsed} title="크리에이터 목록관리">
                                     <Users size={16} />{!isCollapsed && <S.NavText>크리에이터 목록관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('hr-teams')} $isActive={currentView === 'hr-teams'} $center={isCollapsed} title="크리에이터 팀 관리">
+                                <S.NavItem onClick={() => navigate('/hr/teams')} $isActive={location.pathname === '/hr/teams'} $center={isCollapsed} title="크리에이터 팀 관리">
                                     <Network size={16} />{!isCollapsed && <S.NavText>크리에이터 팀 관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('admin-creator-contract')} $isActive={currentView === 'admin-creator-contract'} $center={isCollapsed} title="크리에이터 계약관리">
+                                <S.NavItem onClick={() => navigate('/admin-creator-contract')} $isActive={location.pathname === '/admin-creator-contract'} $center={isCollapsed} title="크리에이터 계약관리">
                                     <FileText size={16} />{!isCollapsed && <S.NavText>크리에이터 계약관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('admin-creator-health')} $isActive={currentView === 'admin-creator-health'} $center={isCollapsed} title="크리에이터 건강관리">
+                                <S.NavItem onClick={() => navigate('/admin-creator-health')} $isActive={location.pathname === '/admin-creator-health'} $center={isCollapsed} title="크리에이터 건강관리">
                                     <Activity size={16} />{!isCollapsed && <S.NavText>크리에이터 건강관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('hr-support')} $isActive={currentView === 'hr-support'} $center={isCollapsed} title="법률/세무 지원 관리">
+                                <S.NavItem onClick={() => navigate('/hr/support')} $isActive={location.pathname === '/hr/support'} $center={isCollapsed} title="법률/세무 지원 관리">
                                     <Scale size={16} />{!isCollapsed && <S.NavText>법률/세무 지원 관리</S.NavText>}
                                 </S.NavItem>
                             </S.NavContainer>
@@ -418,28 +443,29 @@ export const Sidebar = ({
                     <>
                         {!isCollapsed && <S.SectionTitle $mt $px>활동 관리</S.SectionTitle>}
                         <S.NavContainer>
-                            <S.NavItem onClick={() => onNavigate('mypage')} $isActive={currentView === 'mypage'} $center={isCollapsed} title="마이페이지">
+                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('creator-schedule')} $isActive={currentView === 'creator-schedule'} $center={isCollapsed} title="나의 일정">
+                            <S.NavItem onClick={() => navigate('/creator-schedule')} $isActive={location.pathname === '/creator-schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('creator-health')} $isActive={currentView === 'creator-health'} $center={isCollapsed} title="건강 관리">
+                            <S.NavItem onClick={() => navigate('/creator-health')} $isActive={location.pathname === '/creator-health'} $center={isCollapsed} title="건강 관리">
                                 <Activity size={16} />{!isCollapsed && <S.NavText>건강 관리</S.NavText>}
                             </S.NavItem>
+
                         </S.NavContainer>
                     </>
                 ) : (
                     <>
                         {!isCollapsed && <S.SectionTitle $mt $px>개인 업무</S.SectionTitle>}
                         <S.NavContainer>
-                            <S.NavItem onClick={() => onNavigate('mypage')} $isActive={currentView === 'mypage'} $center={isCollapsed} title="마이페이지">
+                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('schedule')} $isActive={currentView === 'schedule'} $center={isCollapsed} title="나의 일정">
+                            <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => onNavigate('attendance')} $isActive={currentView === 'attendance'} $center={isCollapsed} title="나의 근태/휴가">
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
                                 <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
@@ -461,22 +487,22 @@ export const Sidebar = ({
 
                         {(isCreatorExpanded || isCollapsed) && (
                             <S.NavContainer $animate>
-                                <S.NavItem onClick={() => onNavigate('team')} $isActive={currentView === 'team'} $center={isCollapsed} title="팀 현황">
+                                <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
                                     <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('employee-creator-calendar')} $isActive={currentView === 'employee-creator-calendar'} $center={isCollapsed} title="일정 캘린더">
+                                <S.NavItem onClick={() => navigate('/employee-creator-calendar')} $isActive={location.pathname === '/employee-creator-calendar'} $center={isCollapsed} title="일정 캘린더">
                                     <Calendar size={16} />{!isCollapsed && <S.NavText>일정 캘린더</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('employee-creator-list')} $isActive={currentView === 'employee-creator-list'} $center={isCollapsed} title="내 담당 크리에이터">
+                                <S.NavItem onClick={() => navigate('/employee-creator-list')} $isActive={location.pathname === '/employee-creator-list'} $center={isCollapsed} title="내 담당 크리에이터">
                                     <UserCircle size={16} />{!isCollapsed && <S.NavText>내 담당 크리에이터</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('employee-creator-ads')} $isActive={currentView === 'employee-creator-ads'} $center={isCollapsed} title="광고 캠페인 관리">
+                                <S.NavItem onClick={() => navigate('/employee-creator-ads')} $isActive={location.pathname === '/employee-creator-ads'} $center={isCollapsed} title="광고 캠페인 관리">
                                     <Megaphone size={16} />{!isCollapsed && <S.NavText>광고 캠페인 관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('employee-creator-health')} $isActive={currentView === 'employee-creator-health'} $center={isCollapsed} title="크리에이터 건강관리">
+                                <S.NavItem onClick={() => navigate('/employee-creator-health')} $isActive={location.pathname === '/employee-creator-health'} $center={isCollapsed} title="크리에이터 건강관리">
                                     <Activity size={16} />{!isCollapsed && <S.NavText>크리에이터 건강관리</S.NavText>}
                                 </S.NavItem>
-                                <S.NavItem onClick={() => onNavigate('employee-creator-support')} $isActive={currentView === 'employee-creator-support'} $center={isCollapsed} title="법률/세무 연결">
+                                <S.NavItem onClick={() => navigate('/employee-creator-support')} $isActive={location.pathname === '/employee-creator-support'} $center={isCollapsed} title="법률/세무 연결">
                                     <Scale size={16} />{!isCollapsed && <S.NavText>법률/세무 연결</S.NavText>}
                                 </S.NavItem>
                             </S.NavContainer>
@@ -484,7 +510,7 @@ export const Sidebar = ({
                     </>
                 )}
                 {!isCreator && !isCollapsed && (
-                    <S.CalendarWidgetWrapper onClick={() => onNavigate('schedule')}>
+                    <S.CalendarWidgetWrapper onClick={() => navigate('/schedule')}>
                         <S.CalendarWrapper>
                             <CalendarWidget />
                         </S.CalendarWrapper>

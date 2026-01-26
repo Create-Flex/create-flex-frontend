@@ -16,11 +16,11 @@ export const Container = styled.div`
 `;
 
 export const Header = styled.div`
-  padding: 1rem 2rem;
+  padding: 2rem 2rem 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
+  align-items: flex-end; /* Align items to bottom to match title/nav baseline if needed, or center */
+  border-bottom: 1px solid #f3f4f6;
   flex-shrink: 0;
   position: sticky;
   top: 0;
@@ -35,12 +35,10 @@ export const HeaderLeft = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 1.25rem;
+  font-size: 1.875rem;
   font-weight: 700;
   color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  line-height: 1.2;
 `;
 
 export const DateNavigation = styled.div`
@@ -197,8 +195,8 @@ export const CalendarContainer = styled.div`
 `;
 
 export const CalendarGrid = styled.div`
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   border-left: 1px solid #e5e7eb;
   border-top: 1px solid #e5e7eb;
   background-color: white;

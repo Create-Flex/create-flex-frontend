@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, FileText, Activity } from 'lucide-react';
+import { Users, FileText, Activity, Network, Scale } from 'lucide-react';
 import { CreatorHealthView } from './creator/shared/Health';
 import { CreatorList } from './admin/creator/CreatorList';
 import { ContractManagement } from './admin/creator/ContractManagement';
@@ -129,24 +129,28 @@ export const AdminCreatorView = ({
 
     const renderHeaderIcon = () => {
         switch (currentView) {
-            case 'admin-creator-contract': return <FileText size={24} />;
-            case 'admin-creator-health': return <Activity size={24} />;
-            default: return <Users size={24} />;
+            case 'admin-creator-list': return <Users size={32} />;
+            case 'admin-creator-contract': return <FileText size={32} />;
+            case 'admin-creator-health': return <Activity size={32} />;
+            case 'hr-teams': return <Network size={32} />;
+            case 'hr-support': return <Scale size={32} />;
+            default: return <Users size={32} />;
         }
     };
 
     return (
         <Container>
             <InnerContainer>
-                <Breadcrumb>HR 관리 / 크리에이터 관리</Breadcrumb>
+                {/* Breadcrumb removed or kept? User asked for Title Style. Keeping breadcrumb as context. */}
+                {/* Breadcrumb removed */}
                 <HeaderSection>
                     <HeaderContent>
-                        <IconBox>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             {renderHeaderIcon()}
-                        </IconBox>
-                        <div>
-                            <Title>{renderTitle()}</Title>
-                            <Description>{renderDescription()}</Description>
+                            <div>
+                                <Title>{renderTitle()}</Title>
+                                <Description>{renderDescription()}</Description>
+                            </div>
                         </div>
                     </HeaderContent>
                 </HeaderSection>

@@ -99,15 +99,29 @@ export const ScheduleView = () => {
         setCurrentDate(new Date());
     };
 
-    const openAddModal = (dateStr, templateId) => {
-        let safeTemplateId = templateId || (isAdmin ? 'company' : 'personal');
-        if (safeTemplateId === 'company' && !isAdmin) safeTemplateId = 'personal';
+    const openAddModal = (dateStr, templateId, existingEvent = null) => {
+        if (existingEvent) {
+            // Edit Mode
+            setNewEvent({
+                id: existingEvent.id, // Keep ID to track update
+                templateId: existingEvent.templateId,
+                title: existingEvent.title,
+                content: existingEvent.content,
+                date: existingEvent.date
+            });
+        } else {
+            // Create Mode
+            let safeTemplateId = templateId || (isAdmin ? 'company' : 'personal');
+            if (safeTemplateId === 'company' && !isAdmin) safeTemplateId = 'personal';
 
-        setNewEvent(prev => ({
-            ...prev,
-            date: dateStr || prev.date,
-            templateId: safeTemplateId
-        }));
+            setNewEvent(prev => ({
+                id: null, // No ID for new event
+                date: dateStr || prev.date,
+                templateId: safeTemplateId,
+                title: '',
+                content: ''
+            }));
+        }
         setIsModalOpen(true);
         setIsTemplateMenuOpen(false);
         setIsOptionsMenuOpen(false);
@@ -118,17 +132,30 @@ export const ScheduleView = () => {
         if (!newEvent.title) return alert('일정 제목을 입력해주세요.');
         if (newEvent.templateId === 'company' && !isAdmin) return alert('회사 일정은 관리자만 등록할 수 있습니다.');
 
-        onUpdateEvents([
-            ...events,
-            {
-                id: Date.now(),
-                ...newEvent,
-                ownerId: user.id // 현재 로그인한 사용자의 ID 저장
-            }
-        ]);
+        if (newEvent.id) {
+            // Update existing
+            const updatedEvents = events.map(evt =>
+                evt.id === newEvent.id
+                    ? { ...evt, ...newEvent }
+                    : evt
+            );
+            onUpdateEvents(updatedEvents);
+        } else {
+            // Create new
+            onUpdateEvents([
+                ...events,
+                {
+                    id: Date.now(),
+                    ...newEvent,
+                    ownerId: user.id // 현재 로그인한 사용자의 ID 저장
+                }
+            ]);
+        }
+
         setIsModalOpen(false);
         // Reset
         setNewEvent(prev => ({
+            id: null,
             templateId: isAdmin ? templates[0].id : 'personal',
             title: '',
             content: '',
@@ -206,6 +233,7 @@ export const ScheduleView = () => {
                                 key={evt.id}
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    openAddModal(null, null, evt);
                                 }}
                                 $colorStyle={colors.style}
                                 title={evt.content}
@@ -391,9 +419,21 @@ export const ScheduleView = () => {
                                 </FormRow>
                             </FormStack>
                         </ModalBody>
-                        <ModalFooter>
+                        <ModalFooter style={{ justifyContent: newEvent.id ? 'space-between' : 'flex-end' }}>
+                            {newEvent.id && (
+                                <DeleteEventButton
+                                    as="button"
+                                    onClick={(e) => {
+                                        handleDeleteEvent(e, newEvent.id);
+                                        setIsModalOpen(false);
+                                    }}
+                                    style={{ position: 'static', color: '#ef4444', background: 'none' }}
+                                >
+                                    삭제
+                                </DeleteEventButton>
+                            )}
                             <SaveButton onClick={handleAddEvent}>
-                                저장하기
+                                {newEvent.id ? '수정 완료' : '저장하기'}
                             </SaveButton>
                         </ModalFooter>
                     </ModalContainer>

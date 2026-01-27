@@ -344,6 +344,10 @@ export const StatusBadge = styled.span`
     if (props.$type === 'active') { // 출근/활동중
       return 'background-color: #f0fdf4; color: #16a34a; border-color: #dcfce7;';
     }
+    if (props.$type === 'waiting') { // 대기중/휴식중
+      return 'background-color: #fffbeb; color: #d97706; border-color: #fef3c7;';
+    }
+    // inactive (퇴근) or resting fallback
     return 'background-color: #f9fafb; color: #6b7280; border-color: #f3f4f6;';
   }}
 `;

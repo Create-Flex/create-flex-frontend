@@ -66,7 +66,7 @@ export const HRDashboardView = ({ view }) => {
             case 'health':
                 return <HealthManagement healthRecords={employeeHealthRecords} />;
             case 'vacation':
-                return <VacationManagement vacationLogs={vacationLogs} onUpdateVacationLogs={setVacationLogs || (() => { })} />;
+                return <VacationManagement vacationLogs={vacationLogs} onUpdateVacationLogs={setVacationLogs || (() => { })} employees={employees} />;
             case 'teams':
                 return <TeamManagement teams={teams} onUpdateTeams={setTeams} employees={employees} creators={creators} />;
             case 'support':

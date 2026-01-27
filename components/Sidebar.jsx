@@ -452,7 +452,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/creator-health')} $isActive={location.pathname === '/creator-health'} $center={isCollapsed} title="건강 관리">
                                 <Activity size={16} />{!isCollapsed && <S.NavText>건강 관리</S.NavText>}
                             </S.NavItem>
-
+                            <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
+                                <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
+                            </S.NavItem>
                         </S.NavContainer>
                     </>
                 ) : (

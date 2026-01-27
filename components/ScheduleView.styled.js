@@ -419,8 +419,9 @@ export const TemplateButton = styled.button`
 export const DateInput = styled.input`
   font-size: 0.875rem;
   color: #374151;
-  border-bottom: 1px solid transparent;
-  padding: 0.125rem 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
   
   &:hover {
     border-color: #d1d5db;

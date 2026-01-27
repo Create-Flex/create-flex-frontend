@@ -98,7 +98,7 @@ export const TeamView = () => {
                     role: creator.category || 'Creator', // Display Category as Role
                     rank: creator.platform, // Display Platform as Rank
                     dept: 'MCN',
-                    workStatus: creator.status === '활동중' ? '출근' : '퇴근', // Map Status
+                    workStatus: creator.status || '대기중', // Map Status directly ('활동중', '대기중', '휴식중')
                     email: creator.contactInfo || '-',
                     phone: creator.contactInfo || '-',
                     avatarUrl: creator.avatarUrl,
@@ -196,9 +196,11 @@ export const TeamView = () => {
                                                 {member.nickname || member.name}
                                             </S.Badge>
                                             <S.StatusBadge $type={
-                                                member.workStatus === '출근' || (member.type === 'creator' && member.workStatus === '활동중')
+                                                member.workStatus === '출근' || member.workStatus === '활동중'
                                                     ? 'active'
-                                                    : 'inactive'
+                                                    : member.workStatus === '대기중' || member.workStatus === '휴식중'
+                                                        ? 'waiting' // You might need to add 'waiting' style in styled-components or reuse 'inactive' if acceptable
+                                                        : 'inactive'
                                             }>
                                                 {member.workStatus}
                                             </S.StatusBadge>

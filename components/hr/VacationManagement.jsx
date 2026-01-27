@@ -14,7 +14,7 @@ import {
     WorkationGrid, WorkationSection, WorkationLabel, RejectionLabel
 } from './VacationManagement.styled';
 
-export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs }) => {
+export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employees = [] }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
     const [isRejectionInputOpen, setIsRejectionInputOpen] = useState(false);
@@ -222,32 +222,40 @@ export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs }) => {
                                 <HeaderContent>종료일 {getSortIcon('endDate')}</HeaderContent>
                             </TableHeaderCell>
                             <TableHeaderCell>일수</TableHeaderCell>
+                            <TableHeaderCell>잔여 연차</TableHeaderCell>
                             <TableHeaderCell>상태</TableHeaderCell>
                         </tr>
                     </TableHead>
                     <TableBody>
-                        {filteredAndSorted.length > 0 ? filteredAndSorted.map(vac => (
-                            <TableRow key={vac.id} onClick={() => setSelectedDetailLog(vac)}>
-                                <TableCell $xs $mono $color="#6b7280">{vac.requestDate || '-'}</TableCell>
-                                <TableCell $bold $color="#111827">{vac.name}</TableCell>
-                                <TableCell>
-                                    <TypeBadge $type={vac.type}>{vac.type}</TypeBadge>
-                                </TableCell>
-                                <TableCell $xs $color="#4b5563">{vac.startDate}</TableCell>
-                                <TableCell $xs $color="#4b5563">{vac.endDate}</TableCell>
-                                <TableCell>{vac.days}일</TableCell>
-                                <TableCell>
-                                    <StatusBadge $status={vac.status}>
-                                        {vac.status === '승인됨' && <CheckCircle2 size={12} />}
-                                        {vac.status === '반려됨' && <XCircle size={12} />}
-                                        {vac.status === '대기중' && '⚡'}
-                                        {vac.status === '대기중' ? '결재대기' : vac.status}
-                                    </StatusBadge>
-                                </TableCell>
-                            </TableRow>
-                        )) : (
+                        {filteredAndSorted.length > 0 ? filteredAndSorted.map(vac => {
+                            // Find employee to get remaining vacation
+                            const employee = employees.find(e => e.name === vac.name || e.id === vac.employeeId); // Fallback to name matching if ID not in log
+                            const remaining = employee ? employee.remainingVacation : '-';
+
+                            return (
+                                <TableRow key={vac.id} onClick={() => setSelectedDetailLog(vac)}>
+                                    <TableCell $xs $mono $color="#6b7280">{vac.requestDate || '-'}</TableCell>
+                                    <TableCell $bold $color="#111827">{vac.name}</TableCell>
+                                    <TableCell>
+                                        <TypeBadge $type={vac.type}>{vac.type}</TypeBadge>
+                                    </TableCell>
+                                    <TableCell $xs $color="#4b5563">{vac.startDate}</TableCell>
+                                    <TableCell $xs $color="#4b5563">{vac.endDate}</TableCell>
+                                    <TableCell>{vac.days}일</TableCell>
+                                    <TableCell $bold $color="var(--primary-600)">{remaining !== '-' ? `${remaining}일` : '-'}</TableCell>
+                                    <TableCell>
+                                        <StatusBadge $status={vac.status}>
+                                            {vac.status === '승인됨' && <CheckCircle2 size={12} />}
+                                            {vac.status === '반려됨' && <XCircle size={12} />}
+                                            {vac.status === '대기중' && '⚡'}
+                                            {vac.status === '대기중' ? '결재대기' : vac.status}
+                                        </StatusBadge>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        }) : (
                             <tr>
-                                <TableCell colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                <TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
                                     해당하는 휴가 내역이 없습니다.
                                 </TableCell>
                             </tr>

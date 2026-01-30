@@ -193,6 +193,7 @@ export const CreatorHealthView = ({
 
     const [newCheckup, setNewCheckup] = useState({
         creatorName: '',
+        checkupName: '',
         date: new Date().toISOString().split('T')[0],
         result: '정상 (양호)'
     });
@@ -200,6 +201,7 @@ export const CreatorHealthView = ({
     const handleAddCheckup = () => {
         const effectiveName = isCreator ? creators[0].name : newCheckup.creatorName;
         if (!effectiveName) return alert('크리에이터를 선택해주세요.');
+        if (!newCheckup.checkupName.trim()) return alert('검진 명을 입력해주세요.');
         if (!uploadedFile) return alert('검진 결과 PDF 파일을 업로드해주세요.');
 
         let score = 90;
@@ -209,6 +211,7 @@ export const CreatorHealthView = ({
         const newRecord = {
             id: Date.now().toString(),
             name: effectiveName,
+            checkupName: newCheckup.checkupName,
             lastCheck: newCheckup.date,
             score: score,
             result: newCheckup.result,
@@ -429,6 +432,16 @@ export const CreatorHealthView = ({
                                         </Select>
                                     </div>
                                 )}
+
+                                <div>
+                                    <Label>검진 명</Label>
+                                    <StyledInput
+                                        type="text"
+                                        placeholder="예: 2026년 정기 건강검진"
+                                        value={newCheckup.checkupName}
+                                        onChange={e => setNewCheckup({ ...newCheckup, checkupName: e.target.value })}
+                                    />
+                                </div>
 
                                 <div>
                                     <Label>최근 검진일</Label>

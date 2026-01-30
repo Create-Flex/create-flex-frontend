@@ -2,32 +2,32 @@ import { UserRole } from './enums';
 
 export const USERS = {
     employee: {
-        id: 'LP125',
-        username: 'qwer',
-        name: '이채연',
+        id: '1007',
+        username: 'IT001',
+        name: '윤개발',
         role: UserRole.EMPLOYEE,
-        jobTitle: 'Product Owner',
-        avatarUrl: 'https://picsum.photos/id/64/200/200',
+        jobTitle: '백엔드 개발자',
+        avatarUrl: 'https://cdn.mcn.com/profiles/yoon_dev.jpg',
         status: '재직중',
-        tags: ['플랫폼팀', '재직중']
+        tags: ['기술본부', '재직중']
     },
     admin: {
-        id: 'HR001',
-        username: 'admin',
-        name: '김유연',
+        id: '1001',
+        username: 'HR001',
+        name: '김인사',
         role: UserRole.ADMIN,
-        jobTitle: 'Senior HR Manager',
-        avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+        jobTitle: '인사 관리',
+        avatarUrl: 'https://cdn.mcn.com/profiles/kim_insa.jpg',
         status: '재직중',
-        tags: ['인사팀', '재직중']
+        tags: ['인사문화팀', '재직중']
     },
     creator: {
-        id: '5',
-        username: 'gamedol',
-        name: '겜돌이',
+        id: '2001',
+        username: 'gamst',
+        name: '감스트',
         role: UserRole.CREATOR,
         jobTitle: 'Creator',
-        avatarUrl: 'https://picsum.photos/id/4/200/200',
+        avatarUrl: 'https://cdn.mcn.com/profiles/gamst.jpg',
         status: '재직중',
         tags: ['크리에이터', '계약중']
     }
@@ -92,18 +92,19 @@ export const INITIAL_VACATION_LOGS = [
 ];
 
 export const INITIAL_EMPLOYEES = [
-    { id: 'HR001', name: '김유연', engName: 'Jenny Kim', dept: '인사문화팀 (HR Team)', role: 'Senior Manager', workStatus: '출근', email: 'jenny@company.com', phone: '010-1234-5678', joinDate: '2019-03-15', avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80', nickname: '제니', rank: '팀장 / Level 5', remainingVacation: 15 },
-    { id: 'LP125', name: '이채연', engName: 'Sophia Lee', dept: '기술본부 (Tech Div)', role: 'Product Owner', workStatus: '출근', email: 'sophia@company.com', phone: '010-9876-5432', joinDate: '2022-01-10', avatarUrl: 'https://picsum.photos/id/64/200/200', nickname: '소피아', rank: '매니저 / Level 3', remainingVacation: 12.5 },
-    { id: 'DV022', name: '박지성', engName: 'Jisung Park', dept: '기술본부 (Tech Div)', role: 'Frontend Dev', workStatus: '휴가', email: 'park@company.com', phone: '010-1111-2222', joinDate: '2021-05-20', avatarUrl: 'https://picsum.photos/id/10/200/200', nickname: '지성', rank: '시니어 / Level 4', remainingVacation: 10 },
-    { id: 'DV023', name: '손흥민', engName: 'Sonny', dept: '기술본부 (Tech Div)', role: 'Backend Dev', workStatus: '퇴근', email: 'son@company.com', phone: '010-3333-4444', joinDate: '2021-06-01', avatarUrl: 'https://picsum.photos/id/55/200/200', nickname: '쏘니', rank: '시니어 / Level 4', remainingVacation: 8 },
-    { id: 'MK005', name: '이강인', engName: 'Kangin Lee', dept: '마케팅팀 (Marketing)', role: 'Marketer', workStatus: '병가', email: 'lee@company.com', phone: '010-5555-6666', joinDate: '2023-01-01', avatarUrl: 'https://picsum.photos/id/33/200/200', nickname: '강인', rank: '주니어 / Level 2', remainingVacation: 14 },
-    { id: 'DV024', name: '김민재', engName: 'Minjae Kim', dept: '매니지먼트 (Creator Mgmt)', role: 'Manager', workStatus: '출근', email: 'kim@company.com', phone: '010-7777-8888', joinDate: '2022-08-15', avatarUrl: 'https://picsum.photos/id/100/200/200', nickname: '몬스터', rank: '매니저 / Level 3', remainingVacation: 11 },
+
+    { id: '1001', name: '김인사', engName: 'Kim Insa', dept: '인사문화팀', role: '인사 관리', workStatus: '출근', email: 'kim.insa@gmail.com', phone: '010-1111-1111', joinDate: '2020-03-02', avatarUrl: 'https://cdn.mcn.com/profiles/kim_insa.jpg', nickname: '인사왕', rank: '관리자', remainingVacation: 15 },
+    { id: '1003', name: '박매니저', engName: 'Park Manager', dept: '매니지먼트팀', role: '크리에이터 매니저', workStatus: '출근', email: 'park.mg@gmail.com', phone: '010-3333-3333', joinDate: '2019-01-10', avatarUrl: 'https://cdn.mcn.com/profiles/park_manager.jpg', nickname: '매니저박', rank: '매니저', remainingVacation: 10 },
+    { id: '1007', name: '윤개발', engName: 'Yoon Dev', dept: '기술본부', role: '백엔드 개발자', workStatus: '출근', email: 'yoon.dev@gmail.com', phone: '010-7777-7777', joinDate: '2022-01-03', avatarUrl: 'https://cdn.mcn.com/profiles/yoon_dev.jpg', nickname: '윤개발자', rank: '직원', remainingVacation: 10 },
+    { id: '1008', name: '한코딩', engName: 'Han Coding', dept: '기술본부', role: '프론트엔드 개발자', workStatus: '퇴근', email: 'han.code@naver.com', phone: '010-8888-8888', joinDate: '2020-07-15', avatarUrl: 'https://cdn.mcn.com/profiles/default.jpg', nickname: '한코더', rank: '직원', remainingVacation: 13 },
 ];
 
 export const INITIAL_TEAMS = [
-    { id: 't1', name: 'Platform Squad', description: '핵심 서비스 플랫폼 개발 및 운영', leaderId: 'LP125', memberIds: ['LP125', 'DV022', 'DV023'] },
-    { id: 't2', name: 'People & Culture', description: '인사, 조직문화, 채용 관리', leaderId: 'HR001', memberIds: ['HR001'] },
-    { id: 't3', name: 'Marketing', description: '브랜드 마케팅 및 퍼포먼스 마케팅', leaderId: '', memberIds: ['MK005'] },
+    { id: '1001', name: '감스트 크루', description: '감스트를 중심으로 한 게임 콘텐츠 제작팀', leaderId: '1003', memberIds: ['2001', '2005', '1003'] },
+    { id: '1002', name: '뷰티 컬렉티브', description: '뷰티 크리에이터들의 협업 팀', leaderId: '1004', memberIds: ['2003', '2006', '1004'] },
+    { id: '1003', name: '먹방 유니버스', description: '먹방 크리에이터 연합', leaderId: '1003', memberIds: ['2002', '2004', '1003'] },
+    { id: '1004', name: '테크 리뷰어즈', description: '테크 리뷰어들의 정보 공유 팀', leaderId: '1003', memberIds: ['2007', '2001', '1003'] },
+
 ];
 
 export const INITIAL_DEPARTMENTS = [

@@ -19,7 +19,7 @@ import { useUIStore } from '../stores/useUIStore';
 import { useOrgStore } from '../stores/useOrgStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
-import { authService } from '../services/authService';
+import { authService } from '../api/authService';
 import { UserRole } from '../enums';
 import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../constants';
 

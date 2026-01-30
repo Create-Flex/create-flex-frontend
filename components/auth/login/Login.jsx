@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../../services/authService';
+import { authService } from '../../../api/authService';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import * as S from './Login.styled';
 

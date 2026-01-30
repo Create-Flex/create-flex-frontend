@@ -1,7 +1,7 @@
 ---
 name: "[BUG]"
 about: 버그 템플릿
-title: ''
+title: "[BUG]"
 labels: bug
 assignees: ''
 

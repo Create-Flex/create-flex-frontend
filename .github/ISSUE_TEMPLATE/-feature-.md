@@ -1,7 +1,7 @@
 ---
 name: "[FEATURE]"
 about: 기능 추가 템플릿
-title: ''
+title: "[FEATURE]"
 labels: FEAT
 assignees: '20200961'
 

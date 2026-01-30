@@ -35,7 +35,7 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
 
         // 1. Generate Past Mock Data (e.g., previous 30 days) for history visualization
         // Exclude today since today's log comes from props
-        for (let i = 1; i < 40; i++) {
+        for (let i = 0; i < 40; i++) {
             const d = new Date();
             d.setDate(today.getDate() - i);
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
@@ -44,6 +44,7 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
                 let inTime = '08:55';
                 let outTime = '18:10';
                 let hours = '9h 15m';
+                if (i === 0) { status = 'working'; outTime = '-'; hours = '-'; }
                 if (i === 1) { status = 'late'; inTime = '09:05'; hours = '9h 05m'; }
                 if (i === 11) { status = 'overtime'; outTime = '20:30'; hours = '11h 35m'; }
                 data.push({
@@ -77,7 +78,11 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
                         in: log.clockIn || '-',
                         out: log.clockOut || '-',
                         hours: log.hours || '-',
-                        status: log.status === '정상' ? 'normal' : log.status === '지각' ? 'late' : log.status === '초과 근무' ? 'overtime' : 'normal',
+                        status: log.status === '정상' ? 'normal'
+                            : log.status === '지각' ? 'late'
+                                : log.status === '초과' ? 'overtime'
+                                    : log.status === '근무중' ? 'working'
+                                        : 'normal',
                         type: log.type || 'office'
                     });
                 }
@@ -89,9 +94,10 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
 
     const getStatusLabel = (status) => {
         switch (status) {
-            case 'normal': return '정상 근무';
+            case 'normal': return '정상';
             case 'late': return '지각';
-            case 'overtime': return '초과 근무';
+            case 'overtime': return '초과';
+            case 'working': return '근무중';
             default: return '-';
         }
     };
@@ -99,9 +105,10 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
     const getStatusBadge = (status) => {
         let label = '-';
         switch (status) {
-            case 'normal': label = '정상 근무'; break;
+            case 'normal': label = '정상'; break;
             case 'late': label = '지각'; break;
-            case 'overtime': label = '초과 근무'; break;
+            case 'overtime': label = '초과'; break;
+            case 'working': label = '근무중'; break;
             default: label = '-';
         }
         return <StatusBadge $status={status}>{label}</StatusBadge>;
@@ -148,9 +155,10 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
                                 <option value="All">모든 상태</option>
-                                <option value="정상 근무">정상 근무</option>
+                                <option value="정상">정상</option>
                                 <option value="지각">지각</option>
-                                <option value="초과 근무">초과 근무</option>
+                                <option value="초과">초과</option>
+                                <option value="근무중">근무중</option>
                             </StatusSelect>
                             <StyledFilterIcon><Filter size={14} /></StyledFilterIcon>
                         </SelectContainer>

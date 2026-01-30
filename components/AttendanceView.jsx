@@ -23,7 +23,7 @@ export const AttendanceView = () => {
     // Stats Data (Mock)
     const stats = {
         lateCount: 1,
-        overtimeCount: 3,
+        overtimeMinutes: 165,
         leaveTotal: 15,
         leaveUsed: 2.5
     };
@@ -59,14 +59,14 @@ export const AttendanceView = () => {
 
                     <DashboardCard>
                         <CardHeader>
-                            <CardTitle>추가근무 횟수</CardTitle>
+                            <CardTitle>초과 근무 시간</CardTitle>
                             <Timer size={18} color="#d1d5db" />
                         </CardHeader>
                         <CardValueWrapper>
-                            <CardValue>{stats.overtimeCount}</CardValue>
-                            <CardUnit>회</CardUnit>
+                            <CardValue>{stats.overtimeMinutes}</CardValue>
+                            <CardUnit>분</CardUnit>
                         </CardValueWrapper>
-                        <CardDescription>정규 업무 시간을 초과하여 근무한 일수입니다.</CardDescription>
+                        <CardDescription>정규 업무 시간을 초과하여 근무한 총 시간입니다.</CardDescription>
                     </DashboardCard>
 
                     <DashboardCard>

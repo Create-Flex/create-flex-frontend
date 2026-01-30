@@ -170,6 +170,8 @@ export const StatusBadge = styled.span`
         return css`color: #ea580c;`; // orange-600
       case 'overtime':
         return css`color: #9333ea;`; // purple-600
+      case 'working':
+        return css`color: #3b82f6;`; // blue-500
       default:
         return css`color: #9ca3af; font-weight: 500;`;
     }

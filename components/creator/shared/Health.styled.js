@@ -688,3 +688,24 @@ export const UploadSubText = styled.span`
     font-size: 0.75rem;
     color: #9ca3af;
 `;
+
+export const SurveyActionButton = styled.button`
+  background-color: #00C471;
+  color: white;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: #00b065;
+  }
+  
+  ${props => props.$fullWidth ? css`
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  ` : css`
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+  `}
+`;

@@ -14,6 +14,7 @@ export const HealthResultModal = ({
     onUpload
 }) => {
     const [checkupDate, setCheckupDate] = useState(new Date().toISOString().split('T')[0]);
+    const [checkupName, setCheckupName] = useState('');
     const [healthStatus, setHealthStatus] = useState('정상 (양호)');
     const [uploadedFile, setUploadedFile] = useState(null);
     const fileInputRef = useRef(null);
@@ -34,6 +35,10 @@ export const HealthResultModal = ({
     };
 
     const handleSubmit = () => {
+        if (!checkupName.trim()) {
+            alert('검진 명을 입력해주세요.');
+            return;
+        }
         if (!checkupDate) {
             alert('검진일을 선택해주세요.');
             return;
@@ -44,6 +49,7 @@ export const HealthResultModal = ({
         }
 
         onUpload({
+            name: checkupName,
             date: checkupDate,
             status: healthStatus,
             fileName: uploadedFile.name
@@ -77,6 +83,16 @@ export const HealthResultModal = ({
                     </UploadGuideBox>
 
                     <FormStackSpaced>
+                        <div>
+                            <Label>검진 명</Label>
+                            <Input
+                                type="text"
+                                placeholder="예: 2026년 정기 건강검진"
+                                value={checkupName}
+                                onChange={(e) => setCheckupName(e.target.value)}
+                            />
+                        </div>
+
                         <div>
                             <Label>최근 검진일</Label>
                             <Input

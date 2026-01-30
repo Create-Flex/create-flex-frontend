@@ -1,6 +1,0 @@
-export const UserRole = {
-  ADMINISTRATOR: 'ADMINISTRATOR',
-  MANAGER: 'MANAGER',
-  EMPLOYEE: 'EMPLOYEE',
-  CREATOR: 'CREATOR'
-};

@@ -19,69 +19,87 @@ import { useUIStore } from '../stores/useUIStore';
 import { useOrgStore } from '../stores/useOrgStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
+import { authService } from '../services/authService';
 import { UserRole } from '../enums';
 import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../constants';
 
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 function App() {
-    const { user, login } = useAuthStore();
+    const { user, isAuthenticated, login, logout } = useAuthStore();
     const {
         isVacationModalOpen, setChatOpen, closeVacationModal,
         isPhqModalOpen, closePhqModal,
-        vacationForm, setVacationForm, resetVacationForm,
-        setCurrentView // Keeping for now if needed, but primary nav is Router
+        vacationForm, setVacationForm, resetVacationForm
     } = useUIStore();
     const {
-        setUserProfile, setEmployees, initAttendanceLogs,
-        addVacationLog: unusedAddVacationLog
+        setUserProfile, initAttendanceLogs
     } = useOrgStore();
 
     const navigate = useNavigate();
 
     const { creators, creatorIssueLogs, setCreatorIssueLogs } = useCreatorStore();
-    const { addVacationLog, vacationLogs } = useScheduleStore();
+    const { addVacationLog } = useScheduleStore();
     const { userProfile } = useOrgStore();
 
-    const handleLoginWrapper = (loggedInUser) => {
-        login(loggedInUser);
+    // 앱 시작 시 토큰 검증 및 사용자 정보 복원
+    useEffect(() => {
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
 
-        let newProfile = EMPLOYEE_PROFILE_DATA;
-        let redirectPath = '/mypage';
+            if (token && !isAuthenticated) {
+                try {
+                    // 토큰으로 사용자 정보 가져오기
+                    const userInfo = await authService.getMyInfo();
+                    login(userInfo, token);
 
-        if (loggedInUser.role === UserRole.ADMIN) {
-            newProfile = ADMIN_PROFILE_DATA;
-            redirectPath = '/mypage';
-        } else if (loggedInUser.role === UserRole.CREATOR) {
-            const existingCreator = creators.find(c => c.id === loggedInUser.id);
-            newProfile = {
-                ...EMPLOYEE_PROFILE_DATA,
-                name: loggedInUser.name,
-                job: 'Creator',
-                org: 'MCN',
-                rank: '-',
-                avatarUrl: existingCreator?.avatarUrl || loggedInUser.avatarUrl,
-                coverUrl: existingCreator?.coverUrl || '',
-                employeeId: loggedInUser.id,
-                email: existingCreator?.contactInfo || loggedInUser.username + '@mcn.com',
-                personalEmail: loggedInUser.username + '@gmail.com',
-                phone: existingCreator?.contactInfo || '010-0000-0000',
-                subscribers: existingCreator?.subscribers,
-                category: existingCreator?.category,
-                platform: existingCreator?.platform,
-                manager: existingCreator?.manager,
-            };
-            redirectPath = '/creator-schedule';
-        }
+                    // 프로필 설정
+                    let newProfile = EMPLOYEE_PROFILE_DATA;
+                    if (userInfo.memberRole === 'ADMINISTRATOR' || userInfo.role === 'ADMINISTRATOR') {
+                        newProfile = ADMIN_PROFILE_DATA;
+                    } else if (userInfo.memberRole === 'CREATOR' || userInfo.role === 'CREATOR') {
+                        const existingCreator = creators.find(c => c.id === userInfo.memberId);
+                        newProfile = {
+                            ...EMPLOYEE_PROFILE_DATA,
+                            name: userInfo.memberName || userInfo.name,
+                            job: 'Creator',
+                            org: 'MCN',
+                            rank: '-',
+                            avatarUrl: existingCreator?.avatarUrl || userInfo.avatarUrl,
+                            coverUrl: existingCreator?.coverUrl || '',
+                            employeeId: userInfo.memberId || userInfo.id,
+                        };
+                    }
+                    setUserProfile(newProfile);
+                } catch (error) {
+                    console.error('토큰 검증 실패:', error);
+                    logout();
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                }
+            }
+        };
 
-        setUserProfile(newProfile);
-        // setCurrentView is no longer the primary driver, we navigate
-        navigate(redirectPath);
-    };
+        initAuth();
+    }, []);
 
     useEffect(() => {
-        initAttendanceLogs();
-    }, [initAttendanceLogs]);
+        if (isAuthenticated) {
+            initAttendanceLogs();
+        }
+    }, [isAuthenticated, initAttendanceLogs]);
+
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+        } catch (error) {
+            console.error('로그아웃 API 에러:', error);
+        } finally {
+            logout();
+            setChatOpen(false);
+            navigate('/login');
+        }
+    };
 
     const handleVacationSubmit = () => {
         if (!vacationForm.startDate || !vacationForm.endDate) return alert('날짜를 선택해주세요.');
@@ -122,14 +140,12 @@ function App() {
         closeVacationModal();
         alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
         resetVacationForm();
-        alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
-        resetVacationForm();
     };
 
     const handlePhqSubmit = (result) => {
         const newLog = {
             id: Date.now(),
-            creator: user.name, // Assuming logged in user is the creator
+            creator: user.name,
             date: result.date,
             category: result.category,
             description: `[PHQ-9 자가진단] 총점 ${result.score}점 - ${result.description}`,
@@ -141,18 +157,26 @@ function App() {
         closePhqModal();
     };
 
-    if (!user) {
-        return <Login onLogin={handleLoginWrapper} />;
+    // 로그인하지 않은 경우
+    if (!isAuthenticated) {
+        return (
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        );
     }
 
+    // 로그인한 경우
     return (
         <>
             <GlobalStyles />
             <S.AppContainer>
-                <Sidebar onLogout={() => { login(null); setChatOpen(false); navigate('/'); }} />
+                <Sidebar onLogout={handleLogout} />
 
                 <Routes>
                     <Route path="/" element={<Navigate to="/mypage" replace />} />
+                    <Route path="/login" element={<Navigate to="/mypage" replace />} />
                     <Route path="/mypage" element={<ProfileView />} />
                     <Route path="/schedule" element={<ScheduleView />} />
                     <Route path="/attendance" element={<AttendanceView />} />
@@ -170,20 +194,14 @@ function App() {
 
                     {/* Creator Routes */}
                     <Route path="/creator/*" element={<CreatorManagerView />} />
-
-                    {/* Admin Views */}
                     <Route path="/admin-creator-list" element={<CreatorManagerView view="admin-creator-list" />} />
                     <Route path="/admin-creator-contract" element={<CreatorManagerView view="admin-creator-contract" />} />
                     <Route path="/admin-creator-health" element={<CreatorManagerView view="admin-creator-health" />} />
-
-                    {/* Employee Views */}
                     <Route path="/employee-creator-list" element={<CreatorManagerView view="employee-creator-list" />} />
                     <Route path="/employee-creator-calendar" element={<CreatorManagerView view="employee-creator-calendar" />} />
                     <Route path="/employee-creator-ads" element={<CreatorManagerView view="employee-creator-ads" />} />
                     <Route path="/employee-creator-health" element={<CreatorManagerView view="employee-creator-health" />} />
                     <Route path="/employee-creator-support" element={<CreatorManagerView view="employee-creator-support" />} />
-
-                    {/* Fallback for "my-creator", "creator-schedule" etc legacy names if needed, mapping to CreatorManagerView */}
                     <Route path="/creator-schedule" element={<CreatorManagerView view="creator-schedule" />} />
                     <Route path="/creator-health" element={<CreatorManagerView view="creator-health" />} />
                     <Route path="/my-creator" element={<CreatorManagerView view="my-creator" />} />

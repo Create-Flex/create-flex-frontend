@@ -6,7 +6,7 @@ import {
     INITIAL_DEPARTMENTS,
     INITIAL_HEALTH_RECORDS
 } from '../constants';
-import { useAuthStore } from './useAuthStore'; // For cross-store sync if needed, though usually avoided in simple setup
+import { useAuthStore } from './useAuthStore';
 
 export const useOrgStore = create((set, get) => ({
     userProfile: EMPLOYEE_PROFILE_DATA,

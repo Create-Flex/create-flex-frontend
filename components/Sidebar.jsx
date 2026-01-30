@@ -103,8 +103,10 @@ export const Sidebar = ({ onLogout }) => {
 
     const pendingApprovals = vacationLogs.filter(v => v.status === '대기중').length;
 
-    const isAdmin = user.role === UserRole.ADMIN;
-    const isCreator = user.role === UserRole.CREATOR;
+    const isAdmin = user.role === UserRole.ADMINISTRATOR || user.memberRole === 'ADMINISTRATOR';
+    const isManager = user.role === UserRole.MANAGER || user.memberRole === 'MANAGER';
+    const isCreator = user.role === UserRole.CREATOR || user.memberRole === 'CREATOR';
+    const isEmployee = user.role === UserRole.EMPLOYEE || user.memberRole === 'EMPLOYEE';
 
     const [isClockedIn, setIsClockedIn] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -439,25 +441,8 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavContainer>
                         )}
                     </>
-                ) : isCreator ? (
-                    <>
-                        {!isCollapsed && <S.SectionTitle $mt $px>활동 관리</S.SectionTitle>}
-                        <S.NavContainer>
-                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
-                                <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
-                            </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/creator-schedule')} $isActive={location.pathname === '/creator-schedule'} $center={isCollapsed} title="나의 일정">
-                                <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
-                            </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/creator-health')} $isActive={location.pathname === '/creator-health'} $center={isCollapsed} title="건강 관리">
-                                <Activity size={16} />{!isCollapsed && <S.NavText>건강 관리</S.NavText>}
-                            </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
-                                <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
-                            </S.NavItem>
-                        </S.NavContainer>
-                    </>
-                ) : (
+                ) : isManager ? (
+                    // MANAGER: 개인업무 + 크리에이터 관리(담당)
                     <>
                         {!isCollapsed && <S.SectionTitle $mt $px>개인 업무</S.SectionTitle>}
                         <S.NavContainer>
@@ -472,7 +457,7 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavItem>
                         </S.NavContainer>
 
-                        {/* 직원용 크리에이터 관리 Section with Accordion */}
+                        {/* 매니저용 크리에이터 관리 Section with Accordion */}
                         <S.AccordionHeader
                             $center={isCollapsed}
                             onClick={() => !isCollapsed && setIsCreatorExpanded(!isCreatorExpanded)}
@@ -509,6 +494,41 @@ export const Sidebar = ({ onLogout }) => {
                                 </S.NavItem>
                             </S.NavContainer>
                         )}
+                    </>
+                ) : isCreator ? (
+                    // CREATOR: 활동관리만
+                    <>
+                        {!isCollapsed && <S.SectionTitle $mt $px>활동 관리</S.SectionTitle>}
+                        <S.NavContainer>
+                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
+                                <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/creator-schedule')} $isActive={location.pathname === '/creator-schedule'} $center={isCollapsed} title="나의 일정">
+                                <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/creator-health')} $isActive={location.pathname === '/creator-health'} $center={isCollapsed} title="건강 관리">
+                                <Activity size={16} />{!isCollapsed && <S.NavText>건강 관리</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
+                                <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
+                            </S.NavItem>
+                        </S.NavContainer>
+                    </>
+                ) : (
+                    // EMPLOYEE: 개인업무만
+                    <>
+                        {!isCollapsed && <S.SectionTitle $mt $px>개인 업무</S.SectionTitle>}
+                        <S.NavContainer>
+                            <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
+                                <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
+                                <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
+                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
+                            </S.NavItem>
+                        </S.NavContainer>
                     </>
                 )}
                 {!isCreator && !isCollapsed && (

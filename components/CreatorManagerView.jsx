@@ -24,8 +24,12 @@ const CreatorSelfView = ({
     onUpdateIssueLogs,
     currentView
 }) => {
-    // Identify the creator based on logged-in user ID
-    const myCreator = creators.find(c => c.id === user.id);
+    // Identify the creator based on logged-in user account or ID
+    const myCreator = creators.find(c =>
+        c.loginId === user.memberAccount ||
+        c.id === String(user.memberId) ||
+        c.id === String(user.id)
+    );
     const isHealthView = currentView === 'creator-health';
 
     if (!myCreator) {
@@ -76,7 +80,10 @@ export const CreatorManagerView = ({ view }) => {
 
     if (!user) return null;
 
-    if (user.role === UserRole.CREATOR) {
+    const isCreator = user.role === UserRole.CREATOR || user.memberRole === 'CREATOR';
+    const isAdmin = user.role === UserRole.ADMINISTRATOR || user.memberRole === 'ADMINISTRATOR';
+
+    if (isCreator) {
         return <CreatorSelfView
             user={user}
             creators={creators}
@@ -90,7 +97,7 @@ export const CreatorManagerView = ({ view }) => {
         />;
     }
 
-    return user.role === UserRole.ADMIN
+    return isAdmin
         ? <AdminCreatorView
             user={user}
             creators={creators}

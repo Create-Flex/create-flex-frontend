@@ -15,26 +15,20 @@ import {
 export const AdsTab = ({
     setIsAdModalOpen,
     creators,
+    refreshTrigger,
 }) => {
     const [adFilter, setAdFilter] = useState('all');
-    const { advertisements, setAdvertisements, updateAdvertisementStatus, setLoading, setError, isLoading } = useAdvertisementStore();
-
-    // 백엔드에서 광고 목록 가져오기
-    useEffect(() => {
-        fetchAdvertisements(adFilter);
-    }, [adFilter]);
+    const { advertisements, setAdvertisements, setLoading, setError, isLoading } = useAdvertisementStore();
 
     const fetchAdvertisements = async (filter) => {
         setLoading(true);
         setError(null);
         try {
-            // 백엔드 API 호출 (filter: 'all', 'waiting', 'processed')
             const backendFilter = filter === 'pending' ? 'waiting' : filter === 'history' ? 'processed' : 'all';
             const response = await advertisementService.getMyAdvertisements(backendFilter);
             
             console.log('받아온 광고 데이터:', response);
             
-            // 백엔드 응답 데이터를 프론트엔드 형식으로 변환
             const mappedAds = Array.isArray(response) ? response.map(mapAdvertisementFromBackend) : [];
             
             console.log('변환된 광고 데이터:', mappedAds);
@@ -49,7 +43,16 @@ export const AdsTab = ({
         }
     };
 
-    // 광고 수락/거절 처리
+    useEffect(() => {
+        fetchAdvertisements(adFilter);
+    }, [adFilter]);
+
+    useEffect(() => {
+        if (refreshTrigger) {
+            fetchAdvertisements(adFilter);
+        }
+    }, [refreshTrigger]);
+
     const handleAdDecision = async (adId, decision) => {
         if (!confirm(`정말 이 광고를 ${decision === 'accepted' ? '수락' : '거절'}하시겠습니까?`)) {
             return;
@@ -57,34 +60,15 @@ export const AdsTab = ({
 
         try {
             const backendStatus = decision === 'accepted' ? 'ACCEPTED' : 'REJECTED';
-            
-            console.log(`광고 ID ${adId}를 ${backendStatus}로 변경 시도`);
-            
             const response = await advertisementService.updateAdvertisementStatus(adId, backendStatus);
             
-            console.log('상태 변경 성공:', response);
-            
-            // 성공 메시지
             alert(response.message || (decision === 'accepted' ? '광고가 수락되었습니다.' : '광고가 거절되었습니다.'));
-            
-            // 목록 새로고침 (현재 필터 유지)
             await fetchAdvertisements(adFilter);
-            
         } catch (error) {
-            console.error('광고 상태 변경 실패:', error);
-            
-            const errorMessage = error.response?.data?.message 
-                || error.response?.data?.error
-                || '광고 상태 변경에 실패했습니다.';
-            
-            alert(errorMessage);
+            alert(error.response?.data?.message || '광고 상태 변경에 실패했습니다.');
         }
     };
 
-    // 필터링된 광고 목록
-    const filteredAds = advertisements;
-
-    // 대기중인 광고 개수
     const pendingCount = advertisements.filter(a => a.status === 'pending').length;
 
     if (isLoading) {
@@ -107,22 +91,13 @@ export const AdsTab = ({
                 </TitleSection>
                 <Controls>
                     <FilterGroup>
-                        <FilterButton
-                            onClick={() => setAdFilter('all')}
-                            $active={adFilter === 'all'}
-                        >
+                        <FilterButton onClick={() => setAdFilter('all')} $active={adFilter === 'all'}>
                             전체 보기
                         </FilterButton>
-                        <FilterButton
-                            onClick={() => setAdFilter('pending')}
-                            $active={adFilter === 'pending'}
-                        >
+                        <FilterButton onClick={() => setAdFilter('pending')} $active={adFilter === 'pending'}>
                             대기중인 제안 ({pendingCount})
                         </FilterButton>
-                        <FilterButton
-                            onClick={() => setAdFilter('history')}
-                            $active={adFilter === 'history'}
-                        >
+                        <FilterButton onClick={() => setAdFilter('history')} $active={adFilter === 'history'}>
                             처리 내역
                         </FilterButton>
                     </FilterGroup>
@@ -132,9 +107,9 @@ export const AdsTab = ({
                 </Controls>
             </Header>
 
-            {filteredAds.length > 0 ? (
+            {advertisements.length > 0 ? (
                 <GridContainer>
-                    {filteredAds.map(ad => {
+                    {advertisements.map(ad => {
                         const creator = creators.find(c => c.id === String(ad.creatorId));
                         
                         return (
@@ -172,16 +147,10 @@ export const AdsTab = ({
                                         <PendingActions>
                                             <ActionStatusText>제안 검토중</ActionStatusText>
                                             <ButtonGroup>
-                                                <ActionButton
-                                                    $variant="reject"
-                                                    onClick={() => handleAdDecision(ad.id, 'rejected')}
-                                                >
+                                                <ActionButton $variant="reject" onClick={() => handleAdDecision(ad.id, 'rejected')}>
                                                     <Ban size={14} /> 거절
                                                 </ActionButton>
-                                                <ActionButton
-                                                    $variant="accept"
-                                                    onClick={() => handleAdDecision(ad.id, 'accepted')}
-                                                >
+                                                <ActionButton $variant="accept" onClick={() => handleAdDecision(ad.id, 'accepted')}>
                                                     <CheckCircle2 size={14} /> 수락
                                                 </ActionButton>
                                             </ButtonGroup>

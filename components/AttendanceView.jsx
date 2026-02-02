@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Plane, AlertCircle, Timer } from 'lucide-react';
 import { MyAttendance } from './employee/attendance/MyAttendance';
 import { MyVacation } from './employee/vacation/MyVacation';
+import { vacationService } from '../api/vacationService';
+import { useAuthStore } from '../stores/useAuthStore';
 import {
     Container, ContentWrapper, Header, Title, CardsGrid, DashboardCard, CardHeader, CardTitle,
     CardValueWrapper, CardValue, CardUnit, CardDescription, ProgressBarContainer, ProgressLabel, ProgressValue,
@@ -9,23 +11,46 @@ import {
 } from './AttendanceView.styled';
 
 import { useOrgStore } from '../stores/useOrgStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
 
 export const AttendanceView = () => {
+    const { user } = useAuthStore();
     const { userProfile, attendanceLogs } = useOrgStore();
-    const { vacationLogs, setVacationLogs } = useScheduleStore();
 
     // Derived state
     const userName = userProfile.name;
+    const memberId = user?.memberId || user?.id;
 
     const [activeTab, setActiveTab] = useState('work');
 
-    // Stats Data (Mock)
+    // 잔여 연차 상태
+    const [vacationStats, setVacationStats] = useState({
+        total: 15,
+        used: 0,
+        remaining: 15
+    });
+
+    // 잔여 연차 조회
+    useEffect(() => {
+        const fetchRemainder = async () => {
+            if (!memberId) return;
+            try {
+                const response = await vacationService.getMyVacationRemainder(memberId);
+                setVacationStats({
+                    total: response.totalVacation || 15,
+                    used: response.usedVacation || 0,
+                    remaining: response.remainderVacation || 15
+                });
+            } catch (error) {
+                console.error('잔여 연차 조회 실패:', error);
+            }
+        };
+        fetchRemainder();
+    }, [memberId]);
+
+    // Stats Data (Mock - 지각, 초과근무는 아직 mock)
     const stats = {
         lateCount: 1,
-        overtimeMinutes: 165,
-        leaveTotal: 15,
-        leaveUsed: 2.5
+        overtimeMinutes: 165
     };
 
     return (
@@ -75,16 +100,16 @@ export const AttendanceView = () => {
                             <Plane size={18} color="#d1d5db" />
                         </CardHeader>
                         <CardValueWrapper>
-                            <CardValue>{stats.leaveTotal - stats.leaveUsed}</CardValue>
+                            <CardValue>{vacationStats.remaining}</CardValue>
                             <CardUnit $bottom>일</CardUnit>
                         </CardValueWrapper>
                         <VerticalStack>
                             <ProgressBarContainer>
-                                <ProgressLabel>사용 연차 {stats.leaveUsed} / {stats.leaveTotal}</ProgressLabel>
-                                <ProgressValue>{Math.round((stats.leaveUsed / stats.leaveTotal) * 100)}%</ProgressValue>
+                                <ProgressLabel>사용 연차 {vacationStats.used} / {vacationStats.total}</ProgressLabel>
+                                <ProgressValue>{Math.round((vacationStats.used / vacationStats.total) * 100)}%</ProgressValue>
                             </ProgressBarContainer>
                             <ProgressBarBg>
-                                <ProgressBarFill $width={`${(stats.leaveUsed / stats.leaveTotal) * 100}%`} />
+                                <ProgressBarFill $width={`${(vacationStats.used / vacationStats.total) * 100}%`} />
                             </ProgressBarBg>
                         </VerticalStack>
                     </DashboardCard>
@@ -107,13 +132,7 @@ export const AttendanceView = () => {
 
                 {activeTab === 'work' && <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />}
 
-                {activeTab === 'vacation' && (
-                    <MyVacation
-                        vacationLogs={vacationLogs}
-                        onUpdateVacationLogs={setVacationLogs}
-                        userName={userName}
-                    />
-                )}
+                {activeTab === 'vacation' && <MyVacation />}
             </ContentWrapper>
         </Container>
     );

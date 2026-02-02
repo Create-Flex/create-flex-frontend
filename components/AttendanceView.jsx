@@ -11,6 +11,7 @@ import {
 } from './AttendanceView.styled';
 
 import { useOrgStore } from '../stores/useOrgStore';
+import { attendanceService } from '../api/attendanceService'; // Import Service
 
 export const AttendanceView = () => {
     const { user } = useAuthStore();
@@ -22,6 +23,30 @@ export const AttendanceView = () => {
 
     const [activeTab, setActiveTab] = useState('work');
 
+    // Stats Data (State for API data, Init with Mock/Default)
+    const [stats, setStats] = useState({
+        lateCount: '-',
+        overtimeMinutes: '-',
+    });
+
+    // Fetch My Dashboard Stats
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await attendanceService.getMyDashboardStats();
+                if (data) {
+                    setStats(prev => ({
+                        ...prev,
+                        lateCount: data.lateCount || 0,
+                        overtimeMinutes: data.totalOvertimeMinutes || 0
+                    }));
+                }
+            } catch (error) {
+                console.error("Failed to fetch my dashboard stats", error);
+            }
+        };
+        fetchStats();
+    }, []);
     // 잔여 연차 상태
     const [vacationStats, setVacationStats] = useState({
         total: 15,
@@ -46,12 +71,6 @@ export const AttendanceView = () => {
         };
         fetchRemainder();
     }, [memberId]);
-
-    // Stats Data (Mock - 지각, 초과근무는 아직 mock)
-    const stats = {
-        lateCount: 1,
-        overtimeMinutes: 165
-    };
 
     return (
         <Container>

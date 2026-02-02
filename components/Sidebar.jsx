@@ -14,6 +14,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
 import { useOrgStore } from '../stores/useOrgStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
+import { attendanceService } from '../api/attendanceService';
 
 const CalendarWidget = () => {
     // Local state for calendar widget navigation is fine to keep local
@@ -96,7 +97,7 @@ export const Sidebar = ({ onLogout }) => {
     } = useUIStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const { userProfile, attendanceLogs, addAttendanceLog } = useOrgStore();
+    const { userProfile, attendanceLogs, addAttendanceLog, triggerAttendanceRefresh } = useOrgStore();
     const { vacationLogs } = useScheduleStore();
 
     if (!user) return null; // Safety check
@@ -124,40 +125,66 @@ export const Sidebar = ({ onLogout }) => {
     const timerRef = useRef(null);
 
     // Sync local state with global attendanceLogs on mount/update
+    // Sync local state with real backend API on mount/update
     useEffect(() => {
-        if (!user) return;
-        const todayStr = new Date().toISOString().split('T')[0];
-        const myLog = attendanceLogs.find(l => l.date === todayStr && l.name === user.name);
+        const fetchStatus = async () => {
+            if (!user) return;
+            try {
+                const todayStr = new Date().toISOString().split('T')[0];
+                const logs = await attendanceService.getMyAttendance({ startDate: todayStr, endDate: todayStr });
 
-        if (myLog) {
-            if (myLog.clockIn && !myLog.clockOut) {
-                // Currently clocked in
-                setIsClockedIn(true);
-                setAttendanceState({ inTime: myLog.clockIn, outTime: null, isLate: myLog.status === '지각', isEarlyLeave: false });
+                // Assuming logs is an array of attendance records
+                const myLog = logs.find(l => l.attendanceDate === todayStr);
 
-                // Calculate seconds since clock in
-                const [hours, minutes] = myLog.clockIn.split(':').map(Number);
-                const now = new Date();
-                const clockInTime = new Date(now);
-                clockInTime.setHours(hours, minutes, 0, 0);
-                const diffSeconds = Math.floor((now - clockInTime) / 1000);
-                setWorkSeconds(diffSeconds > 0 ? diffSeconds : 0);
-            } else if (myLog.clockIn && myLog.clockOut) {
-                // Clocked out for today
-                setIsClockedIn(false);
-                setAttendanceState({ inTime: myLog.clockIn, outTime: myLog.clockOut, isLate: myLog.status === '지각', isEarlyLeave: myLog.clockOut < '18:00' });
+                if (myLog) {
+                    const inTime = myLog.attendanceStart ? myLog.attendanceStart.split('T')[1].substring(0, 5) : null;
+                    const outTime = myLog.attendanceEnd ? myLog.attendanceEnd.split('T')[1].substring(0, 5) : null;
 
-                // Calculate total work duration
-                // Simple parser for HH:mm
-                const [h1, m1] = myLog.clockIn.split(':').map(Number);
-                const [h2, m2] = myLog.clockOut.split(':').map(Number);
-                const d1 = new Date(); d1.setHours(h1, m1, 0);
-                const d2 = new Date(); d2.setHours(h2, m2, 0);
-                const diff = (d2 - d1) / 1000;
-                setLastWorkRecord(formatTime(diff));
+                    if (inTime && !outTime) {
+                        // Currently clocked in
+                        setIsClockedIn(true);
+                        setAttendanceState({
+                            inTime: inTime,
+                            outTime: null,
+                            isLate: myLog.attendanceStatus === 'LATE' || myLog.attendanceStatus === '지각',
+                            isEarlyLeave: false
+                        });
+
+                        // Calculate seconds since clock in for the timer
+                        const [hours, minutes] = inTime.split(':').map(Number);
+                        const now = new Date();
+                        const clockInTime = new Date(now);
+                        clockInTime.setHours(hours, minutes, 0, 0);
+                        const diffSeconds = Math.floor((now - clockInTime) / 1000);
+                        setWorkSeconds(diffSeconds > 0 ? diffSeconds : 0);
+
+                    } else if (inTime && outTime) {
+                        // Clocked out for today
+                        setIsClockedIn(false);
+                        setAttendanceState({
+                            inTime: inTime,
+                            outTime: outTime,
+                            isLate: myLog.attendanceStatus === 'LATE' || myLog.attendanceStatus === '지각',
+                            isEarlyLeave: false
+                        });
+
+                        // Calculate duration for validation
+                        // Only show last work record if logged out
+                        // Calculate formatted duration
+                        const [h1, m1] = inTime.split(':').map(Number);
+                        const [h2, m2] = outTime.split(':').map(Number);
+                        const d1 = new Date(); d1.setHours(h1, m1, 0);
+                        const d2 = new Date(); d2.setHours(h2, m2, 0);
+                        const diff = (d2 - d1) / 1000;
+                        setLastWorkRecord(formatTime(diff));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch attendance status", error);
             }
-        }
-    }, [attendanceLogs, user]);
+        };
+        fetchStatus();
+    }, [user, attendanceLogs]); // Keep attendanceLogs dep if we want to react to other updates, but mainly strictly fetching is better
 
     useEffect(() => {
         if (isClockedIn) {
@@ -193,54 +220,49 @@ export const Sidebar = ({ onLogout }) => {
         return () => clearInterval(interval);
     }, []);
 
-    const handleClockInOut = () => {
-        if (!addAttendanceLog || !user) return;
+    const handleClockInOut = async () => {
+        if (!user) return;
 
         const now = new Date();
         const timeString = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-        const todayStr = now.toISOString().split('T')[0];
 
-        if (!isClockedIn) {
-            // Processing Clock In
-            setWorkSeconds(0);
-            setLastWorkRecord(null);
-            setIsClockedIn(true);
-            const nineAM = new Date(now);
-            nineAM.setHours(9, 0, 0, 0);
-            const isLate = now.getTime() > nineAM.getTime();
+        try {
+            if (!isClockedIn) {
+                // Processing Clock In
+                await attendanceService.checkIn();
+                alert('출근 처리되었습니다.');
 
-            setAttendanceState(prev => ({ ...prev, inTime: timeString, isLate: isLate, outTime: null, isEarlyLeave: false }));
+                // Optimistic UI Update
+                setWorkSeconds(0);
+                setLastWorkRecord(null);
+                setIsClockedIn(true);
 
-            // Add Log to Global State
-            addAttendanceLog({
-                id: `${user.id}-${todayStr}`,
-                employeeId: user.id,
-                name: user.name,
-                date: todayStr,
-                clockIn: timeString,
-                clockOut: null,
-                status: isLate ? '지각' : '정상',
-                type: 'office' // Default to office for now
-            });
-        } else {
-            // Processing Clock Out
-            setIsClockedIn(false);
-            setLastWorkRecord(formatTime(workSeconds));
-            const sixPM = new Date(now);
-            sixPM.setHours(18, 0, 0, 0);
-            const isEarlyLeave = now.getTime() < sixPM.getTime();
+                const nineAM = new Date(now);
+                nineAM.setHours(9, 0, 0, 0);
+                const isLate = now.getTime() > nineAM.getTime();
 
-            setAttendanceState(prev => ({ ...prev, outTime: timeString, isEarlyLeave: isEarlyLeave }));
+                setAttendanceState(prev => ({ ...prev, inTime: timeString, isLate: isLate, outTime: null, isEarlyLeave: false }));
 
-            // Update Log in Global State
-            const hoursStr = formatHours(workSeconds);
-            addAttendanceLog({
-                name: user.name,
-                date: todayStr,
-                clockOut: timeString,
-                hours: hoursStr,
-                // Status remains as set during clock-in (Late or Normal), unless complex logic updates it here
-            });
+                // Trigger refresh for other components
+                if (triggerAttendanceRefresh) triggerAttendanceRefresh();
+
+            } else {
+                // Processing Clock Out
+                await attendanceService.checkOut();
+                alert('퇴근 처리되었습니다.');
+
+                setIsClockedIn(false);
+                // Last work record calc
+                setLastWorkRecord(formatTime(workSeconds));
+
+                setAttendanceState(prev => ({ ...prev, outTime: timeString }));
+
+                // Trigger refresh for other components
+                if (triggerAttendanceRefresh) triggerAttendanceRefresh();
+            }
+        } catch (error) {
+            console.error(error);
+            alert('요청 처리 중 오류가 발생했습니다.');
         }
     };
 
@@ -283,8 +305,8 @@ export const Sidebar = ({ onLogout }) => {
                         <S.UserProfileCard onClick={() => navigate('/mypage')}>
                             <S.UserAvatar src={user.avatarUrl || userProfile.avatarUrl} alt="profile" />
                             <S.UserInfo>
-                                <S.UserName>{user.name}</S.UserName>
-                                <S.UserRoleText>{user.jobTitle}</S.UserRoleText>
+                                <S.UserName>{user.name || user.memberName}</S.UserName>
+                                <S.UserRoleText>{user.departmentName || user.jobTitle || user.memberRole}</S.UserRoleText>
                                 <S.TagGroup>
                                     {user.tags && user.tags.map((tag, i) => (
                                         <S.Tag key={i} $active={tag === '재직중' || tag === '계약중'}>

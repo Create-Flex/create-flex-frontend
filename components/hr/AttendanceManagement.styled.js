@@ -281,10 +281,14 @@ export const Badge = styled.span`
   
   ${props => {
     switch (props.$status) {
-      case '정상': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
-      case '지각': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
+      case '정상':
+      case '출근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+      case '지각':
+      case '조퇴': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
       case '결근': return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
       case '휴가': return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
+      case '초과': return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
+      case '근무중': return css`background-color: #f0f9ff; color: #0369a1; border-color: #bae6fd;`;
       default: return css`display: none;`;
     }
   }}

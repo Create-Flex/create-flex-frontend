@@ -16,7 +16,9 @@ export const useOrgStore = create((set, get) => ({
 
     // Shared States (Global)
     employeeHealthRecords: INITIAL_HEALTH_RECORDS,
+    employeeHealthRecords: INITIAL_HEALTH_RECORDS,
     attendanceLogs: [], // Initialized dynamically in App usually, but we can init here or via action
+    attendanceRefreshKey: 0, // Trigger for re-fetching attendance data
 
     setUserProfile: (profile) => set({ userProfile: profile }),
 
@@ -59,6 +61,8 @@ export const useOrgStore = create((set, get) => ({
     addHealthRecord: (newRecord) => set((state) => ({
         employeeHealthRecords: [newRecord, ...state.employeeHealthRecords]
     })),
+
+    triggerAttendanceRefresh: () => set((state) => ({ attendanceRefreshKey: state.attendanceRefreshKey + 1 })),
 
     // Logic to initialize attendance logs (migrated from App.jsx)
     initAttendanceLogs: () => {

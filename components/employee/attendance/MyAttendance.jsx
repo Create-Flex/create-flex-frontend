@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useOrgStore } from '../../../stores/useOrgStore';
+import { attendanceService } from '../../../api/attendanceService';
 import { Briefcase, Filter, ArrowRight } from 'lucide-react';
 import {
     Container, TableContainer, FilterHeader, FilterGroup, DateRangePicker, FilterLabel, DateInput,
@@ -17,7 +19,18 @@ const formatDate = (date) => {
 
 const getISODate = (date) => date.toISOString().split('T')[0];
 
-export const MyAttendance = ({ attendanceLogs = [], userName }) => {
+const mapStatus = (serverStatus) => {
+    // Map Server Status String to Internal ID
+    if (serverStatus === '정상') return 'normal';
+    if (serverStatus === '지각') return 'late';
+    if (serverStatus === '초과') return 'overtime';
+    if (serverStatus === '근무중') return 'working';
+    return 'normal';
+};
+
+
+
+export const MyAttendance = () => {
     const today = new Date();
 
     // 오늘 기준 한 달 전/후 설정
@@ -26,71 +39,55 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
     const oneMonthLater = new Date();
     oneMonthLater.setMonth(today.getMonth() + 1);
 
+    const { attendanceRefreshKey } = useOrgStore();
+
     const [startDate, setStartDate] = useState(getISODate(oneMonthAgo));
     const [endDate, setEndDate] = useState(getISODate(oneMonthLater));
     const [statusFilter, setStatusFilter] = useState('All');
+    const [workLogs, setWorkLogs] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const workLogs = useMemo(() => {
-        const data = [];
+    useEffect(() => {
+        const fetchMyAttendance = async () => {
+            setLoading(true);
+            try {
+                const params = {
+                    startDate,
+                    endDate,
+                    status: statusFilter === 'All' ? null : statusFilter
+                };
+                const data = await attendanceService.getMyAttendance(params);
 
-        // 1. Generate Past Mock Data (e.g., previous 30 days) for history visualization
-        // Exclude today since today's log comes from props
-        for (let i = 0; i < 40; i++) {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-            if (!isWeekend) {
-                let status = 'normal';
-                let inTime = '08:55';
-                let outTime = '18:10';
-                let hours = '9h 15m';
-                if (i === 0) { status = 'working'; outTime = '-'; hours = '-'; }
-                if (i === 1) { status = 'late'; inTime = '09:05'; hours = '9h 05m'; }
-                if (i === 11) { status = 'overtime'; outTime = '20:30'; hours = '11h 35m'; }
-                data.push({
-                    id: i,
-                    date: formatDate(d),
-                    isoDate: getISODate(d),
-                    in: inTime,
-                    out: outTime,
-                    hours: hours,
-                    status: status,
-                    type: (i % 3 === 0 ? 'wfh' : 'office')
+                // Transform API data to Component format
+                const formattedData = data.map(log => {
+                    const inTime = log.attendanceStart ? log.attendanceStart.split('T')[1].substring(0, 5) : '-';
+                    const outTime = log.attendanceEnd ? log.attendanceEnd.split('T')[1].substring(0, 5) : '-';
+
+                    return {
+                        id: log.attendanceId,
+                        date: formatDate(new Date(log.attendanceDate)),
+                        isoDate: log.attendanceDate,
+                        in: inTime,
+                        out: outTime,
+                        hours: log.workDuration || '-',
+                        status: mapStatus(log.attendanceStatus),
+                        type: 'office'
+                    };
                 });
+                // Sort by date desc (latest first)
+                formattedData.sort((a, b) => b.isoDate.localeCompare(a.isoDate));
+
+                setWorkLogs(formattedData);
+            } catch (error) {
+                console.error("Failed to fetch my attendance", error);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
 
-        // 2. Add Real Attendance Logs from Props (Today & Recent)
-        // Filter logs to match strict requirement: show logs for current user
-        if (attendanceLogs && userName) {
-            attendanceLogs.forEach(log => {
-                // Ensure we handle logs for the current user
-                if (log.name === userName) {
-                    // Verify if this date already exists in simulation (unlikely if loop starts from i=1)
-                    // But in real app you'd replace the simulation entirely. 
-                    // Here we prepend real logs (which are usually "today" or recent updates)
-
-                    // Normalize date format if needed or use existing
-                    data.unshift({
-                        id: log.id,
-                        date: formatDate(new Date(log.date)), // 'YYYY. MM. DD (Day)'
-                        isoDate: log.date, // 'YYYY-MM-DD'
-                        in: log.clockIn || '-',
-                        out: log.clockOut || '-',
-                        hours: log.hours || '-',
-                        status: log.status === '정상' ? 'normal'
-                            : log.status === '지각' ? 'late'
-                                : log.status === '초과' ? 'overtime'
-                                    : log.status === '근무중' ? 'working'
-                                        : 'normal',
-                        type: log.type || 'office'
-                    });
-                }
-            });
-        }
-
-        return data.sort((a, b) => b.isoDate.localeCompare(a.isoDate));
-    }, [attendanceLogs, userName]);
+        fetchMyAttendance();
+        fetchMyAttendance();
+    }, [startDate, endDate, statusFilter, attendanceRefreshKey]);
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -122,11 +119,10 @@ export const MyAttendance = ({ attendanceLogs = [], userName }) => {
         }
     }
 
-    const filteredWorkLogs = workLogs.filter(log => {
-        const isWithinDateRange = log.isoDate >= startDate && log.isoDate <= endDate;
-        const matchesStatus = statusFilter === 'All' || getStatusLabel(log.status) === statusFilter;
-        return isWithinDateRange && matchesStatus;
-    });
+    // Filter logic is now handled by API params mainly, but we keep workLogs state directly. 
+    // If we want client-side filtering on top of API results (e.g. invalid date ranges returned?), we can add it. 
+    // For now, assuming API returns correct filtered data.
+    const filteredWorkLogs = workLogs;
 
     return (
         <Container>

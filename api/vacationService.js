@@ -115,7 +115,7 @@ export const vacationService = {
   // HR 휴가 통계 조회
   getVacationStats: async () => {
     try {
-      const response = await api.get('/admin/vacations/stats');
+      const response = await api.get('/admin/vacations/statistics');
       return response.data;
     } catch (error) {
       console.error('휴가 통계 조회 에러:', error);
@@ -149,7 +149,7 @@ export const vacationService = {
   rejectVacation: async (vacationId, reason) => {
     try {
       const response = await api.patch(`/admin/vacations/${vacationId}/reject`, {
-        vacationRejected: reason
+        rejectReason: reason
       });
       return response.data;
     } catch (error) {

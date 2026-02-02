@@ -90,5 +90,71 @@ export const vacationService = {
       console.error('잔여 연차 조회 에러:', error);
       throw error;
     }
+  },
+
+  // ==================== HR/관리자용 API ====================
+
+  // HR 휴가 목록 조회 (전체 직원) - AdminVacationListResponseDTO
+  getAllVacations: async (filters = {}) => {
+    try {
+      const params = {};
+
+      if (filters.startDate) params.startDate = filters.startDate;
+      if (filters.endDate) params.endDate = filters.endDate;
+      if (filters.type) params.type = VACATION_TYPE_MAP[filters.type] || filters.type;
+      if (filters.status) params.status = filters.status;
+
+      const response = await api.get('/admin/vacations', { params });
+      return response.data;
+    } catch (error) {
+      console.error('HR 휴가 목록 조회 에러:', error);
+      throw error;
+    }
+  },
+
+  // HR 휴가 통계 조회
+  getVacationStats: async () => {
+    try {
+      const response = await api.get('/admin/vacations/stats');
+      return response.data;
+    } catch (error) {
+      console.error('휴가 통계 조회 에러:', error);
+      throw error;
+    }
+  },
+
+  // 휴가 상세 조회 (관리자용) - VacationDetailResponseDTO
+  getVacationDetailAdmin: async (vacationId) => {
+    try {
+      const response = await api.get(`/admin/vacations/${vacationId}`);
+      return response.data;
+    } catch (error) {
+      console.error('휴가 상세 조회 에러:', error);
+      throw error;
+    }
+  },
+
+  // 휴가 승인
+  approveVacation: async (vacationId) => {
+    try {
+      const response = await api.patch(`/admin/vacations/${vacationId}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('휴가 승인 에러:', error);
+      throw error;
+    }
+  },
+
+  // 휴가 반려
+  rejectVacation: async (vacationId, reason) => {
+    try {
+      const response = await api.patch(`/admin/vacations/${vacationId}/reject`, {
+        vacationRejected: reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error('휴가 반려 에러:', error);
+      throw error;
+    }
   }
 };

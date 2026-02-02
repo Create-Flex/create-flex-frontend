@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { vacationService } from '../../../api/vacationService';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useVacationStore } from '../../../stores/useVacationStore';
 import {
     Plane, ArrowRight, Filter, Plus, Timer, CheckCircle2, XCircle,
     AlertCircle, Gift, Info, X, Stethoscope
@@ -45,6 +46,7 @@ const VACATION_TYPE_TO_BACKEND = {
 export const MyVacation = () => {
     const { user } = useAuthStore();
     const { openVacationModal } = useUIStore();
+    const { refreshKey } = useVacationStore();
 
     const today = new Date();
     const oneMonthAgo = new Date();
@@ -113,7 +115,7 @@ export const MyVacation = () => {
         if (memberId) {
             fetchVacationList();
         }
-    }, [memberId, startDate, endDate, vacationTypeFilter]);
+    }, [memberId, startDate, endDate, vacationTypeFilter, refreshKey]);
 
     return (
         <Container>

@@ -9,7 +9,7 @@ import { useVacationStore } from '../../stores/useVacationStore';
 export const VacationModal = ({ isOpen, onClose }) => {
     const { user } = useAuthStore();
     const { userProfile } = useUserStore();
-    const { addVacationLog, vacationForm, setVacationForm, resetVacationForm } = useVacationStore();
+    const { addVacationLog, vacationForm, setVacationForm, resetVacationForm, triggerRefresh } = useVacationStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -61,6 +61,7 @@ export const VacationModal = ({ isOpen, onClose }) => {
             };
 
             addVacationLog(newLog);
+            triggerRefresh(); // MyVacation 리스트 새로고침 트리거
             alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
             resetVacationForm();
             onClose();

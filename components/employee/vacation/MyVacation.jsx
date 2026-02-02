@@ -1,14 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { VacationModal } from '../../modals/VacationModal';
+import React, { useState, useEffect } from 'react';
+import { vacationService } from '../../../api/vacationService';
+import { useAuthStore } from '../../../stores/useAuthStore';
+import { useUIStore } from '../../../stores/useUIStore';
 import {
     Plane, ArrowRight, Filter, Plus, Timer, CheckCircle2, XCircle,
-    AlertCircle, MapPin, Gift, Info, X, Stethoscope
+    AlertCircle, Gift, Info, X, Stethoscope
 } from 'lucide-react';
 import {
     Container, TableContainer, ControlBar, FilterGroup, DateRangePicker, FilterLabel, DateInput,
     SelectWrapper, TypeSelect, RequestButton, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
     TypeBadge, StatusBadge, ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton,
-    ModalBody, ModalFooter, InfoLabel, InfoValue, DetailSection, DetailGrid, DetailInfoBox, DetailHeader, DetailRow,
+    ModalBody, ModalFooter, InfoLabel, InfoValue, DetailGrid, DetailInfoBox, DetailHeader, DetailRow,
     PrimaryButton,
     DetailDateRow, DetailDateItem, DateLabel, ReasonBox, RejectionBox, RejectionText,
     SelectIcon, TruncatedContent, CenterContent, MonoText
@@ -16,9 +18,35 @@ import {
 
 const getISODate = (date) => date.toISOString().split('T')[0];
 
-export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => {
+// 백엔드 enum → 프론트엔드 표시 텍스트 매핑
+const VACATION_TYPE_MAP = {
+    'ANNUAL': '연차',
+    'HALF': '반차',
+    'FAMILY': '경조사',
+    'SICK': '병가',
+    'WORKATION': '워케이션'
+};
+
+const VACATION_APPROVE_MAP = {
+    'APPROVE_NEED': '대기중',
+    'APPROVED': '승인됨',
+    'REJECTED': '반려됨'
+};
+
+// 프론트엔드 → 백엔드 enum 매핑
+const VACATION_TYPE_TO_BACKEND = {
+    '연차': 'ANNUAL',
+    '반차': 'HALF',
+    '경조사': 'FAMILY',
+    '병가': 'SICK',
+    '워케이션': 'WORKATION'
+};
+
+export const MyVacation = () => {
+    const { user } = useAuthStore();
+    const { openVacationModal } = useUIStore();
+
     const today = new Date();
-    // 오늘 기준 한 달 전/후 설정
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(today.getMonth() - 1);
     const oneMonthLater = new Date();
@@ -28,80 +56,64 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
     const [endDate, setEndDate] = useState(getISODate(oneMonthLater));
     const [vacationTypeFilter, setVacationTypeFilter] = useState('All');
 
+    // API 데이터 상태
+    const [vacationList, setVacationList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     // 모달 상태
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
-    const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
 
-    // 휴가 신청 폼 상태
-    const [vacationForm, setVacationForm] = useState({
-        type: '연차', startDate: '', endDate: '', reason: '',
-        location: '', emergencyContact: '', workGoals: '', handover: '',
-        relationship: '', eventType: '', symptoms: '', hospital: ''
-    });
+    const memberId = user?.memberId || user?.id;
 
-    // --- Mock Data & Filtering ---
-    const mockVacations = [
-        { id: 201, name: '이채연', type: '연차', startDate: '2026-01-20', endDate: '2026-01-21', days: 2, status: '승인됨', reason: '가족 여행' },
-        { id: 202, name: '이채연', type: '워케이션', startDate: '2026-01-15', endDate: '2026-01-17', days: 3, status: '승인됨', reason: '제주도 워케이션', location: '제주 오피스', emergencyContact: '010-1111-2222', workGoals: '모바일 앱 v2.0 기획 마무리', handover: '김민재 매니저' },
-        { id: 203, name: '이채연', type: '경조사', startDate: '2026-01-28', endDate: '2026-01-28', days: 1, status: '대기중', reason: '동생 졸업식 참여', relationship: '형제/자매', eventType: '졸업' },
-        { id: 204, name: '이채연', type: '경조사', startDate: '2026-01-12', endDate: '2026-01-12', days: 1, status: '반려됨', reason: '사촌 결혼식', rejectionReason: '경조사 휴가 규정상 본인/부모/조부모/형제자매까지만 유급 지원이 가능합니다. 개인 연차를 사용해주세요.' },
-        { id: 205, name: '이채연', type: '병가', startDate: '2026-01-05', endDate: '2026-01-06', days: 2, status: '승인됨', reason: '독감 치료', symptoms: '고열 및 인후통', hospital: '강남내과' },
-    ];
+    // 휴가 목록 조회
+    const fetchVacationList = async () => {
+        setIsLoading(true);
+        try {
+            const filters = {
+                startDate,
+                endDate
+            };
 
-    const displayVacationLogs = useMemo(() => {
-        const combined = [...mockVacations, ...vacationLogs.filter(v => v.name === userName)];
-        return Array.from(new Map(combined.map(item => [item.id, item])).values());
-    }, [vacationLogs, userName]);
+            // 필터가 All이 아닌 경우 타입 필터 추가
+            if (vacationTypeFilter !== 'All') {
+                filters.type = VACATION_TYPE_TO_BACKEND[vacationTypeFilter];
+            }
 
-    const filteredVacations = displayVacationLogs.filter(log => {
-        const isWithinDateRange = log.startDate >= startDate && log.startDate <= endDate;
-        const matchesType = vacationTypeFilter === 'All' || log.type === vacationTypeFilter;
-        return isWithinDateRange && matchesType;
-    });
+            const response = await vacationService.getMyVacations(memberId, filters);
 
-    const handleVacationSubmit = () => {
-        if (!vacationForm.startDate || !vacationForm.endDate) return alert('날짜를 선택해주세요.');
+            // 백엔드 응답을 프론트엔드 형식으로 변환
+            const mappedList = (response || []).map(item => {
+                // vacationPeriod에서 시작일/종료일 파싱
+                const [start, end] = item.vacationPeriod.includes('~')
+                    ? item.vacationPeriod.split(' ~ ')
+                    : [item.vacationPeriod, item.vacationPeriod];
 
-        const start = new Date(vacationForm.startDate);
-        const end = new Date(vacationForm.endDate);
+                return {
+                    id: item.vacationId,
+                    type: VACATION_TYPE_MAP[item.vacationType] || item.vacationType,
+                    startDate: start.trim(),
+                    endDate: end.trim(),
+                    days: item.vacationDays,
+                    reason: item.vacationDetail || '',
+                    status: VACATION_APPROVE_MAP[item.vacationApprove] || item.vacationApprove
+                };
+            });
 
-        if (end < start) return alert('종료일이 시작일보다 빠를 수 없습니다.');
-
-        let calculatedDays = 1;
-        if (vacationForm.type === '반차') {
-            calculatedDays = 0.5;
-        } else {
-            const diffTime = Math.abs(end.getTime() - start.getTime());
-            calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            setVacationList(mappedList);
+        } catch (error) {
+            console.error('휴가 목록 조회 실패:', error);
+            setVacationList([]);
+        } finally {
+            setIsLoading(false);
         }
-
-        const newLog = {
-            id: Date.now(),
-            name: userName,
-            type: vacationForm.type,
-            startDate: vacationForm.startDate,
-            endDate: vacationForm.endDate,
-            days: calculatedDays,
-            requestDate: new Date().toISOString().split('T')[0],
-            status: '대기중',
-            reason: vacationForm.reason || `${vacationForm.type} 신청`,
-            location: vacationForm.location,
-            emergencyContact: vacationForm.emergencyContact,
-            workGoals: vacationForm.workGoals,
-            handover: vacationForm.handover,
-            relationship: vacationForm.relationship,
-            eventType: vacationForm.eventType,
-            symptoms: vacationForm.symptoms,
-            hospital: vacationForm.hospital
-        };
-
-        if (onUpdateVacationLogs) onUpdateVacationLogs([newLog, ...vacationLogs]);
-        alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
-        setIsVacationModalOpen(false);
-        setVacationForm({
-            type: '연차', startDate: '', endDate: '', reason: '', location: '', emergencyContact: '', workGoals: '', handover: '', relationship: '', eventType: '', symptoms: '', hospital: ''
-        });
     };
+
+    // 초기 로딩 및 필터 변경 시 데이터 조회
+    useEffect(() => {
+        if (memberId) {
+            fetchVacationList();
+        }
+    }, [memberId, startDate, endDate, vacationTypeFilter]);
 
     return (
         <Container>
@@ -134,46 +146,60 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
                         </SelectWrapper>
                     </FilterGroup>
 
-                    <RequestButton onClick={() => setIsVacationModalOpen(true)}>
+                    <RequestButton onClick={openVacationModal}>
                         <Plus size={14} /> 휴가 신청
                     </RequestButton>
                 </ControlBar>
 
-                <Table>
-                    <TableHead>
-                        <tr>
-                            <TableHeaderCell>휴가 기간</TableHeaderCell>
-                            <TableHeaderCell>유형</TableHeaderCell>
-                            <TableHeaderCell>사용 일수</TableHeaderCell>
-                            <TableHeaderCell>신청 사유</TableHeaderCell>
-                            <TableHeaderCell $align="center">승인 상태</TableHeaderCell>
-                        </tr>
-                    </TableHead>
-                    <TableBody>
-                        {filteredVacations.map((log) => (
-                            <TableRow key={log.id} onClick={() => setSelectedDetailLog(log)}>
-                                <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
-                                <TableCell>
-                                    <TypeBadge $type={log.type}>{log.type}</TypeBadge>
-                                </TableCell>
-                                <TableCell $bold $color="#1f2937">{log.days}일</TableCell>
-                                <TableCell $color="#6b7280">
-                                    <TruncatedContent>{log.reason}</TruncatedContent>
-                                </TableCell>
-                                <TableCell>
-                                    <CenterContent>
-                                        <StatusBadge $status={log.status}>
-                                            {log.status === '대기중' && <Timer size={12} />}
-                                            {log.status === '승인됨' && <CheckCircle2 size={12} />}
-                                            {log.status === '반려됨' && <XCircle size={12} />}
-                                            {log.status === '대기중' ? '승인대기중' : log.status}
-                                        </StatusBadge>
-                                    </CenterContent>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                {isLoading ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                        로딩 중...
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHead>
+                            <tr>
+                                <TableHeaderCell>휴가 기간</TableHeaderCell>
+                                <TableHeaderCell>유형</TableHeaderCell>
+                                <TableHeaderCell>사용 일수</TableHeaderCell>
+                                <TableHeaderCell>신청 사유</TableHeaderCell>
+                                <TableHeaderCell $align="center">승인 상태</TableHeaderCell>
+                            </tr>
+                        </TableHead>
+                        <TableBody>
+                            {vacationList.length > 0 ? (
+                                vacationList.map((log) => (
+                                    <TableRow key={log.id} onClick={() => setSelectedDetailLog(log)}>
+                                        <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
+                                        <TableCell>
+                                            <TypeBadge $type={log.type}>{log.type}</TypeBadge>
+                                        </TableCell>
+                                        <TableCell $bold $color="#1f2937">{log.days}일</TableCell>
+                                        <TableCell $color="#6b7280">
+                                            <TruncatedContent>{log.reason || '-'}</TruncatedContent>
+                                        </TableCell>
+                                        <TableCell>
+                                            <CenterContent>
+                                                <StatusBadge $status={log.status}>
+                                                    {log.status === '대기중' && <Timer size={12} />}
+                                                    {log.status === '승인됨' && <CheckCircle2 size={12} />}
+                                                    {log.status === '반려됨' && <XCircle size={12} />}
+                                                    {log.status === '대기중' ? '승인대기중' : log.status}
+                                                </StatusBadge>
+                                            </CenterContent>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                        조회된 휴가 내역이 없습니다.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
             </TableContainer>
 
             {/* 휴가 상세 내역 모달 */}
@@ -283,16 +309,6 @@ export const MyVacation = ({ vacationLogs, onUpdateVacationLogs, userName }) => 
                         </ModalFooter>
                     </ModalContent>
                 </ModalOverlay>
-            )}
-
-            {isVacationModalOpen && (
-                <VacationModal
-                    isOpen={isVacationModalOpen}
-                    onClose={() => setIsVacationModalOpen(false)}
-                    form={vacationForm}
-                    setForm={setVacationForm}
-                    onSubmit={handleVacationSubmit}
-                />
             )}
         </Container>
     );

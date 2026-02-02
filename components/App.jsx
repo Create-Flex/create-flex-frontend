@@ -18,7 +18,6 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
 import { useOrgStore } from '../stores/useOrgStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
 import { authService } from '../api/authService';
 import { UserRole } from '../enums';
 import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../constants';
@@ -29,8 +28,7 @@ function App() {
     const { user, isAuthenticated, login, logout } = useAuthStore();
     const {
         isVacationModalOpen, setChatOpen, closeVacationModal,
-        isPhqModalOpen, closePhqModal,
-        vacationForm, setVacationForm, resetVacationForm
+        isPhqModalOpen, closePhqModal
     } = useUIStore();
     const {
         setUserProfile, initAttendanceLogs
@@ -39,8 +37,6 @@ function App() {
     const navigate = useNavigate();
 
     const { creators, creatorIssueLogs, setCreatorIssueLogs } = useCreatorStore();
-    const { addVacationLog } = useScheduleStore();
-    const { userProfile } = useOrgStore();
 
     // 앱 시작 시 토큰 검증 및 사용자 정보 복원
     useEffect(() => {
@@ -99,47 +95,6 @@ function App() {
             setChatOpen(false);
             navigate('/login');
         }
-    };
-
-    const handleVacationSubmit = () => {
-        if (!vacationForm.startDate || !vacationForm.endDate) return alert('날짜를 선택해주세요.');
-
-        const start = new Date(vacationForm.startDate);
-        const end = new Date(vacationForm.endDate);
-        if (end < start) return alert('종료일이 시작일보다 빠를 수 없습니다.');
-
-        let calculatedDays = 1;
-        if (vacationForm.type === '반차') {
-            calculatedDays = 0.5;
-        } else {
-            const diffTime = Math.abs(end.getTime() - start.getTime());
-            calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        }
-
-        const newLog = {
-            id: Date.now(),
-            name: userProfile.name,
-            type: vacationForm.type,
-            startDate: vacationForm.startDate,
-            endDate: vacationForm.endDate,
-            days: calculatedDays,
-            requestDate: new Date().toISOString().split('T')[0],
-            status: '대기중',
-            reason: vacationForm.reason || `${vacationForm.type} 신청`,
-            location: vacationForm.location,
-            emergencyContact: vacationForm.emergencyContact,
-            workGoals: vacationForm.workGoals,
-            handover: vacationForm.handover,
-            relationship: vacationForm.relationship,
-            eventType: vacationForm.eventType,
-            symptoms: vacationForm.symptoms,
-            hospital: vacationForm.hospital
-        };
-
-        addVacationLog(newLog);
-        closeVacationModal();
-        alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
-        resetVacationForm();
     };
 
     const handlePhqSubmit = (result) => {
@@ -213,9 +168,6 @@ function App() {
                     <VacationModal
                         isOpen={isVacationModalOpen}
                         onClose={closeVacationModal}
-                        form={vacationForm}
-                        setForm={setVacationForm}
-                        onSubmit={handleVacationSubmit}
                     />
                 )}
 

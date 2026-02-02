@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useOrgStore } from '../../../stores/useOrgStore';
+import { useAttendanceStore } from '../../../stores/useAttendanceStore';
 import { attendanceService } from '../../../api/attendanceService';
 import { Briefcase, Filter, ArrowRight } from 'lucide-react';
 import {
@@ -39,7 +39,7 @@ export const MyAttendance = () => {
     const oneMonthLater = new Date();
     oneMonthLater.setMonth(today.getMonth() + 1);
 
-    const { attendanceRefreshKey } = useOrgStore();
+    const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
 
     const [startDate, setStartDate] = useState(getISODate(oneMonthAgo));
     const [endDate, setEndDate] = useState(getISODate(oneMonthLater));

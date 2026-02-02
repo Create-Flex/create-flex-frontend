@@ -4,7 +4,7 @@ import { UserRole } from '../enums';
 import * as S from './OrgChartView.styled';
 
 import { useAuthStore } from '../stores/useAuthStore';
-import { useOrgStore } from '../stores/useOrgStore';
+import { useEmployeeStore } from '../stores/useEmployeeStore';
 
 const DEPT_COLORS = [
     { label: 'Slate', value: 'bg-slate-800' },
@@ -21,7 +21,7 @@ const DEPT_COLORS = [
 
 export const OrgChartView = () => {
     const { user } = useAuthStore();
-    const { departments, setDepartments: onUpdateDepartments, employees } = useOrgStore();
+    const { departments, setDepartments: onUpdateDepartments, employees } = useEmployeeStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState(null);

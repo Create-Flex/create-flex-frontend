@@ -16,7 +16,9 @@ import { VacationModal } from './modals/VacationModal';
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
-import { useOrgStore } from '../stores/useOrgStore';
+import { useUserStore } from '../stores/useUserStore';
+import { useAttendanceStore } from '../stores/useAttendanceStore';
+import { useHealthStore } from '../stores/useHealthStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
 import { authService } from '../api/authService';
 import { UserRole } from '../enums';
@@ -30,13 +32,13 @@ function App() {
         isVacationModalOpen, setChatOpen, closeVacationModal,
         isPhqModalOpen, closePhqModal
     } = useUIStore();
-    const {
-        setUserProfile, initAttendanceLogs
-    } = useOrgStore();
+    const { setUserProfile } = useUserStore();
+    const { initAttendanceLogs } = useAttendanceStore();
+    const { creatorIssueLogs, setCreatorIssueLogs } = useHealthStore();
 
     const navigate = useNavigate();
 
-    const { creators, creatorIssueLogs, setCreatorIssueLogs } = useCreatorStore();
+    const { creators } = useCreatorStore();
 
     // 앱 시작 시 토큰 검증 및 사용자 정보 복원
     useEffect(() => {

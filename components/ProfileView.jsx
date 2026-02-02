@@ -19,7 +19,9 @@ import {
 } from './ProfileView.styled';
 
 import { useAuthStore } from '../stores/useAuthStore';
-import { useOrgStore } from '../stores/useOrgStore';
+import { useUserStore } from '../stores/useUserStore';
+import { useHealthStore } from '../stores/useHealthStore';
+import { useVacationStore } from '../stores/useVacationStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
@@ -33,8 +35,10 @@ export const ProfileView = ({
 }) => {
     // Hooks from stores
     const { user } = useAuthStore();
-    const { userProfile, updateProfile, addHealthRecord } = useOrgStore();
-    const { vacationLogs, allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
+    const { userProfile, updateProfile } = useUserStore();
+    const { addEmployeeHealthRecord: addHealthRecord } = useHealthStore();
+    const { vacationLogs } = useVacationStore();
+    const { allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
     const { openVacationModal, openPhqModal } = useUIStore();
 
     // Determine which profile to show

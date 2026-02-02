@@ -8,7 +8,8 @@ import * as S from './CreatorManagerView.styled';
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
-import { useOrgStore } from '../stores/useOrgStore';
+import { useEmployeeStore } from '../stores/useEmployeeStore';
+import { useHealthStore } from '../stores/useHealthStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 
@@ -67,13 +68,15 @@ export const CreatorManagerView = ({ view }) => {
     const { user } = useAuthStore();
     const {
         creators, setCreators,
-        creatorHealthRecords, setCreatorHealthRecords,
-        creatorIssueLogs, setCreatorIssueLogs,
         creatorEvents, setCreatorEvents,
         addSupportRequest, supportRequests
     } = useCreatorStore();
 
-    const { employees } = useOrgStore();
+    const { employees } = useEmployeeStore();
+    const {
+        creatorHealthRecords, setCreatorHealthRecords,
+        creatorIssueLogs, setCreatorIssueLogs
+    } = useHealthStore();
     const { allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
     const { currentView: storeView } = useUIStore();
     const currentView = view || storeView;

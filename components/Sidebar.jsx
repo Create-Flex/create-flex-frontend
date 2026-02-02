@@ -12,8 +12,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
-import { useOrgStore } from '../stores/useOrgStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
+import { useUserStore } from '../stores/useUserStore';
+import { useAttendanceStore } from '../stores/useAttendanceStore';
+import { useVacationStore } from '../stores/useVacationStore';
 import { attendanceService } from '../api/attendanceService';
 
 const CalendarWidget = () => {
@@ -97,8 +98,9 @@ export const Sidebar = ({ onLogout }) => {
     } = useUIStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const { userProfile, attendanceLogs, addAttendanceLog, triggerAttendanceRefresh } = useOrgStore();
-    const { vacationLogs } = useScheduleStore();
+    const { userProfile } = useUserStore();
+    const { attendanceLogs, addAttendanceLog, triggerRefresh: triggerAttendanceRefresh } = useAttendanceStore();
+    const { vacationLogs } = useVacationStore();
 
     if (!user) return null; // Safety check
 

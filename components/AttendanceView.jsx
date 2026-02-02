@@ -65,7 +65,7 @@ export const AttendanceView = () => {
                 setVacationStats({
                     total: response.totalVacation || 15,
                     used: response.usedVacation || 0,
-                    remaining: response.remainderVacation || 15
+                    remaining: response.vacationRemainder || 15
                 });
             } catch (error) {
                 console.error('잔여 연차 조회 실패:', error);

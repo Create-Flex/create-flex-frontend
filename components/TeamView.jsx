@@ -4,14 +4,14 @@ import * as S from './TeamView.styled';
 import { Search, Users, Mail, Phone, MoreHorizontal, Hash, ChevronLeft, ArrowRight, Monitor } from 'lucide-react';
 
 import { useAuthStore } from '../stores/useAuthStore';
-import { useOrgStore } from '../stores/useOrgStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
+import { useEmployeeStore } from '../stores/useEmployeeStore';
+import { useVacationStore } from '../stores/useVacationStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
 
 export const TeamView = () => {
     const { user } = useAuthStore();
-    const { teams, employees } = useOrgStore();
-    const { vacationLogs } = useScheduleStore();
+    const { teams, employees } = useEmployeeStore();
+    const { vacationLogs } = useVacationStore();
     const { creators } = useCreatorStore();
 
     const [selectedMember, setSelectedMember] = useState(null);

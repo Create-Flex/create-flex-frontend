@@ -17,27 +17,24 @@ import {
     ContentSection
 } from './HRDashboardView.styled';
 
-import { useOrgStore } from '../stores/useOrgStore';
+import { useEmployeeStore } from '../stores/useEmployeeStore';
+import { useAttendanceStore } from '../stores/useAttendanceStore';
+import { useHealthStore } from '../stores/useHealthStore';
+import { useVacationStore } from '../stores/useVacationStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 
 export const HRDashboardView = ({ view }) => {
-    const {
-        employees, setEmployees,
-        teams, setTeams,
-        departments,
-        attendanceLogs,
-        employeeHealthRecords
-    } = useOrgStore();
+    const { employees, setEmployees, teams, setTeams, departments } = useEmployeeStore();
+    const { attendanceLogs } = useAttendanceStore();
+    const { employeeHealthRecords } = useHealthStore();
+    const { vacationLogs, setVacationLogs } = useVacationStore();
 
     const {
         creators,
         supportRequests,
         setSupportRequests
     } = useCreatorStore();
-
-    const { vacationLogs, setVacationLogs } = useScheduleStore();
     const { currentView: storeView } = useUIStore();
 
     // Use prop if available, otherwise fallback to store

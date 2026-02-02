@@ -3,15 +3,13 @@ import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift } from 'luci
 import * as S from './VacationModal.styled';
 import { vacationService } from '../../api/vacationService';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { useOrgStore } from '../../stores/useOrgStore';
-import { useScheduleStore } from '../../stores/useScheduleStore';
-import { useUIStore } from '../../stores/useUIStore';
+import { useUserStore } from '../../stores/useUserStore';
+import { useVacationStore } from '../../stores/useVacationStore';
 
 export const VacationModal = ({ isOpen, onClose }) => {
     const { user } = useAuthStore();
-    const { userProfile } = useOrgStore();
-    const { addVacationLog } = useScheduleStore();
-    const { vacationForm, setVacationForm, resetVacationForm } = useUIStore();
+    const { userProfile } = useUserStore();
+    const { addVacationLog, vacationForm, setVacationForm, resetVacationForm } = useVacationStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;

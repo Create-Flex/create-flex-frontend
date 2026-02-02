@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useOrgStore } from '../../stores/useOrgStore';
+import { useAttendanceStore } from '../../stores/useAttendanceStore';
 import { attendanceService } from '../../api/attendanceService';
 import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
 import {
@@ -10,7 +10,7 @@ import {
 } from './AttendanceManagement.styled';
 
 export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
-    const { attendanceRefreshKey } = useOrgStore();
+    const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const todayStr = new Date().toISOString().split('T')[0];
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('All');

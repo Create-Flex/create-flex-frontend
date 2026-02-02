@@ -10,12 +10,14 @@ import {
     ProgressBarBg, ProgressBarFill, TabsContainer, TabButton, VerticalStack
 } from './AttendanceView.styled';
 
-import { useOrgStore } from '../stores/useOrgStore';
-import { attendanceService } from '../api/attendanceService'; // Import Service
+import { useUserStore } from '../stores/useUserStore';
+import { useAttendanceStore } from '../stores/useAttendanceStore';
+import { attendanceService } from '../api/attendanceService';
 
 export const AttendanceView = () => {
     const { user } = useAuthStore();
-    const { userProfile, attendanceLogs } = useOrgStore();
+    const { userProfile } = useUserStore();
+    const { attendanceLogs } = useAttendanceStore();
 
     // Derived state
     const userName = userProfile.name;

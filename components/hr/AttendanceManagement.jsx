@@ -37,12 +37,12 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                 const statsData = await attendanceService.getCompanyDashboardStats();
                 if (statsData) {
                     setStats({
-                        avgIn: statsData.avgClockInTime || '-',
-                        avgOut: statsData.avgClockOutTime || '-',
-                        avgWork: statsData.avgWorkTime || '-',
-                        todayNormal: statsData.normalCount || 0,
-                        todayLate: statsData.lateCount || 0,
-                        todayAbsent: statsData.absentCount || 0,
+                        avgIn: statsData.averageStartTime || '-',
+                        avgOut: statsData.averageEndTime || '-',
+                        avgWork: statsData.averageWorkTime || '-',
+                        todayNormal: statsData.todayNormalCount || 0,
+                        todayLate: statsData.todayLateCount || 0,
+                        todayAbsent: statsData.todayAbsentCount || 0,
                         // If API returns different field names, map them here. Assuming DTO structure based on typical naming. 
                         // Since DTO definition wasn't fully inspected, I'll use safe defaults or check typical patterns if errors occur.
                         // Actually, let's assume the keys match what I expect or map them dynamically if needed.

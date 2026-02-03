@@ -1,37 +1,4 @@
-import { UserRole } from './enums';
-
-export const USERS = {
-    employee: {
-        id: '1007',
-        username: 'IT001',
-        name: '윤개발',
-        role: UserRole.EMPLOYEE,
-        jobTitle: '백엔드 개발자',
-        avatarUrl: 'https://cdn.mcn.com/profiles/yoon_dev.jpg',
-        status: '재직중',
-        tags: ['기술본부', '재직중']
-    },
-    admin: {
-        id: '1001',
-        username: 'HR001',
-        name: '김인사',
-        role: UserRole.ADMIN,
-        jobTitle: '인사 관리',
-        avatarUrl: 'https://cdn.mcn.com/profiles/kim_insa.jpg',
-        status: '재직중',
-        tags: ['인사문화팀', '재직중']
-    },
-    creator: {
-        id: '2001',
-        username: 'gamst',
-        name: '감스트',
-        role: UserRole.CREATOR,
-        jobTitle: 'Creator',
-        avatarUrl: 'https://cdn.mcn.com/profiles/gamst.jpg',
-        status: '재직중',
-        tags: ['크리에이터', '계약중']
-    }
-};
+// 테스트 사용자 데이터 제거됨 - 백엔드 API에서 사용자 정보 조회
 
 export const INITIAL_SCHEDULE_TEMPLATES = [
     { id: 'company', name: '회사 일정', color: 'blue' },

@@ -53,19 +53,15 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         todayNormal: statsData.todayNormalCount || 0,
                         todayLate: statsData.todayLateCount || 0,
                         todayAbsent: statsData.todayAbsentCount || 0,
-                        // If API returns different field names, map them here. Assuming DTO structure based on typical naming. 
-                        // Since DTO definition wasn't fully inspected, I'll use safe defaults or check typical patterns if errors occur.
-                        // Actually, let's assume the keys match what I expect or map them dynamically if needed.
-                        // Re-checking controller... returns CompanyAttendanceDashboardDto. 
-                        // Let's assume keys: avgClockInTime, avgClockOutTime, avgWorkTime, normalCount, lateCount, absentCount.
                     });
                 }
 
-                // 2. Attendance List
+                // 2. Attendance List (백엔드 필터링)
                 const listParams = {
                     startDate,
                     endDate,
-                    status: STATUS_MAP[selectedStatus] // Backend filtering
+                    status: STATUS_MAP[selectedStatus], // 상태 필터
+                    name: searchQuery || undefined // 이름 검색 필터
                 };
                 const listData = await attendanceService.getAllAttendance(listParams);
 
@@ -76,38 +72,17 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
 
                     let status = item.attendanceStatus;
 
-                    // Overtime Logic: If clocked in by 09:00 and out after 18:00 and work duration > 9h
-                    // Since specific duration calculation might be complex with breaks, we'll try a simple check first as requested.
-                    // User Rule: "09시 이전에 출근했고 18시 이후에 퇴근했으며, 일한 시간이 9시간이 넘을 경우"
-                    // If backend workDuration is "9h 15m" etc. we can parse it.
-                    // Or we can just rely on clockIn/Out times if break time is standard.
-                    // Let's rely on Parsing workDuration if available or times. 
-                    // Let's assume standard 1h break. 09-18 is 9h span minus 1h break = 8h work. 
-                    // To have >9h work, given 1h break, span must be >10h. e.g. 09-19 -> 10h span - 1h break = 9h work. 
-                    // If user means "Total Time at Company > 9h", then 09-18 is 9h. 
-                    // User phrasing: "일한 시간이 9시간이 넘을 경우". Usually means actual work time. 
-                    // Let's simple check: In <= 09:00 AND Out >= 18:00. 
-                    // Wait, 09-18 is Normal. 09-19 might be overtime. 
-                    // Let's check the user request example: "09시 이전에 출근했고 18시 이후에 퇴근했으며, 일한 시간이 9시간이 넘을 경우"
-                    // If I start 08:50 (Before 09), End 18:10 (After 18). Duration approx 9h 20m (minus 1h break = 8h 20m). 
-                    // Maybe "Overtime" means "Stayed later than 18:00 + X"?
-                    // User screenshot had 09:00 -> 20:00 (11h span). That is definitely overtime. 
-                    // Let's use: if (clockIn <= '09:00' && clockOut > '18:00') -> Overtime? (1h late).
-                    // User said: "Work time > 9 hours". 
-                    // 09:00 to 18:00 is 9 hours elapsed. If strictly > 9h, then 18:01 is > 9h elapsed. 
-
+                    // Overtime Logic
                     if (clockIn <= '09:00' && clockOut > '18:00') {
-                        // Check if duration is strictly > 9h if possible. 
-                        // If we parse timestamps:
                         const start = new Date(item.attendanceStart);
                         const end = new Date(item.attendanceEnd);
-                        const diffH = (end - start) / (1000 * 60 * 60); // hours
+                        const diffH = (end - start) / (1000 * 60 * 60);
                         if (diffH > 9) {
                             status = '초과';
                         }
                     }
 
-                    // Early Leave Logic: If clocked out before 18:00 (and not '-' which means Working)
+                    // Early Leave Logic
                     if (clockOut !== '-' && clockOut < '18:00') {
                         status = '조퇴';
                     }
@@ -132,17 +107,12 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         };
 
         fetchData();
-        fetchData();
-    }, [endDate, selectedStatus, attendanceRefreshKey]); // Re-fetch when filters change or refresh triggered
+    }, [startDate, endDate, selectedStatus, searchQuery, attendanceRefreshKey]); // 이름 검색 추가
 
-    // Filter by Name and Status locally
+    // 백엔드에서 필터링 처리하므로 프론트엔드 추가 필터링 불필요
     const filteredLogs = useMemo(() => {
-        return attendanceList.filter(log => {
-            const matchesName = log.name ? log.name.includes(searchQuery) : false;
-            const matchesStatus = selectedStatus === 'All' ? true : log.status === selectedStatus;
-            return matchesName && matchesStatus;
-        }).sort((a, b) => b.date.localeCompare(a.date)); // Sort latest first
-    }, [attendanceList, searchQuery, selectedStatus]);
+        return attendanceList.sort((a, b) => b.date.localeCompare(a.date)); // 정렬만 수행
+    }, [attendanceList]);
 
 
     const StatCard = ({ label, value, icon: Icon, subLabel }) => (

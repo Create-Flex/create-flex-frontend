@@ -41,6 +41,7 @@ export const VacationManagement = ({ employees = [] }) => {
     const [isRejectionInputOpen, setIsRejectionInputOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [activeTab, setActiveTab] = useState('all');
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
 
     // Date Filter State
     const [startDate, setStartDate] = useState('');
@@ -72,6 +73,46 @@ export const VacationManagement = ({ employees = [] }) => {
         return sortConfig.direction === 'asc'
             ? <ArrowUp size={12} style={{ marginLeft: '0.25rem', color: 'black' }} />
             : <ArrowDown size={12} style={{ marginLeft: '0.25rem', color: 'black' }} />;
+    };
+
+    // 휴가 상세 조회 함수
+    const handleRowClick = async (vac) => {
+        setIsDetailLoading(true);
+        try {
+            // 사용자용 상세 조회 API 사용 (관리자도 사용 가능)
+            const detail = await vacationService.getVacationDetail(vac.id);
+            
+            // 백엔드 응답을 프론트엔드 형식으로 변환
+            const mappedDetail = {
+                id: detail.vacationId,
+                name: detail.memberName,
+                type: TYPE_MAP[detail.vacationType] || detail.vacationType,
+                startDate: detail.vacationStart,
+                endDate: detail.vacationEnd,
+                days: detail.vacationDays,
+                requestDate: detail.vacationRequest,
+                status: STATUS_MAP[detail.vacationApprove] || detail.vacationApprove,
+                reason: detail.vacationDetail || '',  // 일반 신청 사유
+                rejectionReason: detail.vacationRejected || '',
+                // 경조사 상세
+                relationship: detail.familyRelation || '',
+                eventType: detail.familyDetail || '',
+                // 병가 상세
+                symptoms: detail.sickDetail || '',
+                hospital: detail.sickHospital || '',
+                // 워케이션 상세
+                location: detail.workationWhere || '',
+                emergencyContact: detail.workationContact || '',
+                workGoals: detail.workationPlan || '',
+                handover: detail.workationHandover || ''
+            };
+            setSelectedDetailLog(mappedDetail);
+        } catch (error) {
+            console.error('휴가 상세 조회 실패:', error);
+            alert('휴가 상세 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setIsDetailLoading(false);
+        }
     };
 
     // 백엔드에서 휴가 데이터 조회
@@ -111,7 +152,8 @@ export const VacationManagement = ({ employees = [] }) => {
                     days: item.vacationDays || 1,
                     requestDate: item.vacationRequest || '-',
                     status: STATUS_MAP[item.vacationApprove] || item.vacationApprove,
-                    remainingVacation: item.vacationRemainder
+                    remainingVacation: item.vacationRemainder,
+                    reason: item.vacationDetail || ''  // 일반 신청 사유
                 }));
 
                 setVacationLogs(mappedData);
@@ -333,7 +375,11 @@ export const VacationManagement = ({ employees = [] }) => {
                             const remaining = employee ? employee.remainingVacation : '-';
 
                             return (
-                                <TableRow key={vac.id} onClick={() => setSelectedDetailLog(vac)}>
+                                <TableRow 
+                                    key={vac.id} 
+                                    onClick={() => handleRowClick(vac)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <TableCell $xs $mono $color="#6b7280">{vac.requestDate || '-'}</TableCell>
                                     <TableCell $bold $color="#111827">{vac.name}</TableCell>
                                     <TableCell>
@@ -379,11 +425,17 @@ export const VacationManagement = ({ employees = [] }) => {
                         </ModalHeader>
 
                         <ModalContent>
-                            <DetailGrid>
-                                <DetailItem>
-                                    <DetailLabel>신청일</DetailLabel>
-                                    <DetailValueBox>{selectedDetailLog.requestDate || '-'}</DetailValueBox>
-                                </DetailItem>
+                            {isDetailLoading ? (
+                                <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                                    로딩 중...
+                                </div>
+                            ) : (
+                                <>
+                                    <DetailGrid>
+                                        <DetailItem>
+                                            <DetailLabel>신청일</DetailLabel>
+                                            <DetailValueBox>{selectedDetailLog.requestDate || '-'}</DetailValueBox>
+                                        </DetailItem>
                                 <DetailItem>
                                     <DetailLabel>신청자</DetailLabel>
                                     <DetailValueBox>{selectedDetailLog.name}</DetailValueBox>
@@ -501,6 +553,8 @@ export const VacationManagement = ({ employees = [] }) => {
                                         <RejectionBtn $primary onClick={() => handleApproval(selectedDetailLog, false)}>반려 확정</RejectionBtn>
                                     </RejectionActions>
                                 </RejectionInputContainer>
+                            )}
+                                </>
                             )}
                         </ModalContent>
 

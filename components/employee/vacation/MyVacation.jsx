@@ -64,8 +64,46 @@ export const MyVacation = () => {
 
     // 모달 상태
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
 
     const memberId = user?.memberId || user?.id;
+
+    // 휴가 상세 조회 (행 클릭 시)
+    const fetchVacationDetail = async (vacationId) => {
+        setIsDetailLoading(true);
+        try {
+            const detail = await vacationService.getVacationDetail(vacationId);
+            // 백엔드 응답을 프론트엔드 형식으로 변환
+            const mappedDetail = {
+                id: detail.vacationId,
+                type: VACATION_TYPE_MAP[detail.vacationType] || detail.vacationType,
+                startDate: detail.vacationStart,
+                endDate: detail.vacationEnd,
+                days: detail.vacationDays,
+                reason: detail.vacationDetail || '',
+                status: VACATION_APPROVE_MAP[detail.vacationApprove] || detail.vacationApprove,
+                requestDate: detail.vacationRequest,
+                rejectionReason: detail.vacationRejected || '',
+                // 경조사 상세
+                relationship: detail.familyRelation || '',
+                eventType: detail.familyDetail || '',
+                // 병가 상세
+                symptoms: detail.sickDetail || '',
+                hospital: detail.sickHospital || '',
+                // 워케이션 상세
+                location: detail.workationWhere || '',
+                emergencyContact: detail.workationContact || '',
+                workGoals: detail.workationPlan || '',
+                handover: detail.workationHandover || ''
+            };
+            setSelectedDetailLog(mappedDetail);
+        } catch (error) {
+            console.error('휴가 상세 조회 실패:', error);
+            alert('휴가 상세 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setIsDetailLoading(false);
+        }
+    };
 
     // 휴가 목록 조회
     const fetchVacationList = async () => {
@@ -171,7 +209,7 @@ export const MyVacation = () => {
                         <TableBody>
                             {vacationList.length > 0 ? (
                                 vacationList.map((log) => (
-                                    <TableRow key={log.id} onClick={() => setSelectedDetailLog(log)}>
+                                    <TableRow key={log.id} onClick={() => fetchVacationDetail(log.id)}>
                                         <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
                                         <TableCell>
                                             <TypeBadge $type={log.type}>{log.type}</TypeBadge>
@@ -216,13 +254,19 @@ export const MyVacation = () => {
                         </ModalHeader>
 
                         <ModalBody>
-                            <DetailGrid>
-                                <div>
-                                    <InfoLabel>휴가 종류</InfoLabel>
-                                    <InfoValue>
-                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>{selectedDetailLog.type}
-                                    </InfoValue>
+                            {isDetailLoading ? (
+                                <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                                    로딩 중...
                                 </div>
+                            ) : (
+                                <>
+                                    <DetailGrid>
+                                        <div>
+                                            <InfoLabel>휴가 종류</InfoLabel>
+                                            <InfoValue>
+                                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>{selectedDetailLog.type}
+                                            </InfoValue>
+                                        </div>
                                 <div>
                                     <InfoLabel>신청 상태</InfoLabel>
                                     <StatusBadge $status={selectedDetailLog.status}>
@@ -304,6 +348,8 @@ export const MyVacation = () => {
                                         {selectedDetailLog.rejectionReason}
                                     </RejectionText>
                                 </RejectionBox>
+                            )}
+                                </>
                             )}
                         </ModalBody>
                         <ModalFooter>

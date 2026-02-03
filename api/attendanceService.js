@@ -40,9 +40,9 @@ export const attendanceService = {
     // 전체 직원 근태 기록 조회 (관리자용)
     getAllAttendance: async (params = {}) => {
         try {
-            const { startDate, endDate, status } = params;
+            const { startDate, endDate, status, name } = params;
             const response = await api.get('/attendance/all', {
-                params: { startDate, endDate, status }
+                params: { startDate, endDate, status, name }
             });
             return response.data;
         } catch (error) {

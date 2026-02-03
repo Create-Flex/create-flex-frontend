@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAttendanceStore } from '../../stores/useAttendanceStore';
 import { attendanceService } from '../../api/attendanceService';
 import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
@@ -65,27 +65,10 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                 };
                 const listData = await attendanceService.getAllAttendance(listParams);
 
-                // Map Backend DTO to Component State
+                // Map Backend DTO to Component State (백엔드에서 상태/정렬 처리)
                 const mappedData = listData.map(item => {
                     const clockIn = item.attendanceStart ? item.attendanceStart.split('T')[1].substring(0, 5) : '-';
                     const clockOut = item.attendanceEnd ? item.attendanceEnd.split('T')[1].substring(0, 5) : '-';
-
-                    let status = item.attendanceStatus;
-
-                    // Overtime Logic
-                    if (clockIn <= '09:00' && clockOut > '18:00') {
-                        const start = new Date(item.attendanceStart);
-                        const end = new Date(item.attendanceEnd);
-                        const diffH = (end - start) / (1000 * 60 * 60);
-                        if (diffH > 9) {
-                            status = '초과';
-                        }
-                    }
-
-                    // Early Leave Logic
-                    if (clockOut !== '-' && clockOut < '18:00') {
-                        status = '조퇴';
-                    }
 
                     return {
                         id: item.attendanceId,
@@ -93,7 +76,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         date: item.attendanceDate,
                         clockIn: clockIn,
                         clockOut: clockOut,
-                        status: status
+                        status: item.attendanceStatus // 백엔드에서 계산된 상태 그대로 사용
                     };
                 });
 
@@ -107,12 +90,10 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         };
 
         fetchData();
-    }, [startDate, endDate, selectedStatus, searchQuery, attendanceRefreshKey]); // 이름 검색 추가
+    }, [startDate, endDate, selectedStatus, searchQuery, attendanceRefreshKey]);
 
-    // 백엔드에서 필터링 처리하므로 프론트엔드 추가 필터링 불필요
-    const filteredLogs = useMemo(() => {
-        return attendanceList.sort((a, b) => b.date.localeCompare(a.date)); // 정렬만 수행
-    }, [attendanceList]);
+    // 백엔드에서 필터링/정렬 처리하므로 프론트엔드에서는 그대로 사용
+    const filteredLogs = attendanceList;
 
 
     const StatCard = ({ label, value, icon: Icon, subLabel }) => (

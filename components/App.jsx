@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { creatorService } from '../api/creatorService';
 import { GlobalStyles } from './GlobalStyles';
 import * as S from './App.styled';
 import { Login } from './auth/login/Login';
@@ -45,27 +46,101 @@ function App() {
         const initAuth = async () => {
             const token = localStorage.getItem('token');
 
-            if (token && !isAuthenticated) {
+            if (token) {
                 try {
                     // 토큰으로 사용자 정보 가져오기
                     const userInfo = await authService.getMyInfo();
-                    login(userInfo, token);
+
+                    // Normalize user object: ensure 'id' exists for permission checks
+                    const authUser = {
+                        ...userInfo,
+                        id: userInfo.memberId || userInfo.id
+                    };
+                    login(authUser, token);
 
                     // 프로필 설정
                     let newProfile = EMPLOYEE_PROFILE_DATA;
                     if (userInfo.memberRole === 'ADMINISTRATOR' || userInfo.role === 'ADMINISTRATOR') {
-                        newProfile = ADMIN_PROFILE_DATA;
+                        // 관리자 - DTO 매핑
+                        newProfile = {
+                            ...ADMIN_PROFILE_DATA,
+                            // 공통 정보
+                            employeeId: String(userInfo.memberId),
+                            name: userInfo.memberName,
+                            email: userInfo.corporEmail || userInfo.memberAccount,
+                            role: userInfo.memberRole,
+                            avatarUrl: userInfo.profileImage || ADMIN_PROFILE_DATA.avatarUrl,
+                            coverUrl: userInfo.profileBanner || '',
+                            // 직원 상세 정보
+                            job: userInfo.task || '-',
+                            nickname: userInfo.nickname || '',
+                            org: userInfo.departmentName || '-',
+                            engName: userInfo.engName || '',
+                            personalEmail: userInfo.personalEmail || '',
+                            phone: userInfo.personalCall || '',
+                            joinDate: userInfo.hireDate || '',
+                            address: userInfo.address || '',
+                            vacationRemainder: userInfo.vacationRemainder || 0,
+                            rank: '관리자'
+                        };
                     } else if (userInfo.memberRole === 'CREATOR' || userInfo.role === 'CREATOR') {
-                        const existingCreator = creators.find(c => c.id === userInfo.memberId);
+                        // 크리에이터 상세 정보 조회
+                        try {
+                            const creatorInfo = await creatorService.getCreatorById(userInfo.memberId);
+                            newProfile = {
+                                ...EMPLOYEE_PROFILE_DATA,
+                                employeeId: String(userInfo.memberId),
+                                name: creatorInfo.member_name || userInfo.memberName,
+                                email: creatorInfo.member_account || userInfo.memberAccount,
+                                role: 'CREATOR',
+                                avatarUrl: creatorInfo.profile_image || userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                                coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
+                                job: 'Creator',
+                                org: 'MCN',
+                                rank: '-',
+                                // 크리에이터 전용 필드
+                                subscribers: creatorInfo.creator_subscribe || '',
+                                category: creatorInfo.creator_category || '',
+                                platform: creatorInfo.creator_platform || '',
+                                managerName: creatorInfo.manager_name || '',
+                                creatorStatus: creatorInfo.creator_status || '',
+                            };
+                        } catch (creatorError) {
+                            console.error('크리에이터 상세 정보 조회 실패:', creatorError);
+                            // 기본 프로필로 설정
+                            newProfile = {
+                                ...EMPLOYEE_PROFILE_DATA,
+                                name: userInfo.memberName || userInfo.name,
+                                job: 'Creator',
+                                org: 'MCN',
+                                rank: '-',
+                                avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                                coverUrl: userInfo.profileBanner || '',
+                                employeeId: userInfo.memberId || userInfo.id,
+                            };
+                        }
+                    } else {
+                        // 일반 직원 (General Employee) - DTO 매핑
                         newProfile = {
                             ...EMPLOYEE_PROFILE_DATA,
-                            name: userInfo.memberName || userInfo.name,
-                            job: 'Creator',
-                            org: 'MCN',
-                            rank: '-',
-                            avatarUrl: existingCreator?.avatarUrl || userInfo.avatarUrl,
-                            coverUrl: existingCreator?.coverUrl || '',
-                            employeeId: userInfo.memberId || userInfo.id,
+                            // 공통 정보
+                            employeeId: String(userInfo.memberId),
+                            name: userInfo.memberName,
+                            email: userInfo.corporEmail || userInfo.memberAccount,
+                            role: userInfo.memberRole,
+                            avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                            coverUrl: userInfo.profileBanner || '',
+                            // 직원 상세 정보
+                            job: userInfo.task || '-',
+                            nickname: userInfo.nickname || '',
+                            org: userInfo.departmentName || '-',
+                            engName: userInfo.engName || '',
+                            personalEmail: userInfo.personalEmail || '',
+                            phone: userInfo.personalCall || '',
+                            joinDate: userInfo.hireDate || '',
+                            address: userInfo.address || '',
+                            vacationRemainder: userInfo.vacationRemainder || 0,
+                            rank: '사원'
                         };
                     }
                     setUserProfile(newProfile);

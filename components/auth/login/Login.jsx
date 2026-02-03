@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../../api/authService';
+import { creatorService } from '../../../api/creatorService';
 import { useAuthStore } from '../../../stores/useAuthStore';
+import { useUserStore } from '../../../stores/useUserStore';
+import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../../../constants';
 import * as S from './Login.styled';
 
 const BACKGROUND_IMAGE_URL = "assets/MCN.png";
@@ -9,6 +12,7 @@ const BACKGROUND_IMAGE_URL = "assets/MCN.png";
 export const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { setUserProfile } = useUserStore();
 
   const [formData, setFormData] = useState({
     memberAccount: '',
@@ -54,11 +58,99 @@ export const Login = () => {
       try {
         const userInfo = await authService.getMyInfo();
 
-        // 4. Zustand 스토어에 저장
-        login(userInfo, token);
+        // 4. Zustand 스토어에 인증 정보 저장
+        const authUser = {
+          ...userInfo,
+          id: userInfo.memberId || userInfo.id
+        };
+        login(authUser, token);
 
-        // 5. 역할별 페이지 리다이렉트
-        switch (userInfo.memberRole || userInfo.role) {
+        // 5. 프로필 설정 (DTO 매핑)
+        let newProfile = EMPLOYEE_PROFILE_DATA;
+        const role = userInfo.memberRole || userInfo.role;
+
+        if (role === 'ADMINISTRATOR') {
+          newProfile = {
+            ...ADMIN_PROFILE_DATA,
+            employeeId: String(userInfo.memberId),
+            name: userInfo.memberName,
+            email: userInfo.corporEmail || userInfo.memberAccount,
+            role: userInfo.memberRole,
+            avatarUrl: userInfo.profileImage || ADMIN_PROFILE_DATA.avatarUrl,
+            coverUrl: userInfo.profileBanner || '',
+            job: userInfo.task || '-',
+            nickname: userInfo.nickname || '',
+            org: userInfo.departmentName || '-',
+            engName: userInfo.engName || '',
+            personalEmail: userInfo.personalEmail || '',
+            phone: userInfo.personalCall || '',
+            joinDate: userInfo.hireDate || '',
+            address: userInfo.address || '',
+            vacationRemainder: userInfo.vacationRemainder || 0,
+            rank: '관리자'
+          };
+        } else if (role === 'CREATOR') {
+          // 크리에이터 상세 정보 조회
+          try {
+            const creatorInfo = await creatorService.getCreatorById(userInfo.memberId);
+            newProfile = {
+              ...EMPLOYEE_PROFILE_DATA,
+              employeeId: String(userInfo.memberId),
+              name: creatorInfo.member_name || userInfo.memberName,
+              email: creatorInfo.member_account || userInfo.memberAccount,
+              role: 'CREATOR',
+              avatarUrl: creatorInfo.profile_image || userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+              coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
+              job: 'Creator',
+              org: 'MCN',
+              rank: '-',
+              // 크리에이터 전용 필드
+              subscribers: creatorInfo.creator_subscribe || '',
+              category: creatorInfo.creator_category || '',
+              platform: creatorInfo.creator_platform || '',
+              managerName: creatorInfo.manager_name || '',
+              creatorStatus: creatorInfo.creator_status || '',
+            };
+          } catch (creatorError) {
+            console.error('크리에이터 상세 정보 조회 실패:', creatorError);
+            // 기본 프로필로 설정
+            newProfile = {
+              ...EMPLOYEE_PROFILE_DATA,
+              name: userInfo.memberName,
+              job: 'Creator',
+              org: 'MCN',
+              rank: '-',
+              avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+              coverUrl: userInfo.profileBanner || '',
+              employeeId: String(userInfo.memberId),
+            };
+          }
+        } else {
+          // 일반 직원
+          newProfile = {
+            ...EMPLOYEE_PROFILE_DATA,
+            employeeId: String(userInfo.memberId),
+            name: userInfo.memberName,
+            email: userInfo.corporEmail || userInfo.memberAccount,
+            role: userInfo.memberRole,
+            avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+            coverUrl: userInfo.profileBanner || '',
+            job: userInfo.task || '-',
+            nickname: userInfo.nickname || '',
+            org: userInfo.departmentName || '-',
+            engName: userInfo.engName || '',
+            personalEmail: userInfo.personalEmail || '',
+            phone: userInfo.personalCall || '',
+            joinDate: userInfo.hireDate || '',
+            address: userInfo.address || '',
+            vacationRemainder: userInfo.vacationRemainder || 0,
+            rank: '사원'
+          };
+        }
+        setUserProfile(newProfile);
+
+        // 6. 역할별 페이지 리다이렉트
+        switch (role) {
           case 'ADMINISTRATOR':
             navigate('/mypage');
             break;

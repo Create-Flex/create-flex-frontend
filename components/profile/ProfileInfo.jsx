@@ -28,7 +28,7 @@ export const ProfileInfo = ({
     return (
         <div>
             <SectionHeader>
-                <SectionTitle>기본 정보</SectionTitle>
+                <SectionTitle>인사 정보</SectionTitle>
             </SectionHeader>
             <InfoContainer>
                 {isCreator ? (
@@ -85,6 +85,13 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
                         <InfoRow $alignStart>
+                            <InfoIconWrapper $marginTop><AtSign size={16} /></InfoIconWrapper>
+                            <InfoLabel>닉네임</InfoLabel>
+                            <InfoValue>
+                                <InfoText>{profile.nickname || '-'}</InfoText>
+                            </InfoValue>
+                        </InfoRow>
+                        <InfoRow $alignStart>
                             <InfoIconWrapper $marginTop><UserCircle size={16} /></InfoIconWrapper>
                             <InfoLabel>연락처</InfoLabel>
                             <InfoValue>
@@ -120,37 +127,35 @@ export const ProfileInfo = ({
                     </SubSectionHeader>
 
                     <InfoContainer>
-                        {!readOnly && (
-                            <InfoRow $alignStart>
-                                <InfoIconWrapper $marginTop><UserCircle size={18} /></InfoIconWrapper>
-                                <InfoLabel $paddingTop>이름</InfoLabel>
-                                <InfoValue>
-                                    {isEditing ? (
-                                        <EditFormGrid>
-                                            <InputGroup>
-                                                <Label>본명</Label>
-                                                <Input
-                                                    value={profile.name}
-                                                    onChange={(e) => handleChange('name', e.target.value)}
-                                                />
-                                            </InputGroup>
-                                            <InputGroup>
-                                                <Label>영문 이름</Label>
-                                                <Input
-                                                    value={profile.engName}
-                                                    onChange={(e) => handleChange('engName', e.target.value)}
-                                                />
-                                            </InputGroup>
-                                        </EditFormGrid>
-                                    ) : (
-                                        <InfoAnimationWrapper>
-                                            <SubLabel>본명</SubLabel> {profile.name}
-                                            <Spacer><SubLabel>영문 이름</SubLabel> {profile.engName}</Spacer>
-                                        </InfoAnimationWrapper>
-                                    )}
-                                </InfoValue>
-                            </InfoRow>
-                        )}
+                        <InfoRow $alignStart>
+                            <InfoIconWrapper $marginTop><UserCircle size={18} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop>이름</InfoLabel>
+                            <InfoValue>
+                                {isEditing && !readOnly ? (
+                                    <EditFormGrid>
+                                        <InputGroup>
+                                            <Label>본명</Label>
+                                            <Input
+                                                value={profile.name}
+                                                onChange={(e) => handleChange('name', e.target.value)}
+                                            />
+                                        </InputGroup>
+                                        <InputGroup>
+                                            <Label>영문 이름</Label>
+                                            <Input
+                                                value={profile.engName}
+                                                onChange={(e) => handleChange('engName', e.target.value)}
+                                            />
+                                        </InputGroup>
+                                    </EditFormGrid>
+                                ) : (
+                                    <InfoAnimationWrapper>
+                                        <SubLabel>본명</SubLabel> {profile.name}
+                                        <Spacer><SubLabel>영문 이름</SubLabel> {profile.engName}</Spacer>
+                                    </InfoAnimationWrapper>
+                                )}
+                            </InfoValue>
+                        </InfoRow>
                         <InfoRow $alignStart>
                             <InfoIconWrapper $marginTop><Mail size={16} /></InfoIconWrapper>
                             <InfoLabel $paddingTop>연락처</InfoLabel>
@@ -184,18 +189,23 @@ export const ProfileInfo = ({
                                 )}
                             </InfoValue>
                         </InfoRow>
-                        {!readOnly && (
-                            <InfoRow $alignStart>
-                                <InfoIconWrapper $marginTop><Calendar size={16} /></InfoIconWrapper>
-                                <InfoLabel $paddingTop>입사 정보</InfoLabel>
-                                <InfoValue>
-                                    <JoinDateWrapper>
-                                        <SubLabel>입사일</SubLabel> {profile.joinDate}
-                                        <MarginLeft><SubLabel>입사 유형</SubLabel> 경력</MarginLeft>
-                                    </JoinDateWrapper>
-                                </InfoValue>
-                            </InfoRow>
-                        )}
+                        <InfoRow $alignStart>
+                            <InfoIconWrapper $marginTop><Calendar size={16} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop>입사 정보</InfoLabel>
+                            <InfoValue>
+                                <JoinDateWrapper>
+                                    <SubLabel>입사일</SubLabel> {profile.joinDate}
+                                    <MarginLeft><SubLabel>입사 유형</SubLabel> 경력</MarginLeft>
+                                </JoinDateWrapper>
+                            </InfoValue>
+                        </InfoRow>
+                        <InfoRow $alignStart>
+                            <InfoIconWrapper $marginTop><Building size={16} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop>주소</InfoLabel>
+                            <InfoValue>
+                                <InfoText>{profile.address || '-'}</InfoText>
+                            </InfoValue>
+                        </InfoRow>
                     </InfoContainer>
                 </div>
             )}

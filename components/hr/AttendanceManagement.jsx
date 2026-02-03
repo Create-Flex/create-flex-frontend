@@ -14,9 +14,19 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('All');
-    const [startDate, setStartDate] = useState(''); // Default to empty to fetch all history
+    const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
+    // Status Map for API
+    const STATUS_MAP = {
+        '출근': 'NORMAL',
+        '지각': 'LATE',
+        '조퇴': 'EARLY_LEAVE',
+        '초과': 'OVERTIME',
+        '근무중': 'WORKING',
+        '결근': 'ABSENT',
+        'All': null
+    };
     const [stats, setStats] = useState({
         avgIn: '-',
         avgOut: '-',
@@ -55,7 +65,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                 const listParams = {
                     startDate,
                     endDate,
-                    status: selectedStatus === 'All' ? null : selectedStatus
+                    status: STATUS_MAP[selectedStatus] // Backend filtering
                 };
                 const listData = await attendanceService.getAllAttendance(listParams);
 
@@ -82,14 +92,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     // If I start 08:50 (Before 09), End 18:10 (After 18). Duration approx 9h 20m (minus 1h break = 8h 20m). 
                     // Maybe "Overtime" means "Stayed later than 18:00 + X"?
                     // User screenshot had 09:00 -> 20:00 (11h span). That is definitely overtime. 
-                    // Let's use: if (clockIn <= '09:00' && clockOut > '18:00') -> Overtime.
-                    // But explicitly check duration > 9h if we can. 
-
-                    // Simple logic for now based on user complaint: If Start <= 09:00 AND End > 18:00 AND Duration (if available) implies long hours.
-                    // Actually, let's just use time check: Start <= 09:00 AND End > 18:00 isn't enough (could be 18:01). 
-                    // But usually "Overtime" status is distinct from "Normal". 
-                    // If the server says "출근" (Normal) but time > 18:00, maybe we should flag it?
-                    // Let's try: if (clockIn <= '09:00' && clockOut >= '19:00') -> Overtime? (1h late).
+                    // Let's use: if (clockIn <= '09:00' && clockOut > '18:00') -> Overtime? (1h late).
                     // User said: "Work time > 9 hours". 
                     // 09:00 to 18:00 is 9 hours elapsed. If strictly > 9h, then 18:01 is > 9h elapsed. 
 
@@ -102,6 +105,11 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         if (diffH > 9) {
                             status = '초과';
                         }
+                    }
+
+                    // Early Leave Logic: If clocked out before 18:00 (and not '-' which means Working)
+                    if (clockOut !== '-' && clockOut < '18:00') {
+                        status = '조퇴';
                     }
 
                     return {
@@ -125,15 +133,16 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
 
         fetchData();
         fetchData();
-    }, [startDate, endDate, selectedStatus, attendanceRefreshKey]); // Re-fetch when filters change or refresh triggered
+    }, [endDate, selectedStatus, attendanceRefreshKey]); // Re-fetch when filters change or refresh triggered
 
-    // Filter by Name locally (API doesn't support name search yet)
+    // Filter by Name and Status locally
     const filteredLogs = useMemo(() => {
         return attendanceList.filter(log => {
             const matchesName = log.name ? log.name.includes(searchQuery) : false;
-            return matchesName;
+            const matchesStatus = selectedStatus === 'All' ? true : log.status === selectedStatus;
+            return matchesName && matchesStatus;
         }).sort((a, b) => b.date.localeCompare(a.date)); // Sort latest first
-    }, [attendanceList, searchQuery]);
+    }, [attendanceList, searchQuery, selectedStatus]);
 
 
     const StatCard = ({ label, value, icon: Icon, subLabel }) => (
@@ -154,8 +163,8 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         <Container>
             {/* 3x2 Grid Stats Dashboard */}
             <StatsGrid>
-                <StatCard label="평균 출근시간" value={stats.avgIn} icon={Clock} subLabel="전 직원의 평균 출근 기록입니다." />
-                <StatCard label="평균 퇴근시간" value={stats.avgOut} icon={Timer} subLabel="전 직원의 평균 퇴근 기록입니다." />
+                <StatCard label="이번달 평균 출근" value={stats.avgIn} icon={Clock} subLabel="이번 달 전 직원의 평균 출근 기록입니다." />
+                <StatCard label="이번달 평균 퇴근" value={stats.avgOut} icon={Timer} subLabel="이번 달 전 직원의 평균 퇴근 기록입니다." />
                 <StatCard label="일평균 근무시간" value={stats.avgWork} icon={Timer} subLabel="휴게 시간을 제외한 실 근무 시간입니다." />
                 <StatCard label="오늘 정상출근" value={stats.todayNormal} icon={UserCheck} subLabel="현재까지 정상 출근한 인원입니다." />
                 <StatCard label="오늘 지각" value={stats.todayLate} icon={AlertCircle} subLabel="정규 시간 이후 출근한 인원입니다." />
@@ -183,10 +192,11 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                             onChange={(e) => setSelectedStatus(e.target.value)}
                         >
                             <option value="All">상태 전체</option>
-                            <option value="정상">정상</option>
+                            <option value="출근">출근</option>
                             <option value="지각">지각</option>
-                            <option value="결근">결근</option>
-                            <option value="휴가">휴가</option>
+                            <option value="조퇴">조퇴</option>
+                            <option value="초과">초과</option>
+                            <option value="근무중">근무중</option>
                         </StatusSelect>
                         <SelectIconWrapper>
                             <ChevronDown size={14} />

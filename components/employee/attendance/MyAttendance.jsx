@@ -19,13 +19,25 @@ const formatDate = (date) => {
 
 const getISODate = (date) => date.toISOString().split('T')[0];
 
-const mapStatus = (serverStatus) => {
-    // Map Server Status String to Internal ID
-    if (serverStatus === '정상') return 'normal';
-    if (serverStatus === '지각') return 'late';
-    if (serverStatus === '초과') return 'overtime';
-    if (serverStatus === '근무중') return 'working';
-    return 'normal';
+const STATUS_DISPLAY_MAP = {
+    'NORMAL': '정상', // User wants '정상' for NORMAL
+    'LATE': '지각',
+    'EARLY_LEAVE': '조퇴',
+    'OVERTIME': '초과',
+    'WORKING': '근무중',
+    'ABSENT': '결근',
+    'VACATION': '휴가'
+};
+
+const REVERSE_STATUS_MAP = {
+    '정상': 'NORMAL',
+    '지각': 'LATE',
+    '조퇴': 'EARLY_LEAVE',
+    '초과': 'OVERTIME',
+    '근무중': 'WORKING',
+    '결근': 'ABSENT',
+    '휴가': 'VACATION',
+    'All': null
 };
 
 
@@ -54,7 +66,7 @@ export const MyAttendance = () => {
                 const params = {
                     startDate,
                     endDate,
-                    status: statusFilter === 'All' ? null : statusFilter
+                    status: REVERSE_STATUS_MAP[statusFilter] // Send Backend Enum
                 };
                 const data = await attendanceService.getMyAttendance(params);
 
@@ -70,7 +82,7 @@ export const MyAttendance = () => {
                         in: inTime,
                         out: outTime,
                         hours: log.workDuration || '-',
-                        status: mapStatus(log.attendanceStatus),
+                        status: STATUS_DISPLAY_MAP[log.attendanceStatus] || log.attendanceStatus,
                         type: 'office'
                     };
                 });
@@ -99,16 +111,9 @@ export const MyAttendance = () => {
         }
     };
 
-    const getStatusBadge = (status) => {
-        let label = '-';
-        switch (status) {
-            case 'normal': label = '정상'; break;
-            case 'late': label = '지각'; break;
-            case 'overtime': label = '초과'; break;
-            case 'working': label = '근무중'; break;
-            default: label = '-';
-        }
-        return <StatusBadge $status={status}>{label}</StatusBadge>;
+    const getStatusBadge = (statusLabel) => {
+        // Now MyAttendance.styled.js expects Korean keys (same as AttendanceManagement.styled.js)
+        return <StatusBadge $status={statusLabel}>{statusLabel}</StatusBadge>;
     };
 
     const getTypeIcon = (type) => {
@@ -119,8 +124,8 @@ export const MyAttendance = () => {
         }
     }
 
-    // Filter logic is now handled by API params mainly, but we keep workLogs state directly. 
-    // If we want client-side filtering on top of API results (e.g. invalid date ranges returned?), we can add it. 
+    // Filter logic is now handled by API params mainly, but we keep workLogs state directly.
+    // If we want client-side filtering on top of API results (e.g. invalid date ranges returned?), we can add it.
     // For now, assuming API returns correct filtered data.
     const filteredWorkLogs = workLogs;
 
@@ -153,6 +158,7 @@ export const MyAttendance = () => {
                                 <option value="All">모든 상태</option>
                                 <option value="정상">정상</option>
                                 <option value="지각">지각</option>
+                                <option value="조퇴">조퇴</option>
                                 <option value="초과">초과</option>
                                 <option value="근무중">근무중</option>
                             </StatusSelect>

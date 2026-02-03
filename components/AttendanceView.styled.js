@@ -136,7 +136,6 @@ export const TabsContainer = styled.div`
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   gap: 1.5rem;
-  padding: 0 2rem;
 `;
 
 export const TabButton = styled.button`
@@ -165,4 +164,8 @@ export const VerticalStack = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem; /* space-y-2 */
+`;
+
+export const ContentSection = styled.div`
+  padding: 0 2rem 2rem 2rem;
 `;

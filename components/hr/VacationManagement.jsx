@@ -369,14 +369,9 @@ export const VacationManagement = ({ employees = [] }) => {
                         </tr>
                     </TableHead>
                     <TableBody>
-                        {filteredAndSorted.length > 0 ? filteredAndSorted.map(vac => {
-                            // Find employee to get remaining vacation
-                            const employee = employees.find(e => e.name === vac.name || e.id === vac.employeeId); // Fallback to name matching if ID not in log
-                            const remaining = employee ? employee.remainingVacation : '-';
-
-                            return (
-                                <TableRow 
-                                    key={vac.id} 
+                        {filteredAndSorted.length > 0 ? filteredAndSorted.map(vac => (
+                                <TableRow
+                                    key={vac.id}
                                     onClick={() => handleRowClick(vac)}
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -388,7 +383,7 @@ export const VacationManagement = ({ employees = [] }) => {
                                     <TableCell $xs $color="#4b5563">{vac.startDate}</TableCell>
                                     <TableCell $xs $color="#4b5563">{vac.endDate}</TableCell>
                                     <TableCell>{vac.days}일</TableCell>
-                                    <TableCell $bold $color="var(--primary-600)">{remaining !== '-' ? `${remaining}일` : '-'}</TableCell>
+                                    <TableCell $bold $color="var(--primary-600)">{vac.remainingVacation != null ? `${vac.remainingVacation}일` : '-'}</TableCell>
                                     <TableCell>
                                         <StatusBadge $status={vac.status}>
                                             {vac.status === '승인됨' && <CheckCircle2 size={12} />}
@@ -398,8 +393,8 @@ export const VacationManagement = ({ employees = [] }) => {
                                         </StatusBadge>
                                     </TableCell>
                                 </TableRow>
-                            );
-                        }) : (
+                            )
+                        ) : (
                             <tr>
                                 <TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
                                     해당하는 휴가 내역이 없습니다.
@@ -436,124 +431,124 @@ export const VacationManagement = ({ employees = [] }) => {
                                             <DetailLabel>신청일</DetailLabel>
                                             <DetailValueBox>{selectedDetailLog.requestDate || '-'}</DetailValueBox>
                                         </DetailItem>
-                                <DetailItem>
-                                    <DetailLabel>신청자</DetailLabel>
-                                    <DetailValueBox>{selectedDetailLog.name}</DetailValueBox>
-                                </DetailItem>
-                                <DetailItem>
-                                    <DetailLabel>휴가 종류</DetailLabel>
-                                    <DetailValueBox>
-                                        <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '9999px', backgroundColor: '#3b82f6', marginRight: '0.25rem' }}></span>
-                                        {selectedDetailLog.type}
-                                    </DetailValueBox>
-                                </DetailItem>
-                            </DetailGrid>
+                                        <DetailItem>
+                                            <DetailLabel>신청자</DetailLabel>
+                                            <DetailValueBox>{selectedDetailLog.name}</DetailValueBox>
+                                        </DetailItem>
+                                        <DetailItem>
+                                            <DetailLabel>휴가 종류</DetailLabel>
+                                            <DetailValueBox>
+                                                <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '9999px', backgroundColor: '#3b82f6', marginRight: '0.25rem' }}></span>
+                                                {selectedDetailLog.type}
+                                            </DetailValueBox>
+                                        </DetailItem>
+                                    </DetailGrid>
 
-                            <DetailItem>
-                                <DetailLabel>휴가 기간</DetailLabel>
-                                <DetailValueBox $white>
-                                    <DateBoxContent>
-                                        <DateLabelSmall>시작일</DateLabelSmall>
-                                        <span>{selectedDetailLog.startDate}</span>
-                                    </DateBoxContent>
-                                    <ArrowRight size={16} color="#d1d5db" />
-                                    <DateBoxContent $right>
-                                        <DateLabelSmall>종료일</DateLabelSmall>
-                                        <span>{selectedDetailLog.endDate}</span>
-                                    </DateBoxContent>
-                                </DetailValueBox>
-                            </DetailItem>
+                                    <DetailItem>
+                                        <DetailLabel>휴가 기간</DetailLabel>
+                                        <DetailValueBox $white>
+                                            <DateBoxContent>
+                                                <DateLabelSmall>시작일</DateLabelSmall>
+                                                <span>{selectedDetailLog.startDate}</span>
+                                            </DateBoxContent>
+                                            <ArrowRight size={16} color="#d1d5db" />
+                                            <DateBoxContent $right>
+                                                <DateLabelSmall>종료일</DateLabelSmall>
+                                                <span>{selectedDetailLog.endDate}</span>
+                                            </DateBoxContent>
+                                        </DetailValueBox>
+                                    </DetailItem>
 
-                            <DetailItem>
-                                <DetailLabel>신청 사유</DetailLabel>
-                                <DetailValueBox $multiline>
-                                    {selectedDetailLog.reason || '입력된 사유가 없습니다.'}
-                                </DetailValueBox>
-                            </DetailItem>
+                                    <DetailItem>
+                                        <DetailLabel>신청 사유</DetailLabel>
+                                        <DetailValueBox $multiline>
+                                            {selectedDetailLog.reason || '입력된 사유가 없습니다.'}
+                                        </DetailValueBox>
+                                    </DetailItem>
 
-                            {/* 유형별 상세 정보 */}
-                            {selectedDetailLog.type === '워케이션' && (
-                                <DetailCard $type="workation">
-                                    <DetailCardTitle $type="workation" $mb>
-                                        <Info size={14} /> 워케이션 상세 내역
-                                    </DetailCardTitle>
-                                    <WorkationGrid>
-                                        <DetailRow>
-                                            <DetailRowLabel>근무 장소</DetailRowLabel>
-                                            <DetailRowValue>{selectedDetailLog.location || '-'}</DetailRowValue>
-                                        </DetailRow>
-                                        <DetailRow>
-                                            <DetailRowLabel>비상 연락망</DetailRowLabel>
-                                            <DetailRowValue $mono>{selectedDetailLog.emergencyContact || '-'}</DetailRowValue>
-                                        </DetailRow>
-                                        <WorkationSection>
-                                            <WorkationLabel>업무 목표</WorkationLabel>
-                                            <DetailText>{selectedDetailLog.workGoals || '-'}</DetailText>
-                                        </WorkationSection>
-                                        <WorkationSection>
-                                            <WorkationLabel>업무 인계 사항</WorkationLabel>
-                                            <DetailText>{selectedDetailLog.handover || '-'}</DetailText>
-                                        </WorkationSection>
-                                    </WorkationGrid>
-                                </DetailCard>
-                            )}
+                                    {/* 유형별 상세 정보 */}
+                                    {selectedDetailLog.type === '워케이션' && (
+                                        <DetailCard $type="workation">
+                                            <DetailCardTitle $type="workation" $mb>
+                                                <Info size={14} /> 워케이션 상세 내역
+                                            </DetailCardTitle>
+                                            <WorkationGrid>
+                                                <DetailRow>
+                                                    <DetailRowLabel>근무 장소</DetailRowLabel>
+                                                    <DetailRowValue>{selectedDetailLog.location || '-'}</DetailRowValue>
+                                                </DetailRow>
+                                                <DetailRow>
+                                                    <DetailRowLabel>비상 연락망</DetailRowLabel>
+                                                    <DetailRowValue $mono>{selectedDetailLog.emergencyContact || '-'}</DetailRowValue>
+                                                </DetailRow>
+                                                <WorkationSection>
+                                                    <WorkationLabel>업무 목표</WorkationLabel>
+                                                    <DetailText>{selectedDetailLog.workGoals || '-'}</DetailText>
+                                                </WorkationSection>
+                                                <WorkationSection>
+                                                    <WorkationLabel>업무 인계 사항</WorkationLabel>
+                                                    <DetailText>{selectedDetailLog.handover || '-'}</DetailText>
+                                                </WorkationSection>
+                                            </WorkationGrid>
+                                        </DetailCard>
+                                    )}
 
-                            {selectedDetailLog.type === '병가' && (
-                                <DetailCard $type="sick">
-                                    <DetailCardTitle $type="sick" $mb>
-                                        <Stethoscope size={14} /> 병가 상세 내역
-                                    </DetailCardTitle>
-                                    <DetailRow>
-                                        <DetailRowLabel>증상/사유</DetailRowLabel>
-                                        <DetailRowValue>{selectedDetailLog.symptoms || '-'}</DetailRowValue>
-                                    </DetailRow>
-                                    <DetailRow>
-                                        <DetailRowLabel>진료 병원</DetailRowLabel>
-                                        <DetailRowValue>{selectedDetailLog.hospital || '-'}</DetailRowValue>
-                                    </DetailRow>
-                                </DetailCard>
-                            )}
+                                    {selectedDetailLog.type === '병가' && (
+                                        <DetailCard $type="sick">
+                                            <DetailCardTitle $type="sick" $mb>
+                                                <Stethoscope size={14} /> 병가 상세 내역
+                                            </DetailCardTitle>
+                                            <DetailRow>
+                                                <DetailRowLabel>증상/사유</DetailRowLabel>
+                                                <DetailRowValue>{selectedDetailLog.symptoms || '-'}</DetailRowValue>
+                                            </DetailRow>
+                                            <DetailRow>
+                                                <DetailRowLabel>진료 병원</DetailRowLabel>
+                                                <DetailRowValue>{selectedDetailLog.hospital || '-'}</DetailRowValue>
+                                            </DetailRow>
+                                        </DetailCard>
+                                    )}
 
-                            {selectedDetailLog.type === '경조사' && (
-                                <DetailCard $type="event">
-                                    <DetailCardTitle $type="event" $mb>
-                                        <Gift size={14} /> 경조사 상세 내역
-                                    </DetailCardTitle>
-                                    <DetailRow>
-                                        <DetailRowLabel>대상(관계)</DetailRowLabel>
-                                        <DetailRowValue>{selectedDetailLog.relationship || '-'}</DetailRowValue>
-                                    </DetailRow>
-                                    <DetailRow>
-                                        <DetailRowLabel>경조 내용</DetailRowLabel>
-                                        <DetailRowValue>{selectedDetailLog.eventType || '-'}</DetailRowValue>
-                                    </DetailRow>
-                                </DetailCard>
-                            )}
+                                    {selectedDetailLog.type === '경조사' && (
+                                        <DetailCard $type="event">
+                                            <DetailCardTitle $type="event" $mb>
+                                                <Gift size={14} /> 경조사 상세 내역
+                                            </DetailCardTitle>
+                                            <DetailRow>
+                                                <DetailRowLabel>대상(관계)</DetailRowLabel>
+                                                <DetailRowValue>{selectedDetailLog.relationship || '-'}</DetailRowValue>
+                                            </DetailRow>
+                                            <DetailRow>
+                                                <DetailRowLabel>경조 내용</DetailRowLabel>
+                                                <DetailRowValue>{selectedDetailLog.eventType || '-'}</DetailRowValue>
+                                            </DetailRow>
+                                        </DetailCard>
+                                    )}
 
-                            {selectedDetailLog.status === '반려됨' && selectedDetailLog.rejectionReason && (
-                                <DetailCard $type="rejected">
-                                    <DetailCardTitle $type="rejected" $mb>
-                                        <AlertCircle size={14} /> 관리자 반려 사유
-                                    </DetailCardTitle>
-                                    <DetailText $red>{selectedDetailLog.rejectionReason}</DetailText>
-                                </DetailCard>
-                            )}
+                                    {selectedDetailLog.status === '반려됨' && selectedDetailLog.rejectionReason && (
+                                        <DetailCard $type="rejected">
+                                            <DetailCardTitle $type="rejected" $mb>
+                                                <AlertCircle size={14} /> 관리자 반려 사유
+                                            </DetailCardTitle>
+                                            <DetailText $red>{selectedDetailLog.rejectionReason}</DetailText>
+                                        </DetailCard>
+                                    )}
 
-                            {isRejectionInputOpen && (
-                                <RejectionInputContainer>
-                                    <RejectionLabel>반려 사유 입력 (필수)</RejectionLabel>
-                                    <RejectionTextarea
-                                        autoFocus
-                                        placeholder="직원에게 전달될 반려 사유를 입력하세요"
-                                        value={rejectionReason}
-                                        onChange={e => setRejectionReason(e.target.value)}
-                                    />
-                                    <RejectionActions>
-                                        <RejectionBtn onClick={() => setIsRejectionInputOpen(false)}>취소</RejectionBtn>
-                                        <RejectionBtn $primary onClick={() => handleApproval(selectedDetailLog, false)}>반려 확정</RejectionBtn>
-                                    </RejectionActions>
-                                </RejectionInputContainer>
-                            )}
+                                    {isRejectionInputOpen && (
+                                        <RejectionInputContainer>
+                                            <RejectionLabel>반려 사유 입력 (필수)</RejectionLabel>
+                                            <RejectionTextarea
+                                                autoFocus
+                                                placeholder="직원에게 전달될 반려 사유를 입력하세요"
+                                                value={rejectionReason}
+                                                onChange={e => setRejectionReason(e.target.value)}
+                                            />
+                                            <RejectionActions>
+                                                <RejectionBtn onClick={() => setIsRejectionInputOpen(false)}>취소</RejectionBtn>
+                                                <RejectionBtn $primary onClick={() => handleApproval(selectedDetailLog, false)}>반려 확정</RejectionBtn>
+                                            </RejectionActions>
+                                        </RejectionInputContainer>
+                                    )}
                                 </>
                             )}
                         </ModalContent>

@@ -91,7 +91,14 @@ export const VacationModal = ({ isOpen, onClose }) => {
                             {['연차', '반차', '경조사', '병가', '워케이션'].map(type => (
                                 <S.TypeButton
                                     key={type}
-                                    onClick={() => setVacationForm({ ...vacationForm, type })}
+                                    onClick={() => {
+                                        // 반차 선택 시 종료일을 시작일과 동일하게 설정
+                                        if (type === '반차' && vacationForm.startDate) {
+                                            setVacationForm({ ...vacationForm, type, endDate: vacationForm.startDate });
+                                        } else {
+                                            setVacationForm({ ...vacationForm, type });
+                                        }
+                                    }}
                                     $active={vacationForm.type === type}
                                 >
                                     {type}
@@ -156,11 +163,31 @@ export const VacationModal = ({ isOpen, onClose }) => {
                     <S.Grid2>
                         <div>
                             <S.Label>시작일</S.Label>
-                            <S.Input $focusColor="black" type="date" value={vacationForm.startDate} onChange={e => setVacationForm({ ...vacationForm, startDate: e.target.value })} />
+                            <S.Input
+                                $focusColor="black"
+                                type="date"
+                                value={vacationForm.startDate}
+                                onChange={e => {
+                                    const newStartDate = e.target.value;
+                                    // 반차인 경우 종료일도 시작일과 동일하게 설정
+                                    if (vacationForm.type === '반차') {
+                                        setVacationForm({ ...vacationForm, startDate: newStartDate, endDate: newStartDate });
+                                    } else {
+                                        setVacationForm({ ...vacationForm, startDate: newStartDate });
+                                    }
+                                }}
+                            />
                         </div>
                         <div>
                             <S.Label>종료일</S.Label>
-                            <S.Input $focusColor="black" type="date" value={vacationForm.endDate} onChange={e => setVacationForm({ ...vacationForm, endDate: e.target.value })} />
+                            <S.Input
+                                $focusColor="black"
+                                type="date"
+                                value={vacationForm.endDate}
+                                onChange={e => setVacationForm({ ...vacationForm, endDate: e.target.value })}
+                                disabled={vacationForm.type === '반차'}
+                                style={vacationForm.type === '반차' ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
+                            />
                         </div>
                     </S.Grid2>
 

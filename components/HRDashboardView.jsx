@@ -28,7 +28,7 @@ export const HRDashboardView = ({ view }) => {
     const { employees, setEmployees, teams, setTeams, departments } = useEmployeeStore();
     const { attendanceLogs } = useAttendanceStore();
     const { employeeHealthRecords } = useHealthStore();
-    const { vacationLogs, setVacationLogs } = useVacationStore();
+    const { vacationLogs } = useVacationStore();
 
     const {
         creators,
@@ -63,7 +63,7 @@ export const HRDashboardView = ({ view }) => {
             case 'health':
                 return <HealthManagement healthRecords={employeeHealthRecords} />;
             case 'vacation':
-                return <VacationManagement vacationLogs={vacationLogs} onUpdateVacationLogs={setVacationLogs || (() => { })} employees={employees} />;
+                return <VacationManagement employees={employees} />;
             case 'teams':
                 return <TeamManagement teams={teams} onUpdateTeams={setTeams} employees={employees} creators={creators} />;
             case 'support':

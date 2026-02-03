@@ -195,6 +195,43 @@ export const DateRangeArrow = styled.div`
   align-items: center;
 `;
 
+export const SelectWrapper = styled.div`
+  position: relative;
+`;
+
+export const TypeSelect = styled.select`
+  appearance: none;
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+`;
+
+export const SelectIconWrapper = styled.div`
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #9ca3af;
+`;
+
 export const ResetButton = styled.button`
   font-size: 0.75rem; // text-xs
   color: #9ca3af; // text-gray-400

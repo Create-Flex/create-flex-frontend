@@ -1,20 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Search, CheckCircle2, XCircle, AlertCircle, Calendar, ArrowRight, ArrowUpDown,
-    ArrowUp, ArrowDown, Plane, Info, Stethoscope, Gift, X
+    ArrowUp, ArrowDown, Plane, Info, Stethoscope, Gift, X, ChevronDown
 } from 'lucide-react';
 import {
     Container, SummaryGrid, SummaryCard, CardLabel, CardValueWrapper, CardValue, CardUnit,
     TabContainer, TabButton, TabCount, ActiveIndicator,
     ControlsContainer, FilterGroup, SearchWrapper, SearchInput, SearchIconWrapper, DateFilter, DateInput, DateRangeArrow, ResetButton,
+    SelectWrapper, TypeSelect, SelectIconWrapper,
     TableContainer, Table, TableHead, TableHeaderCell, HeaderContent, TableBody, TableRow, TableCell, TypeBadge, StatusBadge,
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalContent, DetailGrid, DetailItem, DetailLabel, DetailValueBox, DateBoxContent, DateLabelSmall,
     DetailCard, DetailCardTitle, DetailRow, DetailRowLabel, DetailRowValue, DetailText,
     RejectionInputContainer, RejectionTextarea, RejectionActions, RejectionBtn, ModalFooter, ActionButtons, ActionButton,
     WorkationGrid, WorkationSection, WorkationLabel, RejectionLabel
 } from './VacationManagement.styled';
+import { vacationService } from '../../api/vacationService';
+import { useVacationStore } from '../../stores/useVacationStore';
 
-export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employees = [] }) => {
+// 백엔드 상태 → 프론트엔드 상태 매핑
+const STATUS_MAP = {
+    'APPROVE_NEED': '대기중',
+    'APPROVED': '승인됨',
+    'REJECTED': '반려됨'
+};
+
+// 백엔드 휴가 유형 → 프론트엔드 휴가 유형 매핑
+const TYPE_MAP = {
+    'ANNUAL': '연차',
+    'HALF': '반차',
+    'FAMILY': '경조사',
+    'SICK': '병가',
+    'WORKATION': '워케이션'
+};
+
+export const VacationManagement = ({ employees = [] }) => {
+    const { refreshKey: vacationRefreshKey, triggerRefresh } = useVacationStore();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
     const [isRejectionInputOpen, setIsRejectionInputOpen] = useState(false);
@@ -24,9 +45,15 @@ export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employe
     // Date Filter State
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [typeFilter, setTypeFilter] = useState('All');
 
     // Sorting State
     const [sortConfig, setSortConfig] = useState(null);
+
+    // 백엔드 데이터 State
+    const [vacationLogs, setVacationLogs] = useState([]);
+    const [stats, setStats] = useState({ vacationers: 0, pending: 0, sickLeave: 0 });
+    const [loading, setLoading] = useState(false);
 
     const handleSort = (key) => {
         if (sortConfig && sortConfig.key === key) {
@@ -47,19 +74,71 @@ export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employe
             : <ArrowDown size={12} style={{ marginLeft: '0.25rem', color: 'black' }} />;
     };
 
-    const DEMO_CURRENT_MONTH_PREFIX = '2026-01';
+    // 백엔드에서 휴가 데이터 조회
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // 1. 통계 조회
+                try {
+                    const statsData = await vacationService.getVacationStats();
+                    if (statsData) {
+                        setStats({
+                            vacationers: statsData.monthlyVacationers || 0,
+                            pending: statsData.pendingCount || 0,
+                            sickLeave: statsData.monthlySickLeave || 0
+                        });
+                    }
+                } catch (e) {
+                    console.log('통계 API 없음, 로컬 계산 사용');
+                }
 
-    const stats = {
-        vacationers: vacationLogs.filter(v =>
-            v.status === '승인됨' && v.type !== '병가' &&
-            (v.startDate.startsWith(DEMO_CURRENT_MONTH_PREFIX) || v.endDate.startsWith(DEMO_CURRENT_MONTH_PREFIX))
-        ).length,
-        pending: vacationLogs.filter(v => v.status === '대기중').length,
-        sickLeave: vacationLogs.filter(v =>
-            v.type === '병가' && v.status === '승인됨' &&
-            (v.startDate.startsWith(DEMO_CURRENT_MONTH_PREFIX) || v.endDate.startsWith(DEMO_CURRENT_MONTH_PREFIX))
-        ).length
-    };
+                // 2. 휴가 목록 조회 - AdminVacationListResponseDTO
+                const filters = {};
+                if (startDate) filters.startDate = startDate;
+                if (endDate) filters.endDate = endDate;
+                if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
+
+                const listData = await vacationService.getAllVacations(filters);
+
+                // 백엔드 DTO → 프론트엔드 포맷 매핑
+                const mappedData = listData.map(item => ({
+                    id: item.vacationId,
+                    name: item.memberName,
+                    type: TYPE_MAP[item.vacationType] || item.vacationType,
+                    startDate: item.vacationStart,
+                    endDate: item.vacationEnd,
+                    days: item.vacationDays || 1,
+                    requestDate: item.vacationRequest || '-',
+                    status: STATUS_MAP[item.vacationApprove] || item.vacationApprove,
+                    remainingVacation: item.vacationRemainder
+                }));
+
+                setVacationLogs(mappedData);
+
+                // 통계 API가 없으면 로컬에서 계산
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                setStats({
+                    vacationers: mappedData.filter(v =>
+                        v.status === '승인됨' && v.type !== '병가' &&
+                        (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
+                    ).length,
+                    pending: mappedData.filter(v => v.status === '대기중').length,
+                    sickLeave: mappedData.filter(v =>
+                        v.type === '병가' && v.status === '승인됨' &&
+                        (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
+                    ).length
+                });
+
+            } catch (error) {
+                console.error('휴가 데이터 조회 실패:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [startDate, endDate, typeFilter, vacationRefreshKey]);
 
     const filteredAndSorted = vacationLogs.filter(v => {
         if (v.status === '사용완료') return false;
@@ -92,30 +171,35 @@ export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employe
     const countRejected = activeLogs.filter(v => v.status === '반려됨').length;
     const countPending = activeLogs.filter(v => v.status === '대기중').length;
 
-    const handleApproval = (targetLog, approved) => {
+    const handleApproval = async (targetLog, approved) => {
         if (!approved && !rejectionReason.trim()) {
             setIsRejectionInputOpen(true);
             return;
         }
 
-        onUpdateVacationLogs(vacationLogs.map(log =>
-            log.id === targetLog.id ? {
-                ...log,
-                status: approved ? '승인됨' : '반려됨',
-                rejectionReason: approved ? undefined : rejectionReason
-            } : log
-        ));
+        try {
+            if (approved) {
+                await vacationService.approveVacation(targetLog.id);
+            } else {
+                await vacationService.rejectVacation(targetLog.id, rejectionReason);
+            }
 
-        alert(approved ? '휴가 승인이 완료되었습니다.' : '휴가가 반려 처리되었습니다.');
-        setSelectedDetailLog(null);
-        setIsRejectionInputOpen(false);
-        setRejectionReason('');
+            alert(approved ? '휴가 승인이 완료되었습니다.' : '휴가가 반려 처리되었습니다.');
+            triggerRefresh(); // 목록 새로고침
+            setSelectedDetailLog(null);
+            setIsRejectionInputOpen(false);
+            setRejectionReason('');
+        } catch (error) {
+            console.error('휴가 처리 실패:', error);
+            alert(error.response?.data?.message || '휴가 처리 중 오류가 발생했습니다.');
+        }
     };
 
     const resetFilters = () => {
         setSearchQuery('');
         setStartDate('');
         setEndDate('');
+        setTypeFilter('All');
         setActiveTab('all');
         setSortConfig(null);
     };
@@ -181,6 +265,22 @@ export const VacationManagement = ({ vacationLogs, onUpdateVacationLogs, employe
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </SearchWrapper>
+                    <SelectWrapper>
+                        <TypeSelect
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                        >
+                            <option value="All">유형 전체</option>
+                            <option value="연차">연차</option>
+                            <option value="반차">반차</option>
+                            <option value="경조사">경조사</option>
+                            <option value="병가">병가</option>
+                            <option value="워케이션">워케이션</option>
+                        </TypeSelect>
+                        <SelectIconWrapper>
+                            <ChevronDown size={14} />
+                        </SelectIconWrapper>
+                    </SelectWrapper>
                     <DateFilter>
                         <Calendar size={14} color="#9ca3af" />
                         <DateInput

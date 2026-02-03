@@ -16,6 +16,7 @@ import { useUserStore } from '../stores/useUserStore';
 import { useAttendanceStore } from '../stores/useAttendanceStore';
 import { useVacationStore } from '../stores/useVacationStore';
 import { attendanceService } from '../api/attendanceService';
+import { vacationService } from '../api/vacationService';
 
 const CalendarWidget = () => {
     // Local state for calendar widget navigation is fine to keep local
@@ -100,11 +101,12 @@ export const Sidebar = ({ onLogout }) => {
     const location = useLocation();
     const { userProfile } = useUserStore();
     const { attendanceLogs, addAttendanceLog, triggerRefresh: triggerAttendanceRefresh } = useAttendanceStore();
-    const { vacationLogs } = useVacationStore();
+    const { refreshKey: vacationRefreshKey } = useVacationStore();
+
+    // 미승인 휴가 건수 (백엔드에서 조회)
+    const [pendingApprovals, setPendingApprovals] = useState(0);
 
     if (!user) return null; // Safety check
-
-    const pendingApprovals = vacationLogs.filter(v => v.status === '대기중').length;
 
     const isAdmin = user.role === UserRole.ADMINISTRATOR || user.memberRole === 'ADMINISTRATOR';
     const isManager = user.role === UserRole.MANAGER || user.memberRole === 'MANAGER';
@@ -221,6 +223,23 @@ export const Sidebar = ({ onLogout }) => {
         const interval = setInterval(updateDayProgress, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    // 미승인 휴가 건수 조회 (관리자용)
+    useEffect(() => {
+        const fetchPendingCount = async () => {
+            const userIsAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
+            const userIsManager = user?.role === UserRole.MANAGER || user?.memberRole === 'MANAGER';
+            if (!userIsAdmin && !userIsManager) return;
+            try {
+                const listData = await vacationService.getAllVacations({});
+                const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;
+                setPendingApprovals(pendingCount);
+            } catch (error) {
+                console.error('미승인 휴가 건수 조회 실패:', error);
+            }
+        };
+        fetchPendingCount();
+    }, [user, vacationRefreshKey]);
 
     const handleClockInOut = async () => {
         if (!user) return;

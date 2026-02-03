@@ -43,7 +43,7 @@ export const ProfileView = ({
 
     // Determine which profile to show
     const displayProfile = profile || userProfile;
-    const isCurrentUser = user && displayProfile.employeeId === user.id; // Correct logic requires employeeId match
+    const isCurrentUser = user && String(displayProfile.employeeId) === String(user.id);
 
     // Check if this profile view is for a Creator
     // Logic: If user is creator, or if the displayed profile has job='Creator'

@@ -133,6 +133,9 @@ export const Sidebar = ({ onLogout }) => {
     useEffect(() => {
         const fetchStatus = async () => {
             if (!user) return;
+            // 크리에이터는 근태 API 접근 권한 없음
+            const userIsCreator = user?.role === UserRole.CREATOR || user?.memberRole === 'CREATOR';
+            if (userIsCreator) return;
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
                 const logs = await attendanceService.getMyAttendance({ startDate: todayStr, endDate: todayStr });
@@ -228,8 +231,8 @@ export const Sidebar = ({ onLogout }) => {
     useEffect(() => {
         const fetchPendingCount = async () => {
             const userIsAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
-            const userIsManager = user?.role === UserRole.MANAGER || user?.memberRole === 'MANAGER';
-            if (!userIsAdmin && !userIsManager) return;
+            // 관리자만 휴가 전체 목록 조회 API 호출 가능 (매니저는 403 오류 발생)
+            if (!userIsAdmin) return;
             try {
                 const listData = await vacationService.getAllVacations({});
                 const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;

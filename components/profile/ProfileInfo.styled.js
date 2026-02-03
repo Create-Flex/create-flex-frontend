@@ -41,10 +41,12 @@ export const InfoIconWrapper = styled.div`
 `;
 
 export const InfoLabel = styled.div`
-  width: 4rem;
+  width: 5rem;
+  flex-shrink: 0;
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
+  margin-right: 1.5rem;
   ${props => props.$wide && css`width: 8rem;`}
   ${props => props.$paddingTop && css`padding-top: 0.25rem;`}
 `;
@@ -55,7 +57,6 @@ export const InfoValue = styled.div`
   color: #1f2937;
   display: flex;
   align-items: center;
-  gap: 1rem;
 `;
 
 export const InfoText = styled.div`
@@ -92,8 +93,7 @@ export const ContactItem = styled.div`
 export const ContactLabel = styled.span`
   color: #9ca3af;
   display: inline-block;
-  width: 5rem;
-  flex-shrink: 0;
+  margin-right: 0.5rem;
 `;
 
 export const EditButtonGroup = styled.div`

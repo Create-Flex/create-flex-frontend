@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import {
     Container, ContentWrapper, Header, Title, CardsGrid, DashboardCard, CardHeader, CardTitle,
     CardValueWrapper, CardValue, CardUnit, CardDescription, ProgressBarContainer, ProgressLabel, ProgressValue,
-    ProgressBarBg, ProgressBarFill, TabsContainer, TabButton, VerticalStack
+    ProgressBarBg, ProgressBarFill, TabsContainer, TabButton, VerticalStack, ContentSection
 } from './AttendanceView.styled';
 
 import { useUserStore } from '../stores/useUserStore';
@@ -136,24 +136,26 @@ export const AttendanceView = () => {
                     </DashboardCard>
                 </CardsGrid>
 
-                <TabsContainer>
-                    <TabButton
-                        $active={activeTab === 'work'}
-                        onClick={() => setActiveTab('work')}
-                    >
-                        <Clock size={16} /> 일별 근무 내역
-                    </TabButton>
-                    <TabButton
-                        $active={activeTab === 'vacation'}
-                        onClick={() => setActiveTab('vacation')}
-                    >
-                        <Plane size={16} /> 휴가 사용 내역
-                    </TabButton>
-                </TabsContainer>
+                <ContentSection>
+                    <TabsContainer>
+                        <TabButton
+                            $active={activeTab === 'work'}
+                            onClick={() => setActiveTab('work')}
+                        >
+                            <Clock size={16} /> 일별 근무 내역
+                        </TabButton>
+                        <TabButton
+                            $active={activeTab === 'vacation'}
+                            onClick={() => setActiveTab('vacation')}
+                        >
+                            <Plane size={16} /> 휴가 사용 내역
+                        </TabButton>
+                    </TabsContainer>
 
-                {activeTab === 'work' && <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />}
+                    {activeTab === 'work' && <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />}
 
-                {activeTab === 'vacation' && <MyVacation />}
+                    {activeTab === 'vacation' && <MyVacation />}
+                </ContentSection>
             </ContentWrapper>
         </Container>
     );

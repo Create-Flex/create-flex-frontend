@@ -93,26 +93,26 @@ export const AttendanceView = () => {
                 <CardsGrid>
                     <DashboardCard>
                         <CardHeader>
-                            <CardTitle>지각 횟수</CardTitle>
+                            <CardTitle>이번달 지각횟수</CardTitle>
                             <AlertCircle size={18} color="#d1d5db" />
                         </CardHeader>
                         <CardValueWrapper>
                             <CardValue>{stats.lateCount}</CardValue>
                             <CardUnit>회</CardUnit>
                         </CardValueWrapper>
-                        <CardDescription>정규 출근 시간 이후 기록된 누적 횟수입니다.</CardDescription>
+                        <CardDescription>이번 달 정규 출근 시간 이후 기록된 횟수입니다.</CardDescription>
                     </DashboardCard>
 
                     <DashboardCard>
                         <CardHeader>
-                            <CardTitle>초과 근무 시간</CardTitle>
+                            <CardTitle>이번달 초과 근무 시간</CardTitle>
                             <Timer size={18} color="#d1d5db" />
                         </CardHeader>
                         <CardValueWrapper>
                             <CardValue>{stats.overtimeMinutes}</CardValue>
                             <CardUnit>분</CardUnit>
                         </CardValueWrapper>
-                        <CardDescription>정규 업무 시간을 초과하여 근무한 총 시간입니다.</CardDescription>
+                        <CardDescription>이번 달 정규 업무 시간을 초과하여 근무한 총 시간입니다.</CardDescription>
                     </DashboardCard>
 
                     <DashboardCard>

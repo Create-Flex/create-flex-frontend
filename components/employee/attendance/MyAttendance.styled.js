@@ -158,22 +158,23 @@ export const NoDataCell = styled.td`
 `;
 
 export const StatusBadge = styled.span`
-  font-size: 0.75rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
   font-weight: 700;
-  white-space: nowrap;
+  border: 1px solid;
   
   ${props => {
     switch (props.$status) {
-      case 'normal':
-        return css`color: #00C471;`;
-      case 'late':
-        return css`color: #ea580c;`; // orange-600
-      case 'overtime':
-        return css`color: #9333ea;`; // purple-600
-      case 'working':
-        return css`color: #3b82f6;`; // blue-500
-      default:
-        return css`color: #9ca3af; font-weight: 500;`;
+      case '정상':
+      case '출근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+      case '지각':
+      case '조퇴': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
+      case '결근': return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
+      case '휴가': return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
+      case '초과': return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
+      case '근무중': return css`background-color: #f0f9ff; color: #0369a1; border-color: #bae6fd;`;
+      default: return css`display: none;`;
     }
   }}
 `;

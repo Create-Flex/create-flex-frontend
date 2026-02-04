@@ -13,10 +13,11 @@ export const HealthResultModal = ({
     onClose,
     onUpload
 }) => {
-    const [checkupDate, setCheckupDate] = useState(new Date().toISOString().split('T')[0]);
-    const [checkupName, setCheckupName] = useState('');
-    const [healthStatus, setHealthStatus] = useState('정상 (양호)');
-    const [uploadedFile, setUploadedFile] = useState(null);
+
+    const [name, setName] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [summanary, setSummanary] = useState('NORMAL_AB');
+    const [file, setFile] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
@@ -26,34 +27,35 @@ export const HealthResultModal = ({
                 alert('파일 크기는 10MB를 초과할 수 없습니다.');
                 return;
             }
-            setUploadedFile(file);
+            setFile(file);
         }
     };
 
     const triggerFileInput = () => {
         fileInputRef.current?.click();
     };
-
+    
     const handleSubmit = () => {
-        if (!checkupName.trim()) {
+        if (!name.trim()) {
             alert('검진 명을 입력해주세요.');
             return;
         }
-        if (!checkupDate) {
+        if (!date) {
             alert('검진일을 선택해주세요.');
             return;
         }
-        if (!uploadedFile) {
+        if (!file) {
             alert('검진 결과 파일(PDF)을 업로드해주세요.');
             return;
         }
 
-        onUpload({
-            name: checkupName,
-            date: checkupDate,
-            status: healthStatus,
-            fileName: uploadedFile.name
-        });
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("date", date);
+        formData.append("summanary", summanary);
+        formData.append("file", file);
+
+        onUpload(formData);
         onClose();
     };
 
@@ -88,8 +90,8 @@ export const HealthResultModal = ({
                             <Input
                                 type="text"
                                 placeholder="예: 2026년 정기 건강검진"
-                                value={checkupName}
-                                onChange={(e) => setCheckupName(e.target.value)}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                             />
                         </div>
 
@@ -97,22 +99,22 @@ export const HealthResultModal = ({
                             <Label>최근 검진일</Label>
                             <Input
                                 type="date"
-                                value={checkupDate}
-                                onChange={(e) => setCheckupDate(e.target.value)}
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
                             />
                         </div>
 
                         <div>
                             <Label>종합 판정 상태 선택</Label>
                             <Select
-                                value={healthStatus}
-                                onChange={(e) => setHealthStatus(e.target.value)}
+                                value={summanary}
+                                onChange={(e) => setSummanary(e.target.value)}
                             >
-                                <option value="정상 (양호)">정상 (A/B) - 양호</option>
-                                <option value="정상 (경미)">정상 (B) - 경미한 소견</option>
-                                <option value="유소견 (주의)">주의 (식생활 습관 개선 필요)</option>
-                                <option value="유소견 (위험)">위험 (질환 의심/치료 필요)</option>
-                                <option value="재검">재검 필요</option>
+                                <option value="NORMAL_AB">정상 (A/B) - 양호</option>
+                                <option value="NORMAL_B">정상 (B) - 경미한 소견</option>
+                                <option value="CAUTION">주의 (식생활 습관 개선 필요)</option>
+                                <option value="DANGER">위험 (질환 의심/치료 필요)</option>
+                                <option value="RETEST_NEED">재검 필요</option>
                             </Select>
                         </div>
 
@@ -126,13 +128,13 @@ export const HealthResultModal = ({
                                 className="hidden"
                                 style={{ display: 'none' }}
                             />
-                            <UploadArea onClick={triggerFileInput} $hasFile={!!uploadedFile}>
-                                <UploadIconWrapper $hasFile={!!uploadedFile}>
-                                    {uploadedFile ? <Check size={24} /> : <Upload size={24} />}
+                            <UploadArea onClick={triggerFileInput} $hasFile={!!file}>
+                                <UploadIconWrapper $hasFile={!!file}>
+                                    {file ? <Check size={24} /> : <Upload size={24} />}
                                 </UploadIconWrapper>
-                                {uploadedFile ? (
+                                {file ? (
                                     <>
-                                        <UploadText>{uploadedFile.name}</UploadText>
+                                        <UploadText>{file.name}</UploadText>
                                         <UploadSubText className="text-green-600">업로드 완료</UploadSubText>
                                     </>
                                 ) : (

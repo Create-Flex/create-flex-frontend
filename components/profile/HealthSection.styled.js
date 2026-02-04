@@ -169,6 +169,10 @@ export const DateInput = styled.input`
     outline: none;
     border-color: #3b82f6;
   }
+
+  &::-webkit-clear-button{
+    display: none;
+  }
 `;
 
 export const ResetButton = styled.button`
@@ -179,6 +183,22 @@ export const ResetButton = styled.button`
   
   &:hover {
     color: #4b5563;
+  }
+`;
+
+export const SearchButton = styled.button`
+  marginleft: 0.5rem;
+  padding: 0.1rem 0.2rem;
+  color: #9ca3af;
+  background-color: #fefeff;
+  display: flex;
+  align-items: center;
+  border: 0.1pt solid #8c939f;
+  border-radius: 4px;
+  
+  &:hover {
+    color: #4b5563;
+    background-color: #ccd3df;
   }
 `;
 
@@ -228,19 +248,24 @@ export const HistoryStatus = styled.span`
   background-color: #f3f4f6;
   color: #6b7280;
 
-  ${props => props.$status && (props.$status.includes('양호') || props.$status.includes('정상')) && css`
+  ${props => props.$status && (props.$status.includes('NORMAL_AB') || props.$status.includes('NORMAL_B')) && css`
     background-color: #dcfce7;
     color: #166534;
   `}
   
-  ${props => props.$status && (props.$status.includes('주의') || props.$status.includes('유소견')) && css`
+  ${props => props.$status && (props.$status.includes('CAUTION')) && css`
     background-color: #ffedd5;
     color: #9a3412;
   `}
 
-  ${props => props.$status && (props.$status.includes('위험') || props.$status.includes('재검')) && css`
+  ${props => props.$status && (props.$status.includes('DANGER')) && css`
     background-color: #fee2e2;
     color: #991b1b;
+  `}
+
+  ${props => props.$status && (props.$status.includes('RETEST_NEED')) && css`
+    background-color: #f7d7ff;
+    color: #94198e;
   `}
 `;
 

@@ -26,6 +26,7 @@ import { useVacationStore } from '../stores/useVacationStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
+import { postMyHealth, putMyHealth } from '..//api/healthService';
 
 export const ProfileView = ({
     profile, // Optional prop for viewing other profiles
@@ -257,34 +258,26 @@ export const ProfileView = ({
                     <HealthResultModal
                         isOpen={isResultModalOpen}
                         onClose={() => setIsResultModalOpen(false)}
-                        onUpload={(data) => {
-                            const newLocalRecord = {
-                                id: Date.now(),
-                                year: new Date(data.date).getFullYear().toString(),
-                                type: '정기 건강검진',
-                                date: data.date.replace(/-/g, '. '),
-                                result: data.status
-                            };
-                            setCheckupHistory([newLocalRecord, ...checkupHistory]);
+                        onUpload={async (data) => {
+                            try{
+                                for (let [key, value] of data.entries()) {
+                                    console.log(key, value);
+                                }
 
-                            if (addHealthRecord) {
-                                const nextYear = new Date(data.date);
-                                nextYear.setFullYear(nextYear.getFullYear() + 1);
-                                const nextCheckStr = nextYear.toISOString().split('T')[0];
+                                const response = await postMyHealth(data);
+                                const presignedUrl = response.data.presignedUrl;
+                                const file = data.get("file");
 
-                                const newHealthRecord = {
-                                    id: Date.now(),
-                                    name: displayProfile.name,
-                                    lastCheck: data.date,
-                                    hospital: '병원 (파일참조)',
-                                    result: data.status,
-                                    nextCheck: nextCheckStr,
-                                    bp: '-', sugar: '-', chol: '-', bmi: '-'
-                                };
-                                addHealthRecord(newHealthRecord);
+                                await putMyHealth(file, presignedUrl);
+
+                                alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
+                                setIsResultModalOpen(false);
+                            } catch (error){
+                                console.error("업데이트 실패 : ", error);
+                                alert('업로드 실패');
                             }
-                            alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
-                            setIsResultModalOpen(false);
+
+                            
                         }}
                     />
                 </>

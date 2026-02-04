@@ -234,7 +234,11 @@ export const Sidebar = ({ onLogout }) => {
             // 관리자만 휴가 전체 목록 조회 API 호출 가능 (매니저는 403 오류 발생)
             if (!userIsAdmin) return;
             try {
-                const listData = await vacationService.getAllVacations({});
+                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용
+                const listData = await vacationService.getAllVacations({
+                    startDate: '2020-01-01',
+                    endDate: '2030-12-31'
+                });
                 const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;
                 setPendingApprovals(pendingCount);
             } catch (error) {
@@ -309,7 +313,7 @@ export const Sidebar = ({ onLogout }) => {
             <S.Header $isCollapsed={isCollapsed}>
                 {!isCollapsed && (
                     <S.IconGroup>
-                        <S.IconButton onClick={onLogout} title="로그아웃"><LogOut size={16} /></S.IconButton>
+                        <S.LogoutButton onClick={onLogout} title="로그아웃"><LogOut size={16} /></S.LogoutButton>
                         <S.IconButton onClick={() => alert("설정 페이지는 준비 중입니다.")} title="설정"><Settings size={16} /></S.IconButton>
                     </S.IconGroup>
                 )}

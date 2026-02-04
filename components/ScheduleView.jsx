@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, Filter, Check } from 'lucide-react';
 import { UserRole } from '../enums';
 import { css } from 'styled-components';
@@ -13,70 +13,72 @@ import {
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
+import { scheduleService } from '../api/scheduleService';
 
 const EVENT_COLORS = {
-    blue: {
+    COMPANY: {
         bg: '#e0f2fe', text: '#0369a1', border: '#b9e6fe',
         style: css`background-color: #e0f2fe; color: #0369a1; border: 1px solid #b9e6fe;`
     },
-    green: {
+    PERSONAL: {
         bg: '#dcfce7', text: '#15803d', border: '#bbf7d0',
         style: css`background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;`
-    },
-    red: {
-        bg: '#fee2e2', text: '#b91c1c', border: '#fecaca',
-        style: css`background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;`
-    },
-    yellow: {
-        bg: '#fef9c3', text: '#854d0e', border: '#fde047',
-        style: css`background-color: #fef9c3; color: #854d0e; border: 1px solid #fde047;`
-    },
-    purple: {
-        bg: '#f3e8ff', text: '#7e22ce', border: '#e9d5ff',
-        style: css`background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;`
     },
     gray: {
         bg: '#f3f4f6', text: '#374151', border: '#e5e7eb',
         style: css`background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;`
-    },
-    orange: {
-        bg: '#ffedd5', text: '#c2410c', border: '#fed7aa',
-        style: css`background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;`
-    },
-    pink: {
-        bg: '#fce7f3', text: '#be185d', border: '#fbcfe8',
-        style: css`background-color: #fce7f3; color: #be185d; border: 1px solid #fbcfe8;`
-    },
+    }
 };
+
+const SCHEDULE_TYPES = [
+    { id: 'COMPANY', name: '회사 일정', color: 'COMPANY' },
+    { id: 'PERSONAL', name: '개인 일정', color: 'PERSONAL' }
+];
 
 export const ScheduleView = () => {
     // Stores
     const { user } = useAuthStore();
     const { currentDate, setCurrentDate } = useUIStore();
-    const {
-        scheduleEvents: events,
-        setScheduleEvents: onUpdateEvents,
-        scheduleTemplates: templates
-    } = useScheduleStore();
 
-    const isAdmin = user?.role === UserRole.ADMIN;
-
-    // Filter State
-    const [filter, setFilter] = useState('all'); // 'all' or templateId
-
-    // UI State
-    const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
+    // State
+    const [events, setEvents] = useState([]);
+    const [filter, setFilter] = useState('all'); // 'all', 'COMPANY', 'PERSONAL'
     const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
 
     // Event Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newEvent, setNewEvent] = useState({
-        templateId: 'company',
-        title: '',
-        content: '',
-        date: new Date().toISOString().split('T')[0]
+    const [isDetailMode, setIsDetailMode] = useState(false); // 상세 보기 모드 여부
+    const [scheduleForm, setScheduleForm] = useState({
+        scheduleId: null,
+        scheduleName: '',
+        scheduleDate: new Date().toISOString().split('T')[0],
+        scheduleDetail: '',
+        scheduleType: 'PERSONAL',
+        creatorId: null,
+        visitorIds: []
     });
+
+    const isAdministrator = user?.role === UserRole.ADMINISTRATOR;
+
+    // Fetch Events when month changes
+    useEffect(() => {
+        fetchSchedules();
+    }, [currentDate]);
+
+    const fetchSchedules = async () => {
+        try {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            const data = await scheduleService.getSchedules(year, month);
+            if (Array.isArray(data)) {
+                setEvents(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch schedules:", error);
+            // Fallback or empty state
+            setEvents([]);
+        }
+    };
 
     // Helpers
     const getDaysInMonth = (date) => {
@@ -99,82 +101,95 @@ export const ScheduleView = () => {
         setCurrentDate(new Date());
     };
 
-    const openAddModal = (dateStr, templateId, existingEvent = null) => {
+    const openModal = (dateStr, existingEvent = null) => {
         if (existingEvent) {
-            // Edit Mode
-            setNewEvent({
-                id: existingEvent.id, // Keep ID to track update
-                templateId: existingEvent.templateId,
-                title: existingEvent.title,
-                content: existingEvent.content,
-                date: existingEvent.date
+            // Edit/Detail Mode
+            setScheduleForm({
+                scheduleId: existingEvent.scheduleId,
+                scheduleName: existingEvent.scheduleName,
+                scheduleDetail: existingEvent.scheduleDetail,
+                scheduleDate: existingEvent.scheduleDate,
+                scheduleType: existingEvent.scheduleType,
+                creatorId: existingEvent.creatorId,
+                visitorIds: existingEvent.visitorIds || []
             });
+
+            // 권한 체크 COMPANY는 관리자만 수정 가능, 일반 유저는 조회만 
+            if (existingEvent.scheduleType === 'COMPANY' && !isAdministrator) {
+                setIsDetailMode(true);
+            } else {
+
+                setIsDetailMode(false);
+            }
+
         } else {
             // Create Mode
-            let safeTemplateId = templateId || (isAdmin ? 'company' : 'personal');
-            if (safeTemplateId === 'company' && !isAdmin) safeTemplateId = 'personal';
-
-            setNewEvent(prev => ({
-                id: null, // No ID for new event
-                date: dateStr || prev.date,
-                templateId: safeTemplateId,
-                title: '',
-                content: ''
-            }));
+            setScheduleForm({
+                scheduleId: null,
+                scheduleName: '',
+                scheduleDate: dateStr || new Date().toISOString().split('T')[0],
+                scheduleDetail: '',
+                scheduleType: isAdministrator ? 'COMPANY' : 'PERSONAL', // 기본값 설정
+                creatorId: null,
+                visitorIds: []
+            });
+            setIsDetailMode(false);
         }
         setIsModalOpen(true);
-        setIsTemplateMenuOpen(false);
         setIsOptionsMenuOpen(false);
     }
 
     // Event Handlers
-    const handleAddEvent = () => {
-        if (!newEvent.title) return alert('일정 제목을 입력해주세요.');
-        if (newEvent.templateId === 'company' && !isAdmin) return alert('회사 일정은 관리자만 등록할 수 있습니다.');
+    const handleSave = async () => {
+        if (!scheduleForm.scheduleName) return alert('일정 제목을 입력해주세요.');
+        if (scheduleForm.scheduleType === 'COMPANY' && !isAdministrator) return alert('회사 일정은 관리자만 등록할 수 있습니다.');
 
-        if (newEvent.id) {
-            // Update existing
-            const updatedEvents = events.map(evt =>
-                evt.id === newEvent.id
-                    ? { ...evt, ...newEvent }
-                    : evt
-            );
-            onUpdateEvents(updatedEvents);
-        } else {
-            // Create new
-            onUpdateEvents([
-                ...events,
-                {
-                    id: Date.now(),
-                    ...newEvent,
-                    ownerId: user.id // 현재 로그인한 사용자의 ID 저장
-                }
-            ]);
+        try {
+            const payload = {
+                scheduleName: scheduleForm.scheduleName,
+                scheduleDate: scheduleForm.scheduleDate,
+                scheduleDetail: scheduleForm.scheduleDetail,
+                scheduleType: scheduleForm.scheduleType,
+                creatorId: null,
+                visitorIds: scheduleForm.visitorIds || []
+            };
+
+            if (scheduleForm.scheduleId) {
+                // Update
+                await scheduleService.updateSchedule(scheduleForm.scheduleId, payload);
+            } else {
+                // Create
+                await scheduleService.createSchedule(payload);
+            }
+
+            await fetchSchedules(); // Refresh
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Failed to save schedule:", error);
+            alert("일정 저장에 실패했습니다.");
         }
-
-        setIsModalOpen(false);
-        // Reset
-        setNewEvent(prev => ({
-            id: null,
-            templateId: isAdmin ? templates[0].id : 'personal',
-            title: '',
-            content: '',
-            date: prev.date
-        }));
     };
 
-    const handleDeleteEvent = (e, id) => {
-        e.stopPropagation();
-        const targetEvent = events.find(evt => evt.id === id);
+    const handleDelete = async (e, id) => {
+        if (e) e.stopPropagation();
+
+        const targetEvent = events.find(evt => evt.scheduleId === id);
         if (!targetEvent) return;
 
-        if (targetEvent.templateId === 'company' && !isAdmin) {
+        if (targetEvent.scheduleType === 'COMPANY' && !isAdministrator) {
             alert('회사 일정은 관리자만 삭제할 수 있습니다.');
             return;
         }
 
         if (window.confirm('일정을 삭제하시겠습니까?')) {
-            onUpdateEvents(events.filter(evt => evt.id !== id));
+            try {
+                await scheduleService.deleteSchedule(id);
+                await fetchSchedules();
+                setIsModalOpen(false);
+            } catch (error) {
+                console.error("Failed to delete schedule:", error);
+                alert("일정 삭제에 실패했습니다.");
+            }
         }
     };
 
@@ -201,24 +216,19 @@ export const ScheduleView = () => {
 
         // Filter logic
         const dayEvents = events.filter(e => {
-            // 1. 날짜가 맞는지 확인
-            if (e.date !== dateStr) return false;
+            //  날짜 확인
+            if (e.scheduleDate !== dateStr) return false;
 
-            // 2. 권한 확인 (본인 일정인가? 또는 공용 회사 일정인가?)
-            const isMine = e.ownerId === user.id;
-            const isCompany = e.templateId === 'company';
+            //  필터 확인
+            if (filter !== 'all' && e.scheduleType !== filter) return false;
 
-            if (!isMine && !isCompany) return false;
-
-            // 3. 상단 보기 옵션 필터 확인
-            if (filter === 'all') return true;
-            return e.templateId === filter;
+            return true;
         });
 
         days.push(
             <DayCell
                 key={d}
-                onClick={() => openAddModal(dateStr)}
+                onClick={() => openModal(dateStr)}
             >
                 <DateNumberContainer>
                     <DateNumber $isToday={isToday}>{d}</DateNumber>
@@ -226,22 +236,22 @@ export const ScheduleView = () => {
 
                 <EventsList>
                     {dayEvents.map(evt => {
-                        const template = templates.find(t => t.id === evt.templateId) || templates[0];
-                        const colors = EVENT_COLORS[template.color] || EVENT_COLORS.gray;
+                        const colors = EVENT_COLORS[evt.scheduleType] || EVENT_COLORS.gray;
                         return (
                             <EventItem
-                                key={evt.id}
+                                key={evt.scheduleId}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    openAddModal(null, null, evt);
+                                    openModal(null, evt);
                                 }}
                                 $colorStyle={colors.style}
-                                title={evt.content}
+                                title={evt.scheduleDetail}
                             >
-                                <EventContent>{evt.title}</EventContent>
-                                {(isAdmin || evt.templateId !== 'company') && (
+                                <EventContent>{evt.scheduleName}</EventContent>
+                                {/* 삭제 버튼: 관리자이거나, 개인 일정인 경우에만 노출 */}
+                                {(isAdministrator || evt.scheduleType === 'PERSONAL') && (
                                     <DeleteEventButton
-                                        onClick={(e) => handleDeleteEvent(e, evt.id)}
+                                        onClick={(e) => handleDelete(e, evt.scheduleId)}
                                     >
                                         <X size={10} />
                                     </DeleteEventButton>
@@ -255,7 +265,7 @@ export const ScheduleView = () => {
     }
 
     return (
-        <Container onClick={() => { setIsTemplateMenuOpen(false); setIsOptionsMenuOpen(false); }}>
+        <Container onClick={() => { setIsOptionsMenuOpen(false); }}>
             {/* Header */}
             <Header>
                 <HeaderLeft>
@@ -289,14 +299,14 @@ export const ScheduleView = () => {
                     {filter !== 'all' && (
                         <FilterBadge>
                             <Filter size={12} />
-                            <span>{templates.find(t => t.id === filter)?.name || '필터됨'}</span>
+                            <span>{SCHEDULE_TYPES.find(t => t.id === filter)?.name || '필터됨'}</span>
                             <FilterClearButton onClick={() => setFilter('all')}><X size={12} /></FilterClearButton>
                         </FilterBadge>
                     )}
 
                     <OptionsContainer onClick={e => e.stopPropagation()}>
                         <OptionsButton
-                            onClick={() => { setIsOptionsMenuOpen(!isOptionsMenuOpen); setIsTemplateMenuOpen(false); }}
+                            onClick={() => { setIsOptionsMenuOpen(!isOptionsMenuOpen); }}
                             $isOpen={isOptionsMenuOpen}
                             title="보기 옵션"
                         >
@@ -311,7 +321,7 @@ export const ScheduleView = () => {
                                     {filter === 'all' && <StyledCheck><Check size={14} /></StyledCheck>}
                                 </DropdownItem>
                                 <Divider />
-                                {templates.map(t => (
+                                {SCHEDULE_TYPES.map(t => (
                                     <DropdownItem
                                         key={t.id}
                                         onClick={() => { setFilter(t.id); setIsOptionsMenuOpen(false); }}
@@ -325,7 +335,7 @@ export const ScheduleView = () => {
                     </OptionsContainer>
 
                     <OptionsContainer onClick={e => e.stopPropagation()}>
-                        <AddEventButton onClick={() => openAddModal()}>
+                        <AddEventButton onClick={() => openModal()}>
                             새로 일정 만들기
                         </AddEventButton>
                     </OptionsContainer>
@@ -361,80 +371,113 @@ export const ScheduleView = () => {
                         </ModalHeader>
 
                         <ModalBody>
-                            <div>
-                                <TitleInput
-                                    type="text"
-                                    placeholder="제목 없음"
-                                    value={newEvent.title}
-                                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                                    autoFocus
-                                />
-                            </div>
+                            {/* Read-Only View for Non-Admin on Company Events */}
+                            {isDetailMode ? (
+                                <div>
+                                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '16px' }}>
+                                        {scheduleForm.scheduleName}
+                                    </h2>
+                                    <div style={{ marginBottom: '12px', display: 'flex', gap: '8px' }}>
+                                        <span style={{
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '0.875rem',
+                                            ...EVENT_COLORS[scheduleForm.scheduleType]?.style
+                                        }}>
+                                            {SCHEDULE_TYPES.find(t => t.id === scheduleForm.scheduleType)?.name}
+                                        </span>
+                                        <span style={{ color: '#6b7280' }}>{scheduleForm.scheduleDate}</span>
+                                    </div>
+                                    <div style={{
+                                        padding: '16px',
+                                        backgroundColor: '#f9fafb',
+                                        borderRadius: '8px',
+                                        minHeight: '100px',
+                                        whiteSpace: 'pre-wrap'
+                                    }}>
+                                        {scheduleForm.scheduleDetail}
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <TitleInput
+                                            type="text"
+                                            placeholder="제목 없음"
+                                            value={scheduleForm.scheduleName}
+                                            onChange={(e) => setScheduleForm({ ...scheduleForm, scheduleName: e.target.value })}
+                                            autoFocus
+                                        />
+                                    </div>
 
-                            <FormStack>
-                                <FormRow $alignStart>
-                                    <FormLabel $marginTop>
-                                        <span>🏷️</span> 종류
-                                    </FormLabel>
-                                    <TemplateButtonContainer>
-                                        {templates.map(t => {
-                                            if (t.id === 'company' && !isAdmin) return null;
-                                            const colors = EVENT_COLORS[t.color] || EVENT_COLORS.gray;
-                                            return (
-                                                <TemplateButton
-                                                    key={t.id}
-                                                    type="button"
-                                                    onClick={() => setNewEvent({ ...newEvent, templateId: t.id })}
-                                                    $active={newEvent.templateId === t.id}
-                                                    $activeStyle={colors.style}
-                                                >
-                                                    {t.name}
-                                                </TemplateButton>
-                                            );
-                                        })}
-                                    </TemplateButtonContainer>
-                                </FormRow>
+                                    <FormStack>
+                                        <FormRow $alignStart>
+                                            <FormLabel $marginTop>
+                                                <span>🏷️</span> 종류
+                                            </FormLabel>
+                                            <TemplateButtonContainer>
+                                                {SCHEDULE_TYPES.map(t => {
+                                                    // 권한 로직: 일반 직원은 'COMPANY' 선택 불가
+                                                    if (t.id === 'COMPANY' && !isAdministrator) return null;
 
-                                <FormRow>
-                                    <FormLabel>
-                                        <span>📅</span> 날짜
-                                    </FormLabel>
-                                    <DateInput
-                                        type="date"
-                                        value={newEvent.date}
-                                        onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                                    />
-                                </FormRow>
+                                                    const colors = EVENT_COLORS[t.color] || EVENT_COLORS.gray;
+                                                    return (
+                                                        <TemplateButton
+                                                            key={t.id}
+                                                            type="button"
+                                                            onClick={() => setScheduleForm({ ...scheduleForm, scheduleType: t.id })}
+                                                            $active={scheduleForm.scheduleType === t.id}
+                                                            $activeStyle={colors.style}
+                                                        >
+                                                            {t.name}
+                                                        </TemplateButton>
+                                                    );
+                                                })}
+                                            </TemplateButtonContainer>
+                                        </FormRow>
 
-                                <FormRow $alignStart>
-                                    <FormLabel $marginTop>
-                                        <span>📝</span> 내용
-                                    </FormLabel>
-                                    <ContentTextarea
-                                        rows={3}
-                                        placeholder="설명 추가..."
-                                        value={newEvent.content}
-                                        onChange={(e) => setNewEvent({ ...newEvent, content: e.target.value })}
-                                    />
-                                </FormRow>
-                            </FormStack>
+                                        <FormRow>
+                                            <FormLabel>
+                                                <span>📅</span> 날짜
+                                            </FormLabel>
+                                            <DateInput
+                                                type="date"
+                                                value={scheduleForm.scheduleDate}
+                                                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduleDate: e.target.value })}
+                                            />
+                                        </FormRow>
+
+                                        <FormRow $alignStart>
+                                            <FormLabel $marginTop>
+                                                <span>📝</span> 내용
+                                            </FormLabel>
+                                            <ContentTextarea
+                                                rows={5}
+                                                placeholder="상세 내용을 입력하세요..."
+                                                value={scheduleForm.scheduleDetail}
+                                                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduleDetail: e.target.value })}
+                                            />
+                                        </FormRow>
+                                    </FormStack>
+                                </>
+                            )}
                         </ModalBody>
-                        <ModalFooter style={{ justifyContent: newEvent.id ? 'space-between' : 'flex-end' }}>
-                            {newEvent.id && (
+                        <ModalFooter style={{ justifyContent: scheduleForm.scheduleId ? 'space-between' : 'flex-end' }}>
+                            {!isDetailMode && scheduleForm.scheduleId && (
                                 <DeleteEventButton
                                     as="button"
-                                    onClick={(e) => {
-                                        handleDeleteEvent(e, newEvent.id);
-                                        setIsModalOpen(false);
-                                    }}
+                                    onClick={(e) => handleDelete(e, scheduleForm.scheduleId)}
                                     style={{ position: 'static', color: '#ef4444', background: 'none' }}
                                 >
                                     삭제
                                 </DeleteEventButton>
                             )}
-                            <SaveButton onClick={handleAddEvent}>
-                                {newEvent.id ? '수정 완료' : '저장하기'}
-                            </SaveButton>
+
+                            {!isDetailMode && (
+                                <SaveButton onClick={handleSave}>
+                                    {scheduleForm.scheduleId ? '수정 완료' : '저장하기'}
+                                </SaveButton>
+                            )}
                         </ModalFooter>
                     </ModalContainer>
                 </ModalOverlay>

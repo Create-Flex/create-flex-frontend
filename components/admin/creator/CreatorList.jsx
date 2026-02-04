@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, User, MoreHorizontal, Edit3, Trash2, Link as LinkIcon } from 'lucide-react';
 import { renderPlatformIcon } from '../../creator/shared/utils';
+import { creatorService } from '../../../api/creatorService';
+import { useCreatorStore } from '../../../stores/useCreatorStore';
+import { mapCreatorFromBackend } from '../../../utils/creatorMapper';
 import {
     Container, ControlBar, SearchGroup, SearchWrapper, SearchIconWrapper, SearchInput, Divider, CountText, AddButton,
     TableWrapper, Table, TableHead, TableHeader, TableBody, TableRow, TableCell,
@@ -11,14 +14,70 @@ import {
 } from './CreatorList.styled';
 
 export const CreatorList = ({
-    creators,
     onOpenAddModal,
     onOpenEditModal,
-    onDeleteCreator
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeMenuId, setActiveMenuId] = useState(null);
     const menuRef = useRef(null);
+
+    const { creators, setCreators, removeCreator, setLoading, isLoading } = useCreatorStore();
+
+    // 크리에이터 목록 조회
+    const fetchCreators = async (name = null) => {
+        setLoading(true);
+        try {
+            const response = await creatorService.getAllCreators(name);
+            console.log('받아온 크리에이터 데이터:', response);
+            
+            const mappedCreators = Array.isArray(response) 
+                ? response.map(mapCreatorFromBackend) 
+                : [];
+            
+            console.log('변환된 크리에이터 데이터:', mappedCreators);
+            setCreators(mappedCreators);
+        } catch (error) {
+            console.error('크리에이터 목록 조회 실패:', error);
+            setCreators([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 컴포넌트 마운트 시 목록 조회
+    useEffect(() => {
+        fetchCreators();
+    }, []);
+
+    // 검색어 변경 시 디바운싱
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.trim()) {
+                fetchCreators(searchQuery.trim());
+            } else {
+                fetchCreators();
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // 크리에이터 삭제
+    const handleDeleteCreator = async (creatorId) => {
+        if (!confirm('정말 이 크리에이터를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await creatorService.deleteCreator(creatorId);
+            alert(response.message || '크리에이터가 삭제되었습니다.');
+            removeCreator(creatorId);
+            setActiveMenuId(null);
+        } catch (error) {
+            console.error('크리에이터 삭제 실패:', error);
+            alert(error.response?.data?.message || '크리에이터 삭제에 실패했습니다.');
+        }
+    };
 
     const filteredCreators = creators.filter(c =>
         c.name.includes(searchQuery) ||
@@ -132,10 +191,13 @@ export const CreatorList = ({
 
                                     {activeMenuId === creator.id && (
                                         <DropdownMenu ref={menuRef}>
-                                            <MenuButton onClick={() => onOpenEditModal(creator)}>
+                                            <MenuButton onClick={() => {
+                                                setActiveMenuId(null);
+                                                onOpenEditModal(creator);
+                                            }}>
                                                 <Edit3 size={12} /> 정보 수정
                                             </MenuButton>
-                                            <MenuButton $danger onClick={() => onDeleteCreator && onDeleteCreator(creator.id)}>
+                                            <MenuButton $danger onClick={() => handleDeleteCreator(creator.id)}>
                                                 <Trash2 size={12} /> 삭제
                                             </MenuButton>
                                         </DropdownMenu>

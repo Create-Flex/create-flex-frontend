@@ -30,7 +30,8 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
         memberid: '',
         name: '', engName: '', dept: defaultDeptId, role: '', employeeId: '',
         email: '', personalEmail: '', phone: '', joinDate: '',
-        nickname: '', password: '', permission: '직원', address: '', joinType: '경력'
+        nickname: '', password: '', permission: '직원', address: '', joinType: '경력',
+        memberStatus: 'WORKING'
     });
 
     const fetchEmployees = async (name = '') => {
@@ -107,7 +108,8 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                 password: '',
                 permission: permissionMap[detail.memberRole] || '직원',
                 address: detail.address || '',
-                joinType: detail.employmentType === 'EXPERIENCED' ? '경력' : '신입'
+                joinType: detail.employmentType === 'EXPERIENCED' ? '경력' : '신입',
+                memberStatus: detail.memberStatus || 'WORKING'
             });
             setModalType('edit');
         } catch (error) {
@@ -119,19 +121,19 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     const handleSave = async () => {
         if (!staffForm.name || !staffForm.employeeId) return alert('필수 정보를 입력해주세요.');
 
-        if (modalType === 'reg') {
-            try {
-                const permissionToEnum = {
-                    '직원': 'EMPLOYEE',
-                    '매니저': 'MANAGER',
-                    '인사/운영자': 'ADMINISTRATOR'
-                };
+        const permissionToEnum = {
+            '직원': 'EMPLOYEE',
+            '매니저': 'MANAGER',
+            '인사/운영자': 'ADMINISTRATOR'
+        };
 
-                const joinTypeToEnum = {
-                    '신입': 'NEWBIE',
-                    '경력': 'EXPERIENCED'
-                };
+        const joinTypeToEnum = {
+            '신입': 'NEWBIE',
+            '경력': 'EXPERIENCED'
+        };
 
+        try {
+            if (modalType === 'reg') {
                 const employeeData = {
                     memberAccount: staffForm.employeeId,
                     memberName: staffForm.name,
@@ -152,17 +154,32 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
 
                 await staffService.registerEmployee(employeeData);
                 alert(`${staffForm.name} 님이 등록되었습니다.`);
-                setModalType('none');
-                fetchEmployees();
-            } catch (error) {
-                console.error('직원 등록 실패:', error);
-                alert('직원 등록에 실패했습니다. 입력 정보를 확인해주세요.');
+            } else {
+                const employeeUpdateData = {
+                    memberName: staffForm.name,
+                    memberRole: permissionToEnum[staffForm.permission] || 'EMPLOYEE',
+                    memberStatus: staffForm.memberStatus || 'WORKING',
+                    task: staffForm.role,
+                    departmentid: staffForm.dept,
+                    password: staffForm.password, // 비밀번호가 비어있으면 그대로 전송 (백엔드 처리 필요)
+                    nickname: staffForm.nickname,
+                    personalEmail: staffForm.personalEmail,
+                    personalCall: staffForm.phone,
+                    address: staffForm.address,
+                    engName: staffForm.engName,
+                    corporEmail: staffForm.email,
+                    hireDate: staffForm.joinDate,
+                    employmentType: joinTypeToEnum[staffForm.joinType] || 'EXPERIENCED'
+                };
+
+                await staffService.updateEmployee(staffForm.memberid, employeeUpdateData);
+                alert('직원 정보가 수정되었습니다.');
             }
-        } else {
-            // 직원 수정 api들어가야함 
-            alert('직원 정보가 수정되었습니다.');
             setModalType('none');
             fetchEmployees();
+        } catch (error) {
+            console.error('작업 실패:', error);
+            alert('작업에 실패했습니다. 입력 정보를 확인해주세요.');
         }
     };
 

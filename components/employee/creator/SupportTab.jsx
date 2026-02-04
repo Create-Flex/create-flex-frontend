@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Scale, FileSpreadsheet, Clock, CheckCircle2 } from 'lucide-react';
+import { legalTaxService } from '../../../api/legalTaxService';
+import { useLegalTaxStore } from '../../../stores/useLegalTaxStore';
+import { mapLegalTaxFromBackend } from '../../../utils/legalTaxMapper';
 import {
     Container, SupportCard, CardHeader, IconBox, CardTitleGroup, CardTitle, CardDesc, CardContent,
     SupportList, ListLabel, List, ListItem, ActionButton,
@@ -7,9 +10,40 @@ import {
     TableContainer, Table, Thead, Th, Tbody, Tr, Td, TypeBadge, StatusBadge, EmptyRow, EmptyCell
 } from './SupportTab.styled';
 
-export const SupportTab = ({ onOpenSupportModal, supportRequests = [] }) => {
-    // Sort requests by date (newest first)
-    const sortedRequests = [...supportRequests].sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+export const SupportTab = ({ onOpenSupportModal }) => {
+    const { requests, setRequests, isLoading, setLoading, setError } = useLegalTaxStore();
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    // 매니저용: 내 담당 크리에이터의 법률/세무 요청 조회
+    useEffect(() => {
+        const fetchMyRequests = async () => {
+            setLoading(true);
+            try {
+                const response = await legalTaxService.getMyRequests();
+                
+                // 백엔드 데이터를 프론트엔드 형식으로 변환
+                const mappedRequests = response.map(mapLegalTaxFromBackend);
+                setRequests(mappedRequests);
+            } catch (error) {
+                console.error('내 담당 법률/세무 요청 조회 실패:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMyRequests();
+    }, [refreshTrigger, setRequests, setLoading, setError]);
+
+    // 신청 후 목록 새로고침
+    const handleRequestCreated = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
+
+    // 최신순 정렬
+    const sortedRequests = [...requests].sort((a, b) => 
+        new Date(b.requestDate) - new Date(a.requestDate)
+    );
 
     return (
         <Container>
@@ -33,7 +67,7 @@ export const SupportTab = ({ onOpenSupportModal, supportRequests = [] }) => {
                             <ListItem>저작권 및 초상권 침해 대응</ListItem>
                         </List>
                     </SupportList>
-                    <ActionButton onClick={() => onOpenSupportModal('legal')}>
+                    <ActionButton onClick={() => onOpenSupportModal('legal', handleRequestCreated)}>
                         법률 상담 신청하기
                     </ActionButton>
                 </CardContent>
@@ -59,7 +93,7 @@ export const SupportTab = ({ onOpenSupportModal, supportRequests = [] }) => {
                             <ListItem>비용 처리 및 절세 가이드 제공</ListItem>
                         </List>
                     </SupportList>
-                    <ActionButton onClick={() => onOpenSupportModal('tax')}>
+                    <ActionButton onClick={() => onOpenSupportModal('tax', handleRequestCreated)}>
                         세무 상담 신청하기
                     </ActionButton>
                 </CardContent>
@@ -71,7 +105,9 @@ export const SupportTab = ({ onOpenSupportModal, supportRequests = [] }) => {
                     <HistoryTitle>
                         <Clock size={20} className="text-gray-400" /> 나의 신청 내역
                     </HistoryTitle>
-                    <HistoryDesc>담당 크리에이터를 위해 신청한 지원 서비스의 진행 상태를 확인하세요.</HistoryDesc>
+                    <HistoryDesc>
+                        담당 크리에이터를 위해 신청한 지원 서비스의 진행 상태를 확인하세요.
+                    </HistoryDesc>
                 </HistoryHeader>
 
                 <TableContainer>
@@ -86,7 +122,13 @@ export const SupportTab = ({ onOpenSupportModal, supportRequests = [] }) => {
                             </tr>
                         </Thead>
                         <Tbody>
-                            {sortedRequests.length > 0 ? (
+                            {isLoading ? (
+                                <EmptyRow>
+                                    <EmptyCell colSpan="5">
+                                        로딩 중...
+                                    </EmptyCell>
+                                </EmptyRow>
+                            ) : sortedRequests.length > 0 ? (
                                 sortedRequests.map(req => (
                                     <Tr key={req.id}>
                                         <Td $mono>{req.requestDate}</Td>

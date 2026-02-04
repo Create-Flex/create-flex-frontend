@@ -1,52 +1,97 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Upload, BellRing, Calendar, ArrowRight, RotateCcw, Download, FileText } from 'lucide-react';
 import {
     HealthSectionContainer, HealthAlertBox, AlertContentWrapper, AlertTextContent, AlertBadge, AlertTitle, AlertText,
     AlertActionWrapper, ActionButton, AlertIconWrapper, DecorationCircle,
-    HistorySectionHeader, SectionTitleWithIcon, FilterBar, FilterLabel, DateInput, ResetButton,
+    HistorySectionHeader, SectionTitleWithIcon, FilterBar, FilterLabel, DateInput, ResetButton, SearchButton,
     HistoryList, HistoryItem, HistoryItemContent, HistoryTitleRow, HistoryYearType, HistoryStatus,
     HistoryDateRow, DownloadButton, EmptyState, EmptyIcon, EmptyText
 } from './HealthSection.styled';
+import { getMyHealth } from '../../api/healthService';
 
 export const HealthSection = ({
     profile,
     checkupHistory,
     onOpenResultModal
 }) => {
+
+    const [healthList, setHealthList] = useState([]);
+    const [healthCheck, setHealthCheck] = useState();
+
+    useEffect(() => {
+
+        const fetchHealth = async () => {
+            const today = new Date();
+            const oneYearAgo = new Date(today);
+            oneYearAgo.setFullYear(today.getFullYear() - 2);
+
+            const toLocalDateString = (date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            };
+
+            const startDate = toLocalDateString(oneYearAgo);
+            const endDate = toLocalDateString(today);
+
+            try {
+                const { data } = await getMyHealth(startDate, endDate); // API 호출
+                console.log('Health API 응답:', data); // ✅ 여기서 확인
+                setHealthList(data.healthInfoList); // 상태에 저장
+                setHealthCheck(data.haveHealthChecked);
+            } catch (err) {
+                console.error('Health 조회 실패', err);
+            }
+        };
+        
+
+        fetchHealth();
+    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
+
+    
+    
     // Helper for ISO Date calculation
     const getInitialDates = () => {
         const today = new Date();
-        const fiveYearsAgo = new Date();
-        fiveYearsAgo.setFullYear(today.getFullYear() - 5);
+        const TwoYearsAgo = new Date();
+        TwoYearsAgo.setFullYear(today.getFullYear() - 2);
         return {
             today: today.toISOString().split('T')[0],
-            fiveYearsAgo: fiveYearsAgo.toISOString().split('T')[0]
+            TwoYearsAgo: TwoYearsAgo.toISOString().split('T')[0]
         };
     };
 
     const initialDates = getInitialDates();
-
+    
+    
     // History Filter State
-    const [historyStartDate, setHistoryStartDate] = useState(initialDates.fiveYearsAgo);
+    const [historyStartDate, setHistoryStartDate] = useState(initialDates.TwoYearsAgo);
     const [historyEndDate, setHistoryEndDate] = useState(initialDates.today);
 
-    // Filtered History Logic
-    const filteredHistory = useMemo(() => {
-        return checkupHistory.filter(item => {
-            if (!historyStartDate && !historyEndDate) return true;
+    const healthSearch = async () => {
+        try {
+            const { data } = await getMyHealth(historyStartDate, historyEndDate);
+            console.log('검색 결과:', data);
+            setHealthList(data.healthInfoList);
+        } catch (e) {
+            console.error('검색 실패', e);
+        }
+    };
 
-            // Convert "2023. 10. 15" to "2023-10-15" for comparison
-            const formattedDate = item.date.replace(/\. /g, '-').replace(/\.$/, '');
+    const healthEntries = Array.from(healthList.entries());
 
-            if (historyStartDate && formattedDate < historyStartDate) return false;
-            if (historyEndDate && formattedDate > historyEndDate) return false;
-
-            return true;
-        });
-    }, [checkupHistory, historyStartDate, historyEndDate]);
+    const summaryLabelMap = {
+        NORMAL_AB: '정상AB',
+        NORMAL_B: '정상B',
+        CAUTION: '주의',
+        DANGER: '위험',
+        RETEST_NEED: '재검 필요'
+    };
 
     return (
         <HealthSectionContainer>
+            {healthCheck === false && (
             <HealthAlertBox>
                 <AlertContentWrapper>
                     <AlertTextContent>
@@ -71,7 +116,7 @@ export const HealthSection = ({
                 </AlertContentWrapper>
                 <DecorationCircle />
             </HealthAlertBox>
-
+            )}
             <div>
                 <HistorySectionHeader>
                     <SectionTitleWithIcon>
@@ -91,32 +136,22 @@ export const HealthSection = ({
                             value={historyEndDate}
                             onChange={(e) => setHistoryEndDate(e.target.value)}
                         />
-                        {(historyStartDate !== initialDates.fiveYearsAgo || historyEndDate !== initialDates.today) && (
-                            <ResetButton
-                                onClick={() => {
-                                    setHistoryStartDate(initialDates.fiveYearsAgo);
-                                    setHistoryEndDate(initialDates.today);
-                                }}
-                                title="필터 초기화"
-                            >
-                                <RotateCcw size={14} />
-                            </ResetButton>
-                        )}
+                        <SearchButton onClick={healthSearch}>검색</SearchButton>
                     </FilterBar>
                 </HistorySectionHeader>
 
                 <HistoryList>
-                    {filteredHistory.length > 0 ? filteredHistory.map((checkup) => (
-                        <HistoryItem key={checkup.id}>
+                    {healthEntries.length > 0 ? healthEntries.map(([key, value]) => (
+                        <HistoryItem key={key}>
                             <HistoryItemContent>
                                 <HistoryTitleRow>
-                                    <HistoryYearType>{checkup.year}년 {checkup.type}</HistoryYearType>
-                                    <HistoryStatus $status={checkup.result}>
-                                        {checkup.result}
-                                    </HistoryStatus>
+                                <HistoryYearType>{value.checkupName} </HistoryYearType>
+                                <HistoryStatus $status={value.checkupSummanary}>
+                                    {summaryLabelMap[value.checkupSummanary] ?? value.checkupSummanary}
+                                </HistoryStatus>
                                 </HistoryTitleRow>
                                 <HistoryDateRow>
-                                    <span>{checkup.date}</span>
+                                <span>{value.checkupDate}</span>
                                 </HistoryDateRow>
                             </HistoryItemContent>
                             <DownloadButton title="결과지 다운로드">

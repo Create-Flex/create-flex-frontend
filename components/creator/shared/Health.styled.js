@@ -471,10 +471,10 @@ export const ResultBadge = styled.div`
   
   ${props => {
     const res = props.$result || '';
-    if (res.includes('양호') || res.includes('정상')) return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
-    if (res.includes('주의')) return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
-    if (res.includes('위험')) return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
-    if (res.includes('재검')) return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
+    if (res.includes('NORMAL_AB') || res.includes('NORMAL_B')) return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+    if (res.includes('CAUTION')) return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
+    if (res.includes('DANGER')) return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
+    if (res.includes('RETEST_NEED')) return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
     return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
   }}
 `;

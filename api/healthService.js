@@ -15,3 +15,7 @@ export const putMyHealth = async (file, presignedUrl) => {
         headers: { 'Content-Type': file.type }
     });
 };
+
+export const getCreatorHealth = () =>
+    api.get('/health/creator/', {
+});

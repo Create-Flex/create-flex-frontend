@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList } from 'lucide-react';
 import {
     Container, StatGrid, StatCardWrapper, StatHeader, StatLabel, IconBox, StatValueGroup, StatValue, StatUnit, StatSubLabel,
@@ -15,6 +15,7 @@ import {
     UploadGuideBox, GuideIcon, GuideContent, GuideTitle, GuideText,
     FormStackSpaced, Label, Select, ActionButton
 } from '../../profile/modals/Modal.styled';
+import { getCreatorHealth } from '../../../api/healthService';
 
 // PHQ-9 Survey Modal Component (Shows Completed only)
 export const PhqSurveyModal = ({ onClose, onSubmit }) => {
@@ -244,13 +245,51 @@ export const CreatorHealthView = ({
         </StatCardWrapper>
     );
 
+    const [creatorHealthList, setCreatorHealth] = useState([]);
+    const [creatorCountNormal, setCreatorCountNormal] = useState();
+    const [creatorCountCaution, setCreatorCountCaution] = useState();
+    const [creatorCountDanger, setCreatorCountDanger] = useState();
+    const [creatorMentalList, setCreatorMental] = useState([]);
+
+    const fetchCreatorHealth = async () => {
+        try{
+            const {data} = await getCreatorHealth();
+            console.log('조회결과 : ', data);
+            setCreatorHealth(data.healthInfoList);
+            setCreatorMental(data.mentalHealthInfoList);
+            
+            const creatorSummanary = data.healthSummanaryCountList
+            const normalAB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_AB')?.totalCount ?? 0;
+            const normalB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
+            const caution = creatorSummanary.find(item => item.checkupSummanary === 'CAUTION')?.totalCount ?? 0
+            const danger = creatorSummanary.find(item => item.checkupSummanary === 'DANGER')?.totalCount ?? 0
+            setCreatorCountNormal(normalAB + normalB);
+            setCreatorCountCaution(caution);
+            setCreatorCountDanger(danger);
+        } catch (err) {
+                console.error('Health 조회 실패', err);
+        }
+    }
+
+    const summaryLabelMap = {
+        NORMAL_AB: '정상AB',
+        NORMAL_B: '정상B',
+        CAUTION: '주의',
+        DANGER: '위험',
+        RETEST_NEED: '재검 필요'
+    };
+
+    useEffect(() => {
+        fetchCreatorHealth();
+    }, []);
+
     return (
         <Container>
             {!isCreator && (
                 <StatGrid>
-                    <StatCard label="정상 (양호/경미)" value={stats.physicalNormal} icon={CheckCircle2} subLabel="건강 상태가 양호한 크리에이터" />
-                    <StatCard label="주의 (유소견)" value={stats.physicalCaution} icon={AlertTriangle} subLabel="추적 관찰이 필요한 크리에이터" />
-                    <StatCard label="위험 (질환의심)" value={stats.physicalRisk} icon={AlertCircle} subLabel="정밀 검사가 필요한 크리에이터" />
+                    <StatCard label="정상 (양호/경미)" value={creatorCountNormal} icon={CheckCircle2} subLabel="건강 상태가 양호한 크리에이터" />
+                    <StatCard label="주의 (유소견)" value={creatorCountCaution} icon={AlertTriangle} subLabel="추적 관찰이 필요한 크리에이터" />
+                    <StatCard label="위험 (질환의심)" value={creatorCountDanger} icon={AlertCircle} subLabel="정밀 검사가 필요한 크리에이터" />
                     <StatCard label="우울증 심각 현황" value={stats.mentalSevere} icon={BrainCircuit} subLabel="심리 상담 및 휴식이 권고된 인원" />
                 </StatGrid>
             )}
@@ -283,12 +322,12 @@ export const CreatorHealthView = ({
                                 </tr>
                             </Thead>
                             <Tbody>
-                                {filteredRecords.length > 0 ? filteredRecords.map(rec => (
-                                    <Tr key={rec.id} onClick={() => setSelectedRecord(rec)}>
-                                        <Td>{rec.name}</Td>
-                                        <Td>{rec.lastCheck}</Td>
+                                {creatorHealthList.length > 0 ? creatorHealthList.map((rec) => (
+                                    <Tr key={`${rec.checkupName}-${rec.checkupDate}`} onClick={() => setSelectedRecord(rec)}>
+                                        <Td>{rec.checkupName}</Td>
+                                        <Td>{rec.checkupDate}</Td>
                                         <Td>
-                                            <ResultBadge $result={rec.result}>{rec.result}</ResultBadge>
+                                            <ResultBadge $result={rec.checkupSummanary}>{summaryLabelMap[rec.checkupSummanary] ?? rec.checkupSummanary}</ResultBadge>
                                         </Td>
                                     </Tr>
                                 )) : (
@@ -354,20 +393,20 @@ export const CreatorHealthView = ({
                                 <DetailItem>
                                     <DetailLabel>이름</DetailLabel>
                                     <DetailValue>
-                                        <User size={14} className="text-gray-500" /> {selectedRecord.name}
+                                        <User size={14} className="text-gray-500" /> {selectedRecord.checkupName}
                                     </DetailValue>
                                 </DetailItem>
                                 <DetailItem>
                                     <DetailLabel>최근 검진일</DetailLabel>
                                     <DetailValue>
-                                        <Calendar size={14} className="text-gray-500" /> {selectedRecord.lastCheck}
+                                        <Calendar size={14} className="text-gray-500" /> {selectedRecord.checkupDate}
                                     </DetailValue>
                                 </DetailItem>
                             </DetailGrid>
 
                             <DetailItem>
                                 <DetailLabel>종합 판정 결과</DetailLabel>
-                                <ResultBadge $result={selectedRecord.result}>{selectedRecord.result}</ResultBadge>
+                                <ResultBadge $result={selectedRecord.checkupSummanary}>{summaryLabelMap[selectedRecord.checkupSummanary] ?? selectedRecord.checkupSummanary}</ResultBadge>
                             </DetailItem>
 
                             <FileAttachmentBox>
@@ -376,13 +415,15 @@ export const CreatorHealthView = ({
                                         <FileText size={20} />
                                     </FileIconWrapper>
                                     <FileMeta>
-                                        <FileName>{selectedRecord.name}_건강검진결과표.pdf</FileName>
+                                        <FileName>{selectedRecord.checkupName}_건강검진결과표.pdf</FileName>
                                         <FileSize>2.4 MB</FileSize>
                                     </FileMeta>
                                 </FileInfo>
-                                <DownloadButton>
+                                {selectedRecord.checkupFileUrl && (
+                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(selectedRecord.checkupFileUrl, "_blank")}>
                                     <Download size={18} />
                                 </DownloadButton>
+                                )}
                             </FileAttachmentBox>
 
                             <FootNote>

@@ -16,18 +16,19 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     const [summary, setSummary] = useState(null);
     const [searchInput, setSearchInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [departmentList, setDepartmentList] = useState([]); // API에서 가져온 부서 목록
 
     const [modalType, setModalType] = useState('none');
     const [editingStaffId, setEditingStaffId] = useState(null);
     const [resignationReason, setResignationReason] = useState('');
 
     // Default department is the first one in the list, or empty if none exist
-    const defaultDept = departments.length > 0 ? departments[0].name : '';
+    const defaultDeptId = departmentList.length > 0 ? departmentList[0].departmentId : '';
 
     // staffForm handles both Registration and Edit data
     const [staffForm, setStaffForm] = useState({
         memberid: '',
-        name: '', engName: '', dept: defaultDept, role: '', employeeId: '',
+        name: '', engName: '', dept: defaultDeptId, role: '', employeeId: '',
         email: '', personalEmail: '', phone: '', joinDate: '',
         nickname: '', password: '', permission: '직원', address: '', joinType: '경력'
     });
@@ -46,8 +47,20 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
         }
     };
 
+    // 부서 목록 조회
+    const fetchDepartments = async () => {
+        try {
+            const response = await staffService.getDepartments();
+            setDepartmentList(response.data || []);
+        } catch (error) {
+            console.error('Failed to fetch departments:', error);
+            alert('부서 목록을 불러오지 못했습니다.');
+        }
+    };
+
     useEffect(() => {
         fetchEmployees();
+        fetchDepartments(); // 부서 목록도 함께 조회
     }, []);
 
     const handleSearch = () => {
@@ -72,11 +85,18 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
             const response = await staffService.getEmployeeDetail(emp.memberid);
             const detail = response.data;
 
+            // EMPLOYEE -> 직원, MANAGER -> 매니저, ADMINISTRATOR -> 인사/운영자
+            const permissionMap = {
+                'EMPLOYEE': '직원',
+                'MANAGER': '매니저',
+                'ADMINISTRATOR': '인사/운영자'
+            };
+
             setStaffForm({
                 memberid: detail.memberid,
                 name: detail.memberName,
                 engName: detail.engName || '',
-                dept: detail.departmentid || defaultDept,
+                dept: detail.departmentid || defaultDeptId, // departmentId를 저장
                 role: detail.task,
                 employeeId: detail.memberAccount,
                 email: detail.corporEmail,
@@ -85,7 +105,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                 joinDate: detail.hireDate,
                 nickname: detail.nickname || '',
                 password: '',
-                permission: detail.memberRole || '직원',
+                permission: permissionMap[detail.memberRole] || '직원',
                 address: detail.address || '',
                 joinType: detail.employmentType === 'EXPERIENCED' ? '경력' : '신입'
             });
@@ -96,25 +116,61 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!staffForm.name || !staffForm.employeeId) return alert('필수 정보를 입력해주세요.');
 
         if (modalType === 'reg') {
-            // api 집어넣어야함
-            alert(`${staffForm.name} 님이 등록되었습니다.`);
+            try {
+                const permissionToEnum = {
+                    '직원': 'EMPLOYEE',
+                    '매니저': 'MANAGER',
+                    '인사/운영자': 'ADMINISTRATOR'
+                };
+
+                const joinTypeToEnum = {
+                    '신입': 'NEWBIE',
+                    '경력': 'EXPERIENCED'
+                };
+
+                const employeeData = {
+                    memberAccount: staffForm.employeeId,
+                    memberName: staffForm.name,
+                    memberRole: permissionToEnum[staffForm.permission] || 'EMPLOYEE',
+                    memberStatus: 'WORKING', // 신규 등록은 기본적으로 WORKING
+                    task: staffForm.role,
+                    departmentid: staffForm.dept,
+                    password: staffForm.password,
+                    nickname: staffForm.nickname,
+                    personalEmail: staffForm.personalEmail,
+                    personalCall: staffForm.phone,
+                    address: staffForm.address,
+                    engName: staffForm.engName,
+                    corporEmail: staffForm.email,
+                    hireDate: staffForm.joinDate,
+                    employmentType: joinTypeToEnum[staffForm.joinType] || 'EXPERIENCED'
+                };
+
+                await staffService.registerEmployee(employeeData);
+                alert(`${staffForm.name} 님이 등록되었습니다.`);
+                setModalType('none');
+                fetchEmployees();
+            } catch (error) {
+                console.error('직원 등록 실패:', error);
+                alert('직원 등록에 실패했습니다. 입력 정보를 확인해주세요.');
+            }
         } else {
             // 직원 수정 api들어가야함 
             alert('직원 정보가 수정되었습니다.');
+            setModalType('none');
+            fetchEmployees();
         }
-        setModalType('none');
-        fetchEmployees(); 
     };
 
     const handleResignation = () => {
         if (!resignationReason) return alert('사유를 입력해주세요.');
-        
+
         setModalType('none');
-        fetchEmployees(); 
+        fetchEmployees();
     };
 
     const handleDeptChange = (newDept) => {
@@ -161,7 +217,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                     />
                     <SearchButton onClick={handleSearch}>검색</SearchButton>
                 </SearchWrapper>
-                <AddButton onClick={() => { setStaffForm({ name: '', engName: '', dept: defaultDept, role: '', employeeId: '', email: '', personalEmail: '', phone: '', joinDate: '', nickname: '', password: '', permission: '직원', address: '', joinType: '경력' }); setModalType('reg'); }}>
+                <AddButton onClick={() => { setStaffForm({ name: '', engName: '', dept: defaultDeptId, role: '', employeeId: '', email: '', personalEmail: '', phone: '', joinDate: '', nickname: '', password: '', permission: '직원', address: '', joinType: '경력' }); setModalType('reg'); }}>
                     <Plus size={16} /> 직원 등록
                 </AddButton>
             </ControlsContainer>
@@ -174,6 +230,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                         <TableHead>
                             <tr>
                                 <TableHeaderCell>이름/부서</TableHeaderCell>
+                                <TableHeaderCell>회사 이메일/비상 연락처</TableHeaderCell>
                                 <TableHeaderCell>입사일</TableHeaderCell>
                                 <TableHeaderCell>근태 상태</TableHeaderCell>
                                 <TableHeaderCell $center>관리</TableHeaderCell>
@@ -256,8 +313,10 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                                                 value={staffForm.dept}
                                                 onChange={e => handleDeptChange(e.target.value)}
                                             >
-                                                {departments.map(dept => (
-                                                    <option key={dept.id} value={dept.name}>{dept.name}</option>
+                                                {departmentList.map(dept => (
+                                                    <option key={dept.departmentId} value={dept.departmentId}>
+                                                        {dept.departmentName}
+                                                    </option>
                                                 ))}
                                             </FormSelect>
                                             <SelectIconWrapper>

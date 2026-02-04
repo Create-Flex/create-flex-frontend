@@ -55,6 +55,14 @@ export const IconButton = styled.div`
   }
 `;
 
+export const LogoutButton = styled.div`
+  cursor: pointer;
+  color: #ef4444; /* text-red-500 */
+  &:hover {
+    color: #dc2626; /* hover:text-red-600 */
+  }
+`;
+
 export const CollapseButton = styled.div`
   color: #9ca3af; /* text-gray-400 */
 `;

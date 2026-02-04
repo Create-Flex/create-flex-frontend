@@ -53,7 +53,7 @@ export const VacationManagement = ({ employees = [] }) => {
 
     // 백엔드 데이터 State
     const [vacationLogs, setVacationLogs] = useState([]);
-    const [stats, setStats] = useState({ vacationers: 0, pending: 0, sickLeave: 0 });
+    const [stats, setStats] = useState({ vacationers: 0, pending: 0, sickLeave: 0, countAll: 0, countApproved: 0, countRejected: 0 });
     const [loading, setLoading] = useState(false);
 
     const handleSort = (key) => {
@@ -79,9 +79,9 @@ export const VacationManagement = ({ employees = [] }) => {
     const handleRowClick = async (vac) => {
         setIsDetailLoading(true);
         try {
-            // 사용자용 상세 조회 API 사용 (관리자도 사용 가능)
+            // 사용자용 상세 조회 API 사용
             const detail = await vacationService.getVacationDetail(vac.id);
-            
+
             // 백엔드 응답을 프론트엔드 형식으로 변환
             const mappedDetail = {
                 id: detail.vacationId,
@@ -115,29 +115,68 @@ export const VacationManagement = ({ employees = [] }) => {
         }
     };
 
-    // 백엔드에서 휴가 데이터 조회
+    // 통계 데이터 조회 (필터와 무관하게 전체 데이터 기반)
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchStats = async () => {
+            try {
+                const now = new Date();
+                const currentMonth = now.toISOString().slice(0, 7);
+
+                // 전체 미승인 건수 및 탭 카운트를 위해 넓은 날짜 범위 사용
+                const allData = await vacationService.getAllVacations({
+                    startDate: '2020-01-01',
+                    endDate: '2030-12-31'
+                });
+
+                const mappedAll = (allData || []).map(item => ({
+                    type: TYPE_MAP[item.vacationType] || item.vacationType,
+                    startDate: item.vacationStart,
+                    endDate: item.vacationEnd,
+                    status: STATUS_MAP[item.vacationApprove] || item.vacationApprove
+                }));
+
+                const vacationers = mappedAll.filter(v =>
+                    v.status === '승인됨' && v.type !== '병가' &&
+                    (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
+                ).length;
+
+                const pending = mappedAll.filter(v => v.status === '대기중').length;
+
+                const sickLeave = mappedAll.filter(v =>
+                    v.type === '병가' && v.status === '승인됨' &&
+                    (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
+                ).length;
+
+                // 탭 카운트용 전체 데이터 (사용완료 제외)
+                const countAll = mappedAll.length;
+                const countApproved = mappedAll.filter(v => v.status === '승인됨').length;
+                const countRejected = mappedAll.filter(v => v.status === '반려됨').length;
+
+                setStats({ vacationers, pending, sickLeave, countAll, countApproved, countRejected });
+            } catch (error) {
+                console.error('통계 데이터 조회 실패:', error);
+            }
+        };
+
+        fetchStats();
+    }, [vacationRefreshKey]);
+
+    // 휴가 목록 조회 (필터 적용)
+    useEffect(() => {
+        const fetchList = async () => {
             setLoading(true);
             try {
-                // 1. 통계 조회
-                try {
-                    const statsData = await vacationService.getVacationStats();
-                    if (statsData) {
-                        setStats({
-                            vacationers: statsData.monthlyVacationers || 0,
-                            pending: statsData.pendingCount || 0,
-                            sickLeave: statsData.monthlySickLeave || 0
-                        });
-                    }
-                } catch (e) {
-                    console.log('통계 API 없음, 로컬 계산 사용');
+                const filters = {};
+
+                // 미승인 탭일 때는 넓은 날짜 범위 사용 (모든 미승인 신청 표시)
+                if (activeTab === 'pending') {
+                    filters.startDate = '2020-01-01';
+                    filters.endDate = '2030-12-31';
+                } else {
+                    if (startDate) filters.startDate = startDate;
+                    if (endDate) filters.endDate = endDate;
                 }
 
-                // 2. 휴가 목록 조회 - AdminVacationListResponseDTO
-                const filters = {};
-                if (startDate) filters.startDate = startDate;
-                if (endDate) filters.endDate = endDate;
                 if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
 
                 const listData = await vacationService.getAllVacations(filters);
@@ -157,30 +196,15 @@ export const VacationManagement = ({ employees = [] }) => {
                 }));
 
                 setVacationLogs(mappedData);
-
-                // 통계 API가 없으면 로컬에서 계산
-                const currentMonth = new Date().toISOString().slice(0, 7);
-                setStats({
-                    vacationers: mappedData.filter(v =>
-                        v.status === '승인됨' && v.type !== '병가' &&
-                        (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
-                    ).length,
-                    pending: mappedData.filter(v => v.status === '대기중').length,
-                    sickLeave: mappedData.filter(v =>
-                        v.type === '병가' && v.status === '승인됨' &&
-                        (v.startDate?.startsWith(currentMonth) || v.endDate?.startsWith(currentMonth))
-                    ).length
-                });
-
             } catch (error) {
-                console.error('휴가 데이터 조회 실패:', error);
+                console.error('휴가 목록 조회 실패:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
-    }, [startDate, endDate, typeFilter, vacationRefreshKey]);
+        fetchList();
+    }, [startDate, endDate, typeFilter, activeTab, vacationRefreshKey]);
 
     const filteredAndSorted = vacationLogs.filter(v => {
         if (v.status === '사용완료') return false;
@@ -207,11 +231,8 @@ export const VacationManagement = ({ employees = [] }) => {
         return b.startDate.localeCompare(a.startDate);
     });
 
-    const activeLogs = vacationLogs.filter(v => v.status !== '사용완료');
-    const countAll = activeLogs.length;
-    const countApproved = activeLogs.filter(v => v.status === '승인됨').length;
-    const countRejected = activeLogs.filter(v => v.status === '반려됨').length;
-    const countPending = activeLogs.filter(v => v.status === '대기중').length;
+    // 탭 카운트는 stats에서 가져옴 (필터와 무관하게 전체 데이터 기반)
+    const { countAll, countApproved, countRejected, pending: countPending } = stats;
 
     const handleApproval = async (targetLog, approved) => {
         if (!approved && !rejectionReason.trim()) {

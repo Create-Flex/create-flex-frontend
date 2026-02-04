@@ -12,12 +12,14 @@ import {
 
 import { useUserStore } from '../stores/useUserStore';
 import { useAttendanceStore } from '../stores/useAttendanceStore';
+import { useVacationStore } from '../stores/useVacationStore';
 import { attendanceService } from '../api/attendanceService';
 
 export const AttendanceView = () => {
     const { user } = useAuthStore();
     const { userProfile } = useUserStore();
     const { attendanceLogs } = useAttendanceStore();
+    const { refreshKey: vacationRefreshKey } = useVacationStore();
 
     // Derived state
     const userName = userProfile.name;
@@ -56,7 +58,7 @@ export const AttendanceView = () => {
         remaining: 15
     });
 
-    // 잔여 연차 조회
+    // 잔여 연차 조회 (휴가 신청/변경 시 자동 새로고침)
     useEffect(() => {
         const fetchRemainder = async () => {
             if (!memberId) return;
@@ -72,7 +74,7 @@ export const AttendanceView = () => {
             }
         };
         fetchRemainder();
-    }, [memberId]);
+    }, [memberId, vacationRefreshKey]);
 
     return (
         <Container>

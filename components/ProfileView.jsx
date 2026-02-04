@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileInfo } from './profile/ProfileInfo';
 import { TaskSection } from './profile/TaskSection';
 import { HealthSection } from './profile/HealthSection';
@@ -19,6 +19,7 @@ import {
 } from './ProfileView.styled';
 
 import { useAuthStore } from '../stores/useAuthStore';
+import { vacationService } from '../api/vacationService';
 import { useUserStore } from '../stores/useUserStore';
 import { useHealthStore } from '../stores/useHealthStore';
 import { useVacationStore } from '../stores/useVacationStore';
@@ -65,6 +66,31 @@ export const ProfileView = ({
         { id: 1, year: '2023', type: '일반 건강검진', date: '2023. 10. 15', result: '정상 (양호)' },
         { id: 2, year: '2022', type: '채용 건강검진', date: '2022. 01. 05', result: '정상 (경미)' },
     ]);
+
+    // 잔여 연차 상태
+    const [vacationStats, setVacationStats] = useState({
+        total: 15,
+        used: 0,
+        remaining: 15
+    });
+
+    // 잔여 연차 조회
+    useEffect(() => {
+        const fetchVacationRemainder = async () => {
+            if (!displayProfile.employeeId || isCreatorProfile) return;
+            try {
+                const response = await vacationService.getMyVacationRemainder(displayProfile.employeeId);
+                setVacationStats({
+                    total: response.totalVacation || 15,
+                    used: response.usedVacation || 0,
+                    remaining: response.vacationRemainder || 15
+                });
+            } catch (error) {
+                console.error('잔여 연차 조회 에러:', error);
+            }
+        };
+        fetchVacationRemainder();
+    }, [displayProfile.employeeId, isCreatorProfile]);
 
     // Derived Data
     const tabs = (readOnly || isCreatorProfile) ? ['정보'] : ['정보', '건강'];
@@ -178,35 +204,21 @@ export const ProfileView = ({
                         {!hideVacationWidget && !isCreatorProfile && (
                             <VacationWidget>
                                 <WidgetHeader>
-                                    <WidgetTitle>휴가 사용 현황</WidgetTitle>
-                                    {canUpdate && (
-                                        <SmallButton onClick={openVacationModal}>
-                                            휴가 신청
-                                        </SmallButton>
-                                    )}
+                                    <WidgetTitle>잔여 연차</WidgetTitle>
                                 </WidgetHeader>
                                 <DaysRemaining>
-                                    <DaysNumber>12.5</DaysNumber>
-                                    <DaysText>일 남음</DaysText>
+                                    <DaysNumber>{vacationStats.remaining}</DaysNumber>
+                                    <DaysText>일</DaysText>
                                 </DaysRemaining>
 
                                 <UsageBarContainer>
                                     <UsageItem>
                                         <UsageHeader>
-                                            <span>연차</span>
-                                            <span>2.5/15</span>
+                                            <span>사용 연차 {vacationStats.used} / {vacationStats.total}</span>
+                                            <span>{vacationStats.total > 0 ? Math.round((vacationStats.used / vacationStats.total) * 100) : 0}%</span>
                                         </UsageHeader>
                                         <ProgressBarBg>
-                                            <ProgressBarFill $width="16%" $color="#22c55e" />
-                                        </ProgressBarBg>
-                                    </UsageItem>
-                                    <UsageItem>
-                                        <UsageHeader>
-                                            <span>반차</span>
-                                            <span>2회</span>
-                                        </UsageHeader>
-                                        <ProgressBarBg>
-                                            <ProgressBarFill $width="40%" $color="#f97316" />
+                                            <ProgressBarFill $width={`${vacationStats.total > 0 ? (vacationStats.used / vacationStats.total) * 100 : 0}%`} $color="#3b82f6" />
                                         </ProgressBarBg>
                                     </UsageItem>
                                 </UsageBarContainer>

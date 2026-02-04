@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export const useUIStore = create((set) => ({
     // 뷰 상태
     currentView: 'mypage',
-    currentDate: new Date(2026, 0, 1),
+    currentDate: new Date(),
 
     // 모달 상태
     isChatOpen: false,

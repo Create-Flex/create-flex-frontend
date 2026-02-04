@@ -58,7 +58,7 @@ export const ScheduleView = () => {
         visitorIds: []
     });
 
-    const isAdministrator = user?.role === UserRole.ADMINISTRATOR;
+    const isAdministrator = user?.memberRole === UserRole.ADMINISTRATOR;
 
     // Fetch Events when month changes
     useEffect(() => {
@@ -164,6 +164,7 @@ export const ScheduleView = () => {
 
             await fetchSchedules(); // Refresh
             setIsModalOpen(false);
+            alert('일정이 저장되었습니다.');
         } catch (error) {
             console.error("Failed to save schedule:", error);
             alert("일정 저장에 실패했습니다.");
@@ -186,6 +187,7 @@ export const ScheduleView = () => {
                 await scheduleService.deleteSchedule(id);
                 await fetchSchedules();
                 setIsModalOpen(false);
+                alert('일정이 삭제되었습니다.');
             } catch (error) {
                 console.error("Failed to delete schedule:", error);
                 alert("일정 삭제에 실패했습니다.");
@@ -382,7 +384,9 @@ export const ScheduleView = () => {
                                             padding: '4px 8px',
                                             borderRadius: '4px',
                                             fontSize: '0.875rem',
-                                            ...EVENT_COLORS[scheduleForm.scheduleType]?.style
+                                            backgroundColor: EVENT_COLORS[scheduleForm.scheduleType]?.bg,
+                                            color: EVENT_COLORS[scheduleForm.scheduleType]?.text,
+                                            border: `1px solid ${EVENT_COLORS[scheduleForm.scheduleType]?.border}`
                                         }}>
                                             {SCHEDULE_TYPES.find(t => t.id === scheduleForm.scheduleType)?.name}
                                         </span>

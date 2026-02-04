@@ -163,15 +163,19 @@ export const StatusBadge = styled.span`
   font-size: 0.6875rem;
   font-weight: 700;
   border: 1px solid;
+  margin-right: 0.25rem;
   
   ${props => {
     switch (props.$status) {
       case '출근':
-      case '퇴근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+      case '퇴근':
+      case '정상': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
       case '지각':
       case '조퇴': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
       case '결근': return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
       case '휴가': return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
+      case '반차': return css`background-color: #fefce8; color: #ca8a04; border-color: #fef08a;`;
+      case '워케이션': return css`background-color: #f0fdfa; color: #0d9488; border-color: #99f6e4;`;
       case '초과': return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
       case '근무중': return css`background-color: #f0f9ff; color: #0369a1; border-color: #bae6fd;`;
       default: return css`display: none;`;

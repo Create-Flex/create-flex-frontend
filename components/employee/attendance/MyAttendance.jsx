@@ -20,23 +20,27 @@ const formatDate = (date) => {
 const getISODate = (date) => date.toISOString().split('T')[0];
 
 const STATUS_DISPLAY_MAP = {
-    'NORMAL': '출근', // User wants '정상' for NORMAL
+    'NORMAL': '출근',
     'LATE': '지각',
     'EARLY_LEAVE': '조퇴',
     'OVERTIME': '초과',
     'WORKING': '근무중',
     'ABSENT': '결근',
-    'VACATION': '휴가'
+    'HALF_VACATION': '반차',
+    'VACATION': '휴가',
+    'WORKATION': '워케이션'
 };
 
 const REVERSE_STATUS_MAP = {
-    '출근': 'NORMAL',
+    '정상': 'NORMAL',
     '지각': 'LATE',
     '조퇴': 'EARLY_LEAVE',
     '초과': 'OVERTIME',
     '근무중': 'WORKING',
     '결근': 'ABSENT',
+    '반차': 'HALF_VACATION',
     '휴가': 'VACATION',
+    '워케이션': 'WORKATION',
     'All': null
 };
 
@@ -113,18 +117,24 @@ export const MyAttendance = () => {
     };
 
     const getStatusBadge = (checkInStatus, checkOutStatus) => {
-        // 출근 상태 + 퇴근 상태 배지 표시
+        // 특이사항만 배지 표시 (정상 출근/퇴근 제외)
         return (
             <>
-                {/* 출근 상태 배지 */}
-                {checkInStatus && <StatusBadge $status={checkInStatus}>{checkInStatus}</StatusBadge>}
-                {/* 퇴근 상태 배지 */}
-                {checkOutStatus && (
+                {/* 출근 상태 배지: 특이사항만 표시 (출근 제외) */}
+                {checkInStatus && checkInStatus !== '출근' && (
+                    <StatusBadge $status={checkInStatus}>{checkInStatus}</StatusBadge>
+                )}
+                {/* 퇴근 상태 배지: 특이사항만 표시 (퇴근 제외) */}
+                {checkOutStatus && checkOutStatus !== '퇴근' && (
                     <StatusBadge $status={checkOutStatus}>{checkOutStatus}</StatusBadge>
                 )}
                 {/* 근무중 표시 (퇴근 상태가 없을 때) */}
-                {!checkOutStatus && checkInStatus !== '결근' && (
+                {!checkOutStatus && checkInStatus && checkInStatus !== '결근' && checkInStatus !== '휴가' && (
                     <StatusBadge $status="근무중">근무중</StatusBadge>
+                )}
+                {/* 정상 출퇴근 표시 */}
+                {checkInStatus === '출근' && checkOutStatus === '퇴근' && (
+                    <StatusBadge $status="정상">정상</StatusBadge>
                 )}
             </>
         );
@@ -170,11 +180,14 @@ export const MyAttendance = () => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
                                 <option value="All">모든 상태</option>
-                                <option value="출근">출근</option>
+                                <option value="정상">정상</option>
                                 <option value="지각">지각</option>
                                 <option value="조퇴">조퇴</option>
                                 <option value="초과">초과</option>
                                 <option value="근무중">근무중</option>
+                                <option value="반차">반차</option>
+                                <option value="휴가">휴가</option>
+                                <option value="워케이션">워케이션</option>
                             </StatusSelect>
                             <StyledFilterIcon><Filter size={14} /></StyledFilterIcon>
 

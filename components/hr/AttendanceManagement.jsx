@@ -4,7 +4,7 @@ import { attendanceService } from '../../api/attendanceService';
 import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
-    LoadingContainer, FilterContainer, SearchWrapper, SearchInput, SearchIconWrapper, SelectWrapper, StatusSelect, SelectIconWrapper, DateRangePicker, DateInput, ResetButton, DateRangeArrow,
+    LoadingContainer, FilterContainer, SearchWrapper, SearchInput, SearchIconWrapper, SearchButton, SelectWrapper, StatusSelect, SelectIconWrapper, DateRangePicker, DateInput, ResetButton, DateRangeArrow,
     TableContainer, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
     NameText, TimeRange, TimeText, NoDataText, Badge
 } from './AttendanceManagement.styled';
@@ -12,6 +12,7 @@ import {
 export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const todayStr = new Date().toISOString().split('T')[0];
+    const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [startDate, setStartDate] = useState('');
@@ -19,12 +20,15 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
 
     // Status Map for API
     const STATUS_MAP = {
-        '출근': 'NORMAL',
+        '정상': 'NORMAL',
         '지각': 'LATE',
         '조퇴': 'EARLY_LEAVE',
         '초과': 'OVERTIME',
         '근무중': 'WORKING',
         '결근': 'ABSENT',
+        '반차': 'HALF_VACATION',
+        '휴가': 'VACATION',
+        '워케이션': 'WORKATION',
         'All': null
     };
     const [stats, setStats] = useState({
@@ -93,6 +97,17 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         fetchData();
     }, [startDate, endDate, selectedStatus, searchQuery, attendanceRefreshKey]);
 
+    // 검색 버튼/엔터키 핸들러
+    const handleSearch = () => {
+        setSearchQuery(searchInput);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     // 백엔드에서 필터링/정렬 처리하므로 프론트엔드에서는 그대로 사용
     const filteredLogs = attendanceList;
 
@@ -133,9 +148,11 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         <SearchInput
                             type="text"
                             placeholder="직원 이름 검색..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
                         />
+                        <SearchButton onClick={handleSearch}>검색</SearchButton>
                     </SearchWrapper>
 
                     <SelectWrapper>
@@ -144,11 +161,14 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                             onChange={(e) => setSelectedStatus(e.target.value)}
                         >
                             <option value="All">상태 전체</option>
-                            <option value="출근">출근</option>
+                            <option value="정상">정상</option>
                             <option value="지각">지각</option>
                             <option value="조퇴">조퇴</option>
                             <option value="초과">초과</option>
                             <option value="근무중">근무중</option>
+                            <option value="반차">반차</option>
+                            <option value="휴가">휴가</option>
+                            <option value="워케이션">워케이션</option>
                         </StatusSelect>
                         <SelectIconWrapper>
                             <ChevronDown size={14} />
@@ -165,7 +185,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     </DateRangePicker>
                 </FilterContainer>
                 <ResetButton
-                    onClick={() => { setStartDate(''); setEndDate(''); setSearchQuery(''); setSelectedStatus('All'); }}
+                    onClick={() => { setStartDate(''); setEndDate(''); setSearchInput(''); setSearchQuery(''); setSelectedStatus('All'); }}
                 >
                     필터 초기화
                 </ResetButton>
@@ -207,15 +227,21 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                                     )}
                                 </TableCell>
                                 <TableCell $center>
-                                    {/* 출근 상태 배지 */}
-                                    {log.checkInStatus && <Badge $status={log.checkInStatus}>{log.checkInStatus}</Badge>}
-                                    {/* 퇴근 상태 배지 */}
-                                    {log.checkOutStatus && (
+                                    {/* 출근 상태 배지: 특이사항만 표시 (출근 제외) */}
+                                    {log.checkInStatus && log.checkInStatus !== '출근' && (
+                                        <Badge $status={log.checkInStatus}>{log.checkInStatus}</Badge>
+                                    )}
+                                    {/* 퇴근 상태 배지: 특이사항만 표시 (퇴근 제외) */}
+                                    {log.checkOutStatus && log.checkOutStatus !== '퇴근' && (
                                         <Badge $status={log.checkOutStatus}>{log.checkOutStatus}</Badge>
                                     )}
                                     {/* 근무중 표시 (퇴근 상태가 없을 때) */}
-                                    {!log.checkOutStatus && log.checkInStatus !== '결근' && (
+                                    {!log.checkOutStatus && log.checkInStatus && log.checkInStatus !== '결근' && log.checkInStatus !== '휴가' && (
                                         <Badge $status="근무중">근무중</Badge>
+                                    )}
+                                    {/* 정상 출퇴근 표시 */}
+                                    {log.checkInStatus === '출근' && log.checkOutStatus === '퇴근' && (
+                                        <Badge $status="정상">정상</Badge>
                                     )}
                                 </TableCell>
                             </TableRow>

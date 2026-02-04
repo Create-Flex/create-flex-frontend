@@ -24,6 +24,25 @@ export const StatsGrid = styled.div`
   }
 `;
 
+export const SearchButton = styled.button`
+  background-color: black;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #1f2937;
+  }
+`;
+
 export const StatCardContainer = styled.div`
   background-color: white;
   padding: 1.5rem; // p-6
@@ -83,6 +102,9 @@ export const ControlsContainer = styled.div`
 
 export const SearchWrapper = styled.div`
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 export const SearchInput = styled.input`

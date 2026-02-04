@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit3, Lock, Home, Mail, Users, Clock, UserPlus, X, AlertCircle, UserCheck, Calendar, ChevronDown } from 'lucide-react';
+import { staffService } from '../../api/staffService.js';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
     ControlsContainer, SearchWrapper, SearchInput, SearchIconWrapper, AddButton,
@@ -7,11 +8,15 @@ import {
     AvatarWrapper, AvatarImage, UserInfo, NameText, IdText, DeptText, SecondaryText, StatusBadge, StatusDot, StatusLabel, EditButton,
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalBody, ModalFooter,
     FormGrid, FormGroup, Label, InputWrapper, FormInput, SelectWrapper, SelectIconWrapper, FormSelect,
-    PrimaryButton, SecondaryButton, ResignationButton, ResignationTextarea
+    PrimaryButton, SecondaryButton, ResignationButton, ResignationTextarea, SearchButton
 } from './StaffManagement.styled';
 
-export const StaffManagement = ({ employees, onUpdateEmployees, vacationLogs, departments }) => {
-    const [searchQuery, setSearchQuery] = useState('');
+export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }) => {
+    const [employeeList, setEmployeeList] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [searchInput, setSearchInput] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const [modalType, setModalType] = useState('none');
     const [editingStaffId, setEditingStaffId] = useState(null);
     const [resignationReason, setResignationReason] = useState('');
@@ -21,83 +26,95 @@ export const StaffManagement = ({ employees, onUpdateEmployees, vacationLogs, de
 
     // staffForm handles both Registration and Edit data
     const [staffForm, setStaffForm] = useState({
+        memberid: '',
         name: '', engName: '', dept: defaultDept, role: '', employeeId: '',
         email: '', personalEmail: '', phone: '', joinDate: '',
         nickname: '', password: '', permission: '직원', address: '', joinType: '경력'
     });
 
+    const fetchEmployees = async (name = '') => {
+        setLoading(true);
+        try {
+            const response = await staffService.getEmployees(name);
+            setEmployeeList(response.data.list || []);
+            setSummary(response.data.summary || null);
+        } catch (error) {
+            console.error('Failed to fetch employees:', error);
+            alert('데이터를 불러오지 못했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const handleSearch = () => {
+        fetchEmployees(searchInput);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     const stats = useMemo(() => ({
-        total: employees.length,
-        working: employees.filter(e => e.workStatus === '출근').length,
-        onLeave: employees.filter(e => ['휴가', '병가'].includes(e.workStatus)).length,
-        newJoiners: employees.filter(e => {
-            const diff = Math.abs(new Date().getTime() - new Date(e.joinDate).getTime());
-            return diff / (1000 * 60 * 60 * 24) <= 365;
-        }).length
-    }), [employees]);
+        total: summary?.totalCount || 0,
+        working: summary?.workingCount || 0,
+        onLeave: summary?.vacationCount || 0,
+        newJoiners: summary?.newHireCount || 0
+    }), [summary]);
 
-    const filteredEmployees = employees.filter(e =>
-        e.name.includes(searchQuery) || e.dept.includes(searchQuery) || (e.nickname && e.nickname.includes(searchQuery))
-    );
+    const handleManageClick = async (emp) => {
+        try {
+            const response = await staffService.getEmployeeDetail(emp.memberid);
+            const detail = response.data;
 
-    const handleManageClick = (emp) => {
-        setEditingStaffId(emp.id);
-
-        // Ensure current dept exists in options, otherwise fallback to default
-        const deptExists = departments.some(d => d.name === emp.dept);
-        const currentDept = deptExists ? emp.dept : defaultDept;
-
-        setStaffForm({
-            name: emp.name, engName: emp.engName, dept: currentDept, role: emp.role, employeeId: emp.id,
-            email: emp.email, personalEmail: emp.personalEmail || '', phone: emp.phone,
-            joinDate: emp.joinDate, nickname: emp.nickname || '', password: '',
-            permission: '직원', address: '', joinType: '경력'
-        });
-        setModalType('edit');
+            setStaffForm({
+                memberid: detail.memberid,
+                name: detail.memberName,
+                engName: detail.engName || '',
+                dept: detail.departmentid || defaultDept,
+                role: detail.task,
+                employeeId: detail.memberAccount,
+                email: detail.corporEmail,
+                personalEmail: detail.personalEmail || '',
+                phone: detail.personalCall,
+                joinDate: detail.hireDate,
+                nickname: detail.nickname || '',
+                password: '',
+                permission: detail.memberRole || '직원',
+                address: detail.address || '',
+                joinType: detail.employmentType === 'EXPERIENCED' ? '경력' : '신입'
+            });
+            setModalType('edit');
+        } catch (error) {
+            console.error('Failed to fetch employee detail:', error);
+            alert('정보를 불러오지 못했습니다.');
+        }
     };
 
     const handleSave = () => {
         if (!staffForm.name || !staffForm.employeeId) return alert('필수 정보를 입력해주세요.');
 
         if (modalType === 'reg') {
-            const newEmp = {
-                id: staffForm.employeeId,
-                name: staffForm.name,
-                engName: staffForm.engName,
-                dept: staffForm.dept,
-                role: staffForm.role,
-                workStatus: '퇴근',
-                email: staffForm.email,
-                personalEmail: staffForm.personalEmail,
-                phone: staffForm.phone,
-                joinDate: staffForm.joinDate,
-                nickname: staffForm.nickname,
-                rank: staffForm.joinType === '신입' ? 'Level 1' : 'Level 2'
-            };
-            onUpdateEmployees([...employees, newEmp]);
+            // api 집어넣어야함
             alert(`${staffForm.name} 님이 등록되었습니다.`);
         } else {
-            onUpdateEmployees(employees.map(e => e.id === editingStaffId ? {
-                ...e,
-                name: staffForm.name,
-                engName: staffForm.engName,
-                dept: staffForm.dept,
-                role: staffForm.role,
-                email: staffForm.email,
-                personalEmail: staffForm.personalEmail,
-                phone: staffForm.phone,
-                joinDate: staffForm.joinDate,
-                nickname: staffForm.nickname
-            } : e));
+            // 직원 수정 api들어가야함 
             alert('직원 정보가 수정되었습니다.');
         }
         setModalType('none');
+        fetchEmployees(); 
     };
 
     const handleResignation = () => {
         if (!resignationReason) return alert('사유를 입력해주세요.');
-        onUpdateEmployees(employees.map(e => e.id === editingStaffId ? { ...e, workStatus: '퇴직' } : e));
+        
         setModalType('none');
+        fetchEmployees(); 
     };
 
     const handleDeptChange = (newDept) => {
@@ -137,10 +154,12 @@ export const StaffManagement = ({ employees, onUpdateEmployees, vacationLogs, de
                     </SearchIconWrapper>
                     <SearchInput
                         type="text"
-                        placeholder="이름, 부서 검색..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="이름 검색..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
+                    <SearchButton onClick={handleSearch}>검색</SearchButton>
                 </SearchWrapper>
                 <AddButton onClick={() => { setStaffForm({ name: '', engName: '', dept: defaultDept, role: '', employeeId: '', email: '', personalEmail: '', phone: '', joinDate: '', nickname: '', password: '', permission: '직원', address: '', joinType: '경력' }); setModalType('reg'); }}>
                     <Plus size={16} /> 직원 등록
@@ -148,50 +167,53 @@ export const StaffManagement = ({ employees, onUpdateEmployees, vacationLogs, de
             </ControlsContainer>
 
             <TableContainer>
-                <Table>
-                    <TableHead>
-                        <tr>
-                            <TableHeaderCell>이름/부서</TableHeaderCell>
-                            <TableHeaderCell>연락처</TableHeaderCell>
-                            <TableHeaderCell>입사일</TableHeaderCell>
-                            <TableHeaderCell>근태 상태</TableHeaderCell>
-                            <TableHeaderCell $center>관리</TableHeaderCell>
-                        </tr>
-                    </TableHead>
-                    <TableBody>
-                        {filteredEmployees.map(emp => (
-                            <TableRow key={emp.id}>
-                                <TableCell>
-                                    <UserInfo>
-                                        <AvatarWrapper>
-                                            {emp.avatarUrl ? <AvatarImage src={emp.avatarUrl} /> : emp.name.charAt(0)}
-                                        </AvatarWrapper>
-                                        <div>
-                                            <NameText>{emp.name} <IdText>({emp.id})</IdText></NameText>
-                                            <DeptText>{emp.dept} · {emp.role}</DeptText>
-                                        </div>
-                                    </UserInfo>
-                                </TableCell>
-                                <TableCell $color="#4b5563">
-                                    <div>{emp.email}</div>
-                                    <SecondaryText>{emp.phone}</SecondaryText>
-                                </TableCell>
-                                <TableCell $color="#4b5563">{emp.joinDate}</TableCell>
-                                <TableCell>
-                                    <StatusBadge>
-                                        <StatusDot $status={emp.workStatus} />
-                                        <StatusLabel $status={emp.workStatus}>{emp.workStatus}</StatusLabel>
-                                    </StatusBadge>
-                                </TableCell>
-                                <TableCell $center>
-                                    <EditButton onClick={() => handleManageClick(emp)}>
-                                        <Edit3 size={16} />
-                                    </EditButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                {loading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>데이터를 불러오는 중...</div>
+                ) : (
+                    <Table>
+                        <TableHead>
+                            <tr>
+                                <TableHeaderCell>이름/부서</TableHeaderCell>
+                                <TableHeaderCell>입사일</TableHeaderCell>
+                                <TableHeaderCell>근태 상태</TableHeaderCell>
+                                <TableHeaderCell $center>관리</TableHeaderCell>
+                            </tr>
+                        </TableHead>
+                        <TableBody>
+                            {employeeList.map(emp => (
+                                <TableRow key={emp.memberid}>
+                                    <TableCell>
+                                        <UserInfo>
+                                            <AvatarWrapper>
+                                                {emp.memberName.charAt(0)}
+                                            </AvatarWrapper>
+                                            <div>
+                                                <NameText>{emp.memberName} <IdText>({emp.memberAccount})</IdText></NameText>
+                                                <DeptText>{emp.departmentName} · {emp.task}</DeptText>
+                                            </div>
+                                        </UserInfo>
+                                    </TableCell>
+                                    <TableCell $color="#4b5563">
+                                        <div>{emp.corporEmail}</div>
+                                        <SecondaryText>{emp.personalCall}</SecondaryText>
+                                    </TableCell>
+                                    <TableCell $color="#4b5563">{emp.hireDate}</TableCell>
+                                    <TableCell>
+                                        <StatusBadge>
+                                            <StatusDot $status={emp.attendanceStatus} />
+                                            <StatusLabel $status={emp.attendanceStatus}>{emp.attendanceStatus}</StatusLabel>
+                                        </StatusBadge>
+                                    </TableCell>
+                                    <TableCell $center>
+                                        <EditButton onClick={() => handleManageClick(emp)}>
+                                            <Edit3 size={16} />
+                                        </EditButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </TableContainer>
 
             {(modalType === 'reg' || modalType === 'edit') && (

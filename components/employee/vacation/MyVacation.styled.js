@@ -419,3 +419,16 @@ export const CenterContent = styled.div`
 export const MonoText = styled.span`
   font-family: monospace;
 `;
+
+export const ResetButton = styled.button`
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+
+  &:hover {
+    color: black;
+  }
+`;

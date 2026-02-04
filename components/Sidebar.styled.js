@@ -249,9 +249,10 @@ export const TimerDisplay = styled.div`
 
 export const TimerText = styled.span`
   font-size: 1.5rem; /* text-2xl */
-  font-weight: bold;
-  font-family: monospace; /* font-mono */
+  font-weight: 500;
+  font-family: 'Roboto Mono', monospace;
   color: ${props => props.$active ? '#2563eb' : '#1f2937'}; /* text-blue-600 : text-gray-800 */
+  letter-spacing: -0.02em;
 `;
 
 export const ProgressBarContainer = styled.div`
@@ -291,6 +292,7 @@ export const TimeValue = styled.span`
   ${props => props.$variant === 'late' && css`color: #ef4444; font-weight: bold;`}
   ${props => props.$variant === 'early' && css`color: #ef4444; font-weight: bold;`}
   ${props => props.$variant === 'normal' && css`color: #2563eb; font-weight: bold;`}
+  ${props => props.$variant === 'checkout' && css`color: #ef4444; font-weight: bold;`}
   ${props => props.$variant === 'empty' && css`color: #d1d5db;`}
 `;
 

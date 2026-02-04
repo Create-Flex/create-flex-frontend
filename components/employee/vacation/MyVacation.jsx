@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import {
     Container, TableContainer, ControlBar, FilterGroup, DateRangePicker, FilterLabel, DateInput,
-    SelectWrapper, TypeSelect, RequestButton, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
+    SelectWrapper, TypeSelect, RequestButton, ResetButton, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
     TypeBadge, StatusBadge, ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton,
     ModalBody, ModalFooter, InfoLabel, InfoValue, DetailGrid, DetailInfoBox, DetailHeader, DetailRow,
     PrimaryButton,
@@ -155,6 +155,19 @@ export const MyVacation = () => {
         }
     }, [memberId, startDate, endDate, vacationTypeFilter, refreshKey]);
 
+    // 필터 초기화
+    const resetFilters = () => {
+        const today = new Date();
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(today.getMonth() - 1);
+        const oneMonthLater = new Date();
+        oneMonthLater.setMonth(today.getMonth() + 1);
+
+        setStartDate(getISODate(oneMonthAgo));
+        setEndDate(getISODate(oneMonthLater));
+        setVacationTypeFilter('All');
+    };
+
     return (
         <Container>
             {/* Vacation Logs Table & Filters */}
@@ -186,9 +199,12 @@ export const MyVacation = () => {
                         </SelectWrapper>
                     </FilterGroup>
 
-                    <RequestButton onClick={openVacationModal}>
-                        <Plus size={14} /> 휴가 신청
-                    </RequestButton>
+                    <FilterGroup>
+                        <ResetButton onClick={resetFilters}>필터 초기화</ResetButton>
+                        <RequestButton onClick={openVacationModal}>
+                            <Plus size={14} /> 휴가 신청
+                        </RequestButton>
+                    </FilterGroup>
                 </ControlBar>
 
                 {isLoading ? (

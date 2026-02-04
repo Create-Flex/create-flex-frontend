@@ -168,6 +168,22 @@ export const SearchIconWrapper = styled.div`
   align-items: center;
 `;
 
+export const SearchButton = styled.button`
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: #111827;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #374151;
+  }
+`;
+
 export const DateFilter = styled.div`
   display: flex;
   align-items: center;

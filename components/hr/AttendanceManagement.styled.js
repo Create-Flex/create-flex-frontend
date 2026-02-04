@@ -281,8 +281,8 @@ export const Badge = styled.span`
   
   ${props => {
     switch (props.$status) {
-      case '정상':
-      case '출근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+      case '출근':
+      case '퇴근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
       case '지각':
       case '조퇴': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
       case '결근': return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;

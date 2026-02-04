@@ -76,7 +76,8 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         date: item.attendanceDate,
                         clockIn: clockIn,
                         clockOut: clockOut,
-                        status: item.attendanceStatus // 백엔드에서 계산된 상태 그대로 사용
+                        checkInStatus: item.checkInStatus,   // 출근 상태: 정상, 지각, 결근
+                        checkOutStatus: item.checkOutStatus  // 퇴근 상태: 조퇴, 정상, 초과 (null = 근무중)
                     };
                 });
 
@@ -206,7 +207,16 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                                     )}
                                 </TableCell>
                                 <TableCell $center>
-                                    <Badge $status={log.status}>{log.status}</Badge>
+                                    {/* 출근 상태 배지 */}
+                                    {log.checkInStatus && <Badge $status={log.checkInStatus}>{log.checkInStatus}</Badge>}
+                                    {/* 퇴근 상태 배지 */}
+                                    {log.checkOutStatus && (
+                                        <Badge $status={log.checkOutStatus}>{log.checkOutStatus}</Badge>
+                                    )}
+                                    {/* 근무중 표시 (퇴근 상태가 없을 때) */}
+                                    {!log.checkOutStatus && log.checkInStatus !== '결근' && (
+                                        <Badge $status="근무중">근무중</Badge>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         )) : (

@@ -5,7 +5,7 @@ import { Briefcase, Filter, ArrowRight } from 'lucide-react';
 import {
     Container, TableContainer, FilterHeader, FilterGroup, DateRangePicker, FilterLabel, DateInput,
     SelectContainer, StatusSelect, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, NoDataCell,
-    StatusBadge, TypeIcon, StyledArrowRight, StyledFilterIcon
+    StatusBadge, TypeIcon, StyledArrowRight, StyledFilterIcon, ResetButton
 } from './MyAttendance.styled';
 
 const formatDate = (date) => {
@@ -20,7 +20,7 @@ const formatDate = (date) => {
 const getISODate = (date) => date.toISOString().split('T')[0];
 
 const STATUS_DISPLAY_MAP = {
-    'NORMAL': '정상', // User wants '정상' for NORMAL
+    'NORMAL': '출근', // User wants '정상' for NORMAL
     'LATE': '지각',
     'EARLY_LEAVE': '조퇴',
     'OVERTIME': '초과',
@@ -30,7 +30,7 @@ const STATUS_DISPLAY_MAP = {
 };
 
 const REVERSE_STATUS_MAP = {
-    '정상': 'NORMAL',
+    '출근': 'NORMAL',
     '지각': 'LATE',
     '조퇴': 'EARLY_LEAVE',
     '초과': 'OVERTIME',
@@ -82,7 +82,8 @@ export const MyAttendance = () => {
                         in: inTime,
                         out: outTime,
                         hours: log.workDuration || '-',
-                        status: STATUS_DISPLAY_MAP[log.attendanceStatus] || log.attendanceStatus,
+                        checkInStatus: log.checkInStatus,   // 출근 상태: 정상, 지각, 결근
+                        checkOutStatus: log.checkOutStatus, // 퇴근 상태: 조퇴, 정상, 초과 (null = 근무중)
                         type: 'office'
                     };
                 });
@@ -103,7 +104,7 @@ export const MyAttendance = () => {
 
     const getStatusLabel = (status) => {
         switch (status) {
-            case 'normal': return '정상';
+            case 'normal': return '출근';
             case 'late': return '지각';
             case 'overtime': return '초과';
             case 'working': return '근무중';
@@ -111,9 +112,22 @@ export const MyAttendance = () => {
         }
     };
 
-    const getStatusBadge = (statusLabel) => {
-        // Now MyAttendance.styled.js expects Korean keys (same as AttendanceManagement.styled.js)
-        return <StatusBadge $status={statusLabel}>{statusLabel}</StatusBadge>;
+    const getStatusBadge = (checkInStatus, checkOutStatus) => {
+        // 출근 상태 + 퇴근 상태 배지 표시
+        return (
+            <>
+                {/* 출근 상태 배지 */}
+                {checkInStatus && <StatusBadge $status={checkInStatus}>{checkInStatus}</StatusBadge>}
+                {/* 퇴근 상태 배지 */}
+                {checkOutStatus && (
+                    <StatusBadge $status={checkOutStatus}>{checkOutStatus}</StatusBadge>
+                )}
+                {/* 근무중 표시 (퇴근 상태가 없을 때) */}
+                {!checkOutStatus && checkInStatus !== '결근' && (
+                    <StatusBadge $status="근무중">근무중</StatusBadge>
+                )}
+            </>
+        );
     };
 
     const getTypeIcon = (type) => {
@@ -156,15 +170,28 @@ export const MyAttendance = () => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
                                 <option value="All">모든 상태</option>
-                                <option value="정상">정상</option>
+                                <option value="출근">출근</option>
                                 <option value="지각">지각</option>
                                 <option value="조퇴">조퇴</option>
                                 <option value="초과">초과</option>
                                 <option value="근무중">근무중</option>
                             </StatusSelect>
                             <StyledFilterIcon><Filter size={14} /></StyledFilterIcon>
+
                         </SelectContainer>
                     </FilterGroup>
+                    <ResetButton onClick={() => {
+                        const today = new Date();
+                        const oneMonthAgo = new Date();
+                        oneMonthAgo.setMonth(today.getMonth() - 1);
+                        const oneMonthLater = new Date();
+                        oneMonthLater.setMonth(today.getMonth() + 1);
+                        setStartDate(getISODate(oneMonthAgo));
+                        setEndDate(getISODate(oneMonthLater));
+                        setStatusFilter('All');
+                    }}>
+                        필터 초기화
+                    </ResetButton>
                 </FilterHeader>
 
                 <Table>
@@ -185,7 +212,7 @@ export const MyAttendance = () => {
                                     <TableCell $mono $color={log.in > '09:00' ? '#ef4444' : '#2563eb'}>{log.in}</TableCell>
                                     <TableCell $mono $color={log.out !== '-' && log.out < '18:00' ? '#ef4444' : '#2563eb'}>{log.out}</TableCell>
                                     <TableCell $bold $color="#1f2937">{log.hours}</TableCell>
-                                    <TableCell $align="right">{getStatusBadge(log.status)}</TableCell>
+                                    <TableCell $align="right">{getStatusBadge(log.checkInStatus, log.checkOutStatus)}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -198,6 +225,6 @@ export const MyAttendance = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
-        </Container>
+        </Container >
     );
 };

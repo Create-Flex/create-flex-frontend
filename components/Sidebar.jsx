@@ -100,7 +100,7 @@ export const Sidebar = ({ onLogout }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { userProfile } = useUserStore();
-    const { attendanceLogs, addAttendanceLog, triggerRefresh: triggerAttendanceRefresh } = useAttendanceStore();
+    const { attendanceLogs, addAttendanceLog, triggerRefresh: triggerAttendanceRefresh, refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const { refreshKey: vacationRefreshKey } = useVacationStore();
 
     // 미승인 휴가 건수 (백엔드에서 조회)
@@ -191,7 +191,7 @@ export const Sidebar = ({ onLogout }) => {
             }
         };
         fetchStatus();
-    }, [user, attendanceLogs]); // Keep attendanceLogs dep if we want to react to other updates, but mainly strictly fetching is better
+    }, [user, attendanceLogs, attendanceRefreshKey]); // Also watch refreshKey for auto-update after check-in/out
 
     useEffect(() => {
         if (isClockedIn) {

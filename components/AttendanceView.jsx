@@ -18,7 +18,7 @@ import { attendanceService } from '../api/attendanceService';
 export const AttendanceView = () => {
     const { user } = useAuthStore();
     const { userProfile } = useUserStore();
-    const { attendanceLogs } = useAttendanceStore();
+    const { attendanceLogs, refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const { refreshKey: vacationRefreshKey } = useVacationStore();
 
     // Derived state
@@ -50,7 +50,7 @@ export const AttendanceView = () => {
             }
         };
         fetchStats();
-    }, []);
+    }, [attendanceRefreshKey]); // Refresh stats when attendance changes
     // 잔여 연차 상태
     const [vacationStats, setVacationStats] = useState({
         total: 15,

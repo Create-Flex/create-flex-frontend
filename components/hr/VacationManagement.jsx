@@ -6,7 +6,7 @@ import {
 import {
     Container, SummaryGrid, SummaryCard, CardLabel, CardValueWrapper, CardValue, CardUnit,
     TabContainer, TabButton, TabCount, ActiveIndicator,
-    ControlsContainer, FilterGroup, SearchWrapper, SearchInput, SearchIconWrapper, DateFilter, DateInput, DateRangeArrow, ResetButton,
+    ControlsContainer, FilterGroup, SearchWrapper, SearchInput, SearchIconWrapper, SearchButton, DateFilter, DateInput, DateRangeArrow, ResetButton,
     SelectWrapper, TypeSelect, SelectIconWrapper,
     TableContainer, Table, TableHead, TableHeaderCell, HeaderContent, TableBody, TableRow, TableCell, TypeBadge, StatusBadge,
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalContent, DetailGrid, DetailItem, DetailLabel, DetailValueBox, DateBoxContent, DateLabelSmall,
@@ -37,6 +37,7 @@ export const VacationManagement = ({ employees = [] }) => {
     const { refreshKey: vacationRefreshKey, triggerRefresh } = useVacationStore();
 
     const [searchQuery, setSearchQuery] = useState('');
+    const [nameFilter, setNameFilter] = useState(''); // 백엔드에 전달할 이름 필터
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
     const [isRejectionInputOpen, setIsRejectionInputOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -178,6 +179,7 @@ export const VacationManagement = ({ employees = [] }) => {
                 }
 
                 if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
+                if (nameFilter) filters.name = nameFilter;
 
                 const listData = await vacationService.getAllVacations(filters);
 
@@ -204,13 +206,13 @@ export const VacationManagement = ({ employees = [] }) => {
         };
 
         fetchList();
-    }, [startDate, endDate, typeFilter, activeTab, vacationRefreshKey]);
+    }, [startDate, endDate, typeFilter, nameFilter, activeTab, vacationRefreshKey]);
 
     const filteredAndSorted = vacationLogs.filter(v => {
         if (v.status === '사용완료') return false;
         // if (v.type === '워케이션') return false; // 워케이션도 포함하여 표시
 
-        if (!v.name.includes(searchQuery)) return false;
+        // 이름 필터는 백엔드에서 처리하므로 프론트엔드 필터링 제거
         if (startDate && v.endDate < startDate) return false;
         if (endDate && v.startDate > endDate) return false;
 
@@ -258,8 +260,21 @@ export const VacationManagement = ({ employees = [] }) => {
         }
     };
 
+    // 검색 실행 (버튼 클릭 또는 엔터)
+    const handleSearch = () => {
+        setNameFilter(searchQuery);
+    };
+
+    // 엔터 키 처리
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     const resetFilters = () => {
         setSearchQuery('');
+        setNameFilter('');
         setStartDate('');
         setEndDate('');
         setTypeFilter('All');
@@ -326,8 +341,10 @@ export const VacationManagement = ({ employees = [] }) => {
                             placeholder="신청자 검색..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
                         />
                     </SearchWrapper>
+                    <SearchButton onClick={handleSearch}>검색</SearchButton>
                     <SelectWrapper>
                         <TypeSelect
                             value={typeFilter}
@@ -396,7 +413,7 @@ export const VacationManagement = ({ employees = [] }) => {
                                     onClick={() => handleRowClick(vac)}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <TableCell $xs $mono $color="#6b7280">{vac.requestDate || '-'}</TableCell>
+                                    <TableCell $xs $color="#4b5563">{vac.requestDate || '-'}</TableCell>
                                     <TableCell $bold $color="#111827">{vac.name}</TableCell>
                                     <TableCell>
                                         <TypeBadge $type={vac.type}>{vac.type}</TypeBadge>
@@ -409,8 +426,8 @@ export const VacationManagement = ({ employees = [] }) => {
                                         <StatusBadge $status={vac.status}>
                                             {vac.status === '승인됨' && <CheckCircle2 size={12} />}
                                             {vac.status === '반려됨' && <XCircle size={12} />}
-                                            {vac.status === '대기중' && '⚡'}
-                                            {vac.status === '대기중' ? '결재대기' : vac.status}
+                                            {vac.status === '대기중' && ''}
+                                            {vac.status === '대기중' ? '결재하기' : vac.status}
                                         </StatusBadge>
                                     </TableCell>
                                 </TableRow>

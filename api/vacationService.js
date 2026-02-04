@@ -103,6 +103,7 @@ export const vacationService = {
       if (filters.endDate) params.endDate = filters.endDate;
       if (filters.type) params.type = VACATION_TYPE_MAP[filters.type] || filters.type;
       if (filters.status) params.status = filters.status;
+      if (filters.name) params.name = filters.name;
 
       const response = await api.get('/admin/vacations', { params });
       return response.data;

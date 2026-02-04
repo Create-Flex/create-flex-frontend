@@ -166,8 +166,8 @@ export const StatusBadge = styled.span`
   
   ${props => {
     switch (props.$status) {
-      case '정상':
-      case '출근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+      case '출근':
+      case '퇴근': return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
       case '지각':
       case '조퇴': return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
       case '결근': return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
@@ -183,6 +183,19 @@ export const TypeIcon = styled.span`
   font-size: 0.75rem;
   color: #6b7280;
   display: flex;
-  align-items: center;
   gap: 0.25rem;
+`;
+
+export const ResetButton = styled.button`
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: colors 0.2s;
+  margin-left: auto;
+
+  &:hover {
+    color: black;
+  }
 `;

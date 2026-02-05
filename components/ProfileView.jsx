@@ -20,13 +20,14 @@ import {
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { vacationService } from '../api/vacationService';
+import { creatorService } from '../api/creatorService';
 import { useUserStore } from '../stores/useUserStore';
 import { useHealthStore } from '../stores/useHealthStore';
 import { useVacationStore } from '../stores/useVacationStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
-import { getMyHealth, postMyHealth, putMyHealth } from '..//api/healthService';
+import { postMyHealth, putMyHealth } from '..//api/healthService';
 
 export const ProfileView = ({
     profile, // Optional prop for viewing other profiles
@@ -45,11 +46,17 @@ export const ProfileView = ({
 
     // Determine which profile to show
     const displayProfile = profile || userProfile;
+
+    // 프로필 데이터가 없으면 렌더링 안함 (App.jsx에서 로딩 처리)
+    if (!displayProfile) {
+        return null;
+    }
+
     const isCurrentUser = user && String(displayProfile.employeeId) === String(user.id);
 
     // Check if this profile view is for a Creator
     // Logic: If user is creator, or if the displayed profile has job='Creator'
-    const isCreatorProfile = displayProfile.job === 'Creator' || displayProfile.rank === 'Creator';
+    const isCreatorProfile = displayProfile.job === 'Creator' || displayProfile.rank === 'Creator' || displayProfile.role === 'CREATOR';
 
     // Local States
     const [isEditing, setIsEditing] = useState(false);
@@ -75,10 +82,35 @@ export const ProfileView = ({
         remaining: 15
     });
 
+    const [creatorInfo, setCreatorInfo] = useState(null);
+
+    // 크리에이터 정보 조회
+    useEffect(() => {
+        const fetchCreatorInfo = async () => {
+            if (isCreatorProfile && displayProfile.employeeId) {
+                try {
+                    const data = await creatorService.getCreatorById(displayProfile.employeeId);
+                    setCreatorInfo({
+                        subscribers: data.creator_subscribe,
+                        category: data.creator_category,
+                        platform: data.creator_platform,
+                        manager: data.manager_name,
+                        email: data.creator_main_contact // 연락처(이메일)
+                    });
+                } catch (error) {
+                    console.error('크리에이터 정보 조회 실패:', error);
+                }
+            }
+        };
+        fetchCreatorInfo();
+    }, [isCreatorProfile, displayProfile.employeeId]);
+
     // 잔여 연차 조회
     useEffect(() => {
         const fetchVacationRemainder = async () => {
-            if (!displayProfile.employeeId || isCreatorProfile) return;
+            // 크리에이터는 연차 기능이 없으므로 API 호출 안함
+            const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || displayProfile.role === 'CREATOR' || isCreatorProfile;
+            if (!displayProfile.employeeId || isCreator) return;
             try {
                 const response = await vacationService.getMyVacationRemainder(displayProfile.employeeId);
                 setVacationStats({
@@ -203,7 +235,7 @@ export const ProfileView = ({
                     <MainContent>
                         {activeTab === '정보' && (<>
                             <ProfileInfo
-                                profile={displayProfile}
+                                profile={{ ...displayProfile, ...creatorInfo }}
                                 isCreator={isCreatorProfile}
                                 readOnly={readOnly || !canUpdate}
                                 onUpdateProfile={canUpdate ? updateProfile : undefined}
@@ -305,14 +337,13 @@ export const ProfileView = ({
                                 await putMyHealth(file, presignedUrl);
 
                                 alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
-                                fetchHealth();
                                 setIsResultModalOpen(false);
                             } catch (error){
                                 console.error("업데이트 실패 : ", error);
                                 alert('업로드 실패');
                             }
-
-                            
+                            alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
+                            setIsResultModalOpen(false);
                         }}
                     />
                 </>

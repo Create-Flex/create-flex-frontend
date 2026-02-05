@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { creatorService } from '../api/creatorService';
 import { GlobalStyles } from './GlobalStyles';
 import * as S from './App.styled';
@@ -23,7 +23,6 @@ import { useHealthStore } from '../stores/useHealthStore';
 import { useCreatorStore } from '../stores/useCreatorStore';
 import { authService } from '../api/authService';
 import { UserRole } from '../enums';
-import { EMPLOYEE_PROFILE_DATA, ADMIN_PROFILE_DATA } from '../constants';
 
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
@@ -40,6 +39,9 @@ function App() {
     const navigate = useNavigate();
 
     const { creators } = useCreatorStore();
+
+    // 로딩 상태
+    const [isLoading, setIsLoading] = useState(true);
 
     // 앱 시작 시 토큰 검증 및 사용자 정보 복원
     useEffect(() => {
@@ -58,18 +60,17 @@ function App() {
                     };
                     login(authUser, token);
 
-                    // 프로필 설정
-                    let newProfile = EMPLOYEE_PROFILE_DATA;
+                    // 프로필 설정 (백엔드 데이터만 사용)
+                    let newProfile = null;
                     if (userInfo.memberRole === 'ADMINISTRATOR' || userInfo.role === 'ADMINISTRATOR') {
                         // 관리자 - DTO 매핑
                         newProfile = {
-                            ...ADMIN_PROFILE_DATA,
                             // 공통 정보
                             employeeId: String(userInfo.memberId),
                             name: userInfo.memberName,
                             email: userInfo.corporEmail || userInfo.memberAccount,
                             role: userInfo.memberRole,
-                            avatarUrl: userInfo.profileImage || ADMIN_PROFILE_DATA.avatarUrl,
+                            avatarUrl: userInfo.profileImage || '',
                             coverUrl: userInfo.profileBanner || '',
                             // 직원 상세 정보
                             job: userInfo.task || '-',
@@ -88,12 +89,11 @@ function App() {
                         try {
                             const creatorInfo = await creatorService.getCreatorById(userInfo.memberId);
                             newProfile = {
-                                ...EMPLOYEE_PROFILE_DATA,
                                 employeeId: String(userInfo.memberId),
                                 name: creatorInfo.member_name || userInfo.memberName,
                                 email: creatorInfo.member_account || userInfo.memberAccount,
                                 role: 'CREATOR',
-                                avatarUrl: creatorInfo.profile_image || userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                                avatarUrl: creatorInfo.profile_image || userInfo.profileImage || '',
                                 coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
                                 job: 'Creator',
                                 org: 'MCN',
@@ -109,12 +109,11 @@ function App() {
                             console.error('크리에이터 상세 정보 조회 실패:', creatorError);
                             // 기본 프로필로 설정
                             newProfile = {
-                                ...EMPLOYEE_PROFILE_DATA,
                                 name: userInfo.memberName || userInfo.name,
                                 job: 'Creator',
                                 org: 'MCN',
                                 rank: '-',
-                                avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                                avatarUrl: userInfo.profileImage || '',
                                 coverUrl: userInfo.profileBanner || '',
                                 employeeId: userInfo.memberId || userInfo.id,
                             };
@@ -122,13 +121,12 @@ function App() {
                     } else {
                         // 일반 직원 (General Employee) - DTO 매핑
                         newProfile = {
-                            ...EMPLOYEE_PROFILE_DATA,
                             // 공통 정보
                             employeeId: String(userInfo.memberId),
                             name: userInfo.memberName,
                             email: userInfo.corporEmail || userInfo.memberAccount,
                             role: userInfo.memberRole,
-                            avatarUrl: userInfo.profileImage || EMPLOYEE_PROFILE_DATA.avatarUrl,
+                            avatarUrl: userInfo.profileImage || '',
                             coverUrl: userInfo.profileBanner || '',
                             // 직원 상세 정보
                             job: userInfo.task || '-',
@@ -151,6 +149,7 @@ function App() {
                     navigate('/login');
                 }
             }
+            setIsLoading(false);
         };
 
         initAuth();
@@ -188,6 +187,30 @@ function App() {
         alert('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
         closePhqModal();
     };
+
+    // 로딩 중인 경우
+    if (isLoading) {
+        return (
+            <>
+                <GlobalStyles />
+                <S.AppContainer style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            width: '50px',
+                            height: '50px',
+                            border: '4px solid #f3f3f3',
+                            borderTop: '4px solid #00C471',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                            margin: '0 auto 16px'
+                        }} />
+                        <p style={{ color: '#666' }}>로딩 중...</p>
+                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                    </div>
+                </S.AppContainer>
+            </>
+        );
+    }
 
     // 로그인하지 않은 경우
     if (!isAuthenticated) {

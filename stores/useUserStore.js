@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import { EMPLOYEE_PROFILE_DATA } from '../constants';
 
 export const useUserStore = create((set) => ({
-    userProfile: EMPLOYEE_PROFILE_DATA,
+    userProfile: null,  // 백엔드에서 데이터 로드 전까지 null
 
     setUserProfile: (profile) => set({ userProfile: profile }),
 

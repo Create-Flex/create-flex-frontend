@@ -21,9 +21,15 @@ export const AttendanceView = () => {
     const { attendanceLogs, refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const { refreshKey: vacationRefreshKey } = useVacationStore();
 
+    // 프로필 데이터가 없으면 렌더링 안함
+    if (!userProfile) {
+        return null;
+    }
+
     // Derived state
     const userName = userProfile.name;
     const memberId = user?.memberId || user?.id;
+    const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || userProfile?.role === 'CREATOR';
 
     const [activeTab, setActiveTab] = useState('work');
 
@@ -61,7 +67,7 @@ export const AttendanceView = () => {
     // 잔여 연차 조회 (휴가 신청/변경 시 자동 새로고침)
     useEffect(() => {
         const fetchRemainder = async () => {
-            if (!memberId) return;
+            if (!memberId || isCreator) return;
             try {
                 const response = await vacationService.getMyVacationRemainder(memberId);
                 setVacationStats({
@@ -74,7 +80,7 @@ export const AttendanceView = () => {
             }
         };
         fetchRemainder();
-    }, [memberId, vacationRefreshKey]);
+    }, [memberId, vacationRefreshKey, isCreator]);
 
     return (
         <Container>
@@ -117,25 +123,30 @@ export const AttendanceView = () => {
                         <CardDescription>이번 달 정규 업무 시간을 초과하여 근무한 총 시간입니다.</CardDescription>
                     </DashboardCard>
 
-                    <DashboardCard>
-                        <CardHeader>
-                            <CardTitle>잔여 연차</CardTitle>
-                            <Plane size={18} color="#d1d5db" />
-                        </CardHeader>
-                        <CardValueWrapper>
-                            <CardValue>{vacationStats.remaining}</CardValue>
-                            <CardUnit $bottom>일</CardUnit>
-                        </CardValueWrapper>
-                        <VerticalStack>
-                            <ProgressBarContainer>
-                                <ProgressLabel>사용 연차 {vacationStats.used} / {vacationStats.total}</ProgressLabel>
-                                <ProgressValue>{Math.round((vacationStats.used / vacationStats.total) * 100)}%</ProgressValue>
-                            </ProgressBarContainer>
-                            <ProgressBarBg>
-                                <ProgressBarFill $width={`${(vacationStats.used / vacationStats.total) * 100}%`} />
-                            </ProgressBarBg>
-                        </VerticalStack>
-                    </DashboardCard>
+
+
+                    {!isCreator && (
+                        <DashboardCard>
+                            <CardHeader>
+                                <CardTitle>잔여 연차</CardTitle>
+                                <Plane size={18} color="#d1d5db" />
+                            </CardHeader>
+                            <CardValueWrapper>
+                                <CardValue>{vacationStats.remaining}</CardValue>
+                                <CardUnit $bottom>일</CardUnit>
+                            </CardValueWrapper>
+                            <VerticalStack>
+                                <ProgressBarContainer>
+                                    <ProgressLabel>사용 연차 {vacationStats.used} / {vacationStats.total}</ProgressLabel>
+                                    <ProgressValue>{Math.round((vacationStats.used / vacationStats.total) * 100)}%</ProgressValue>
+                                </ProgressBarContainer>
+                                <ProgressBarBg>
+                                    <ProgressBarFill $width={`${(vacationStats.used / vacationStats.total) * 100}%`} />
+                                </ProgressBarBg>
+                            </VerticalStack>
+                        </DashboardCard>
+                    )}
+
                 </CardsGrid>
 
                 <ContentSection>
@@ -146,19 +157,21 @@ export const AttendanceView = () => {
                         >
                             <Clock size={16} /> 일별 근무 내역
                         </TabButton>
-                        <TabButton
-                            $active={activeTab === 'vacation'}
-                            onClick={() => setActiveTab('vacation')}
-                        >
-                            <Plane size={16} /> 휴가 사용 내역
-                        </TabButton>
+                        {!isCreator && (
+                            <TabButton
+                                $active={activeTab === 'vacation'}
+                                onClick={() => setActiveTab('vacation')}
+                            >
+                                <Plane size={16} /> 휴가 사용 내역
+                            </TabButton>
+                        )}
                     </TabsContainer>
 
                     {activeTab === 'work' && <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />}
 
                     {activeTab === 'vacation' && <MyVacation />}
                 </ContentSection>
-            </ContentWrapper>
-        </Container>
+            </ContentWrapper >
+        </Container >
     );
 };

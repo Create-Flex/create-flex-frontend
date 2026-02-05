@@ -10,10 +10,6 @@ export const staffService = {
     getEmployeeDetail: (memberid) => {
         return api.get(`/employees/${memberid}`);
     },
-    // 직원 정보 수정
-    updateEmployee: (memberId, data) => {
-        return api.patch(`/employees/${memberId}`, data);
-    },
     // 부서 목록 조회
     getDepartments: () => {
         return api.get('/admin/departments');
@@ -21,5 +17,9 @@ export const staffService = {
     // 직원 등록
     registerEmployee: (employeeData) => {
         return api.post('/employees/insert', employeeData);
-    }
+    },
+    //직원 수정
+    updateEmployee: (memberId, data) => {
+    return api.patch(`/employees/${memberId}`, data);
+}
 };

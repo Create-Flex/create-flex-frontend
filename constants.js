@@ -30,13 +30,6 @@ export const INITIAL_EMPLOYEES = [
     { id: '1008', name: '한코딩', engName: 'Han Coding', dept: '기술본부', role: '프론트엔드 개발자', workStatus: '퇴근', email: 'han.code@naver.com', phone: '010-8888-8888', joinDate: '2020-07-15', avatarUrl: 'https://cdn.mcn.com/profiles/default.jpg', nickname: '한코더', rank: '직원', remainingVacation: 13 },
 ];
 
-export const INITIAL_TEAMS = [
-    { id: '1001', name: '감스트 크루', description: '감스트를 중심으로 한 게임 콘텐츠 제작팀', leaderId: '1003', memberIds: ['2001', '2005', '1003'] },
-    { id: '1002', name: '뷰티 컬렉티브', description: '뷰티 크리에이터들의 협업 팀', leaderId: '1004', memberIds: ['2003', '2006', '1004'] },
-    { id: '1003', name: '먹방 유니버스', description: '먹방 크리에이터 연합', leaderId: '1003', memberIds: ['2002', '2004', '1003'] },
-    { id: '1004', name: '테크 리뷰어즈', description: '테크 리뷰어들의 정보 공유 팀', leaderId: '1003', memberIds: ['2007', '2001', '1003'] },
-
-];
 
 export const INITIAL_DEPARTMENTS = [
     { id: 'Executive', name: '경영지원본부 (Executive)', phone: '02-555-0001', description: '회사 경영 전반 및 전략 수립', color: 'bg-slate-800' },

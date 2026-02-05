@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { departmentService } from '../api/departmentService';
 import { Search, Phone, Building, Users, ChevronRight, X, User, Plus, Edit3, Trash2 } from 'lucide-react';
 import { UserRole } from '../enums';
 import * as S from './OrgChartView.styled';
@@ -21,7 +22,30 @@ const DEPT_COLORS = [
 
 export const OrgChartView = () => {
     const { user } = useAuthStore();
-    const { departments, setDepartments: onUpdateDepartments, employees } = useEmployeeStore();
+    const { departments, fetchDepartments: onUpdateDepartments, employees } = useEmployeeStore();
+
+    
+    // API Fetch
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await departmentService.getAllDepartments();
+            // Map backend data to frontend structure
+            const mappedDepts = response.data.map(d => ({
+                id: d.departmentId,
+                name: d.departmentName,
+                phone: d.departmentCall,
+                description: d.departmentDetail,
+                color: d.departmentColor
+            }));
+            onUpdateDepartments(mappedDepts);
+        } catch (error) {
+            console.error("부서 목록 로드 실패:", error);
+        }
+    };
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState(null);
@@ -70,27 +94,47 @@ export const OrgChartView = () => {
         setIsModalOpen(true);
     };
 
-    const handleDeleteDepartment = (id) => {
-        if (window.confirm('부서를 삭제하시겠습니까?')) {
-            onUpdateDepartments(departments.filter(d => d.id !== id));
-            setSelectedDept(null);
+    const handleSave = async () => {
+        if (!deptForm.name) return alert('조직 이름을 입력해주세요.');
+
+        const apiData = {
+            departmentName: deptForm.name,
+            departmentDetail: deptForm.description,
+            departmentCall: deptForm.phone,
+            departmentColor: deptForm.color
+        };
+
+        try {
+            if (modalMode === 'add') {
+                await departmentService.createDepartment(apiData);
+                alert('부서가 생성되었습니다.');
+            } else if (modalMode === 'edit' && editingDeptId) {
+                await departmentService.updateDepartment(editingDeptId, apiData);
+                alert('부서 정보가 수정되었습니다.');
+            }
+            fetchDepartments();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            alert('저장 중 오류가 발생했습니다.');
         }
     };
 
-    const handleSave = () => {
-        if (!deptForm.name) return alert('조직 이름을 입력해주세요.');
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
-        if (modalMode === 'add') {
-            const newId = `Dept-${Date.now()}`;
-            const newDept = {
-                id: newId,
-                ...deptForm
-            };
-            onUpdateDepartments([...departments, newDept]);
-        } else if (modalMode === 'edit' && editingDeptId) {
-            onUpdateDepartments(departments.map(d => d.id === editingDeptId ? { ...d, ...deptForm } : d));
+     const handleDeleteDepartment = async (id) => {
+        if (window.confirm('부서를 삭제하시겠습니까?')) {
+            try {
+                await departmentService.deleteDepartment(id);
+                alert('부서가 삭제되었습니다.');
+                fetchDepartments();
+                setSelectedDept(null);
+            } catch (error) {
+                alert('삭제에 실패했습니다.');
+            }
         }
-        setIsModalOpen(false);
     };
 
     return (

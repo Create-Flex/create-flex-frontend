@@ -78,6 +78,8 @@ export const ProfileView = ({
     const [creatorInfo, setCreatorInfo] = useState(null);
     const [creatorTasks, setCreatorTasks] = useState([]);
     const [isTaskLoading, setIsTaskLoading] = useState(false);
+    const [healthList, setHealthList] = useState([]);
+    const [healthCheck, setHealthCheck] = useState();
 
     const isCurrentUser = user && String(displayProfile?.employeeId) === String(user.id);
 
@@ -108,7 +110,7 @@ export const ProfileView = ({
     // 크리에이터 업무 목록 조회
     useEffect(() => {
         const fetchCreatorTasks = async () => {
-            if (!isCreatorProfile || !displayProfile.employeeId) {
+            if (!isCreatorProfile || !displayProfile?.employeeId) {
                 setCreatorTasks([]);
                 return;
             }
@@ -136,11 +138,11 @@ export const ProfileView = ({
         };
 
         fetchCreatorTasks();
-    }, [isCreatorProfile, displayProfile.employeeId]);
+    }, [isCreatorProfile, displayProfile?.employeeId]);
 
     // 크리에이터 업무 추가 핸들러
     const handleAddCreatorTask = async (title) => {
-        if (!displayProfile.employeeId || !title.trim()) return;
+        if (!displayProfile?.employeeId || !title.trim()) return;
 
         try {
             const response = await creatorService.createCreatorWork(displayProfile.employeeId, title.trim());
@@ -162,7 +164,7 @@ export const ProfileView = ({
 
     // 크리에이터 업무 상태 토글 핸들러
     const handleToggleCreatorTask = async (taskId) => {
-        if (!displayProfile.employeeId) return;
+        if (!displayProfile?.employeeId) return;
 
         const task = creatorTasks.find(t => t.id === taskId);
         if (!task) return;
@@ -184,7 +186,7 @@ export const ProfileView = ({
 
     // 크리에이터 업무 삭제 핸들러
     const handleDeleteCreatorTask = async (taskId) => {
-        if (!displayProfile.employeeId) return;
+        if (!displayProfile?.employeeId) return;
 
         if (!window.confirm('이 업무를 삭제하시겠습니까?')) return;
 
@@ -218,6 +220,34 @@ export const ProfileView = ({
         fetchVacationRemainder();
     }, [displayProfile?.employeeId, isCreatorProfile]);
 
+    const fetchHealth = async () => {
+        const today = new Date();
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(today.getFullYear() - 2);
+
+        const toLocalDateString = (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        const startDate = toLocalDateString(oneYearAgo);
+        const endDate = toLocalDateString(today);
+
+        try {
+            const { data } = await getMyHealth(startDate, endDate); // API 호출
+            setHealthList(data.healthInfoList); // 상태에 저장
+            setHealthCheck(data.haveHealthChecked);
+        } catch (err) {
+            console.error('Health 조회 실패', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchHealth();
+    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
+
     // Validation: Only allow updates if it's the current user's profile and not readOnly
     const canUpdate = !readOnly && isCurrentUser;
 
@@ -231,37 +261,9 @@ export const ProfileView = ({
     // Filter vacation logs for displayed user
     const userVacationLogs = vacationLogs.filter(log => log.name === displayProfile.name);
 
-    const [healthList, setHealthList] = useState([]);
-    const [healthCheck, setHealthCheck] = useState();
 
-    const fetchHealth = async () => {
-            const today = new Date();
-            const oneYearAgo = new Date(today);
-            oneYearAgo.setFullYear(today.getFullYear() - 2);
-    
-            const toLocalDateString = (date) => {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            };
-    
-            const startDate = toLocalDateString(oneYearAgo);
-            const endDate = toLocalDateString(today);
-    
-            try {
-                const { data } = await getMyHealth(startDate, endDate); // API 호출
-                console.log('Health API 응답:', data); // ✅ 여기서 확인
-                setHealthList(data.healthInfoList); // 상태에 저장
-                setHealthCheck(data.haveHealthChecked);
-            } catch (err) {
-                console.error('Health 조회 실패', err);
-            }
-        };
-    
-    useEffect(() => {
-        fetchHealth();
-    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
+
+
 
     return (
         <Container>
@@ -353,9 +355,9 @@ export const ProfileView = ({
                             <HealthSection
                                 profile={displayProfile}
                                 healthList={healthList}
-                                onUpdateHealthList={(newList) => {setHealthList(newList);}}
+                                onUpdateHealthList={(newList) => { setHealthList(newList); }}
                                 healthCheck={healthCheck}
-                                onUpdateHealthCheck={(newBoolean) => {setHealthCheck(newBoolean);}}
+                                onUpdateHealthCheck={(newBoolean) => { setHealthCheck(newBoolean); }}
                                 onOpenResultModal={() => setIsResultModalOpen(true)}
                             />
                         )}
@@ -419,7 +421,7 @@ export const ProfileView = ({
                         isOpen={isResultModalOpen}
                         onClose={() => setIsResultModalOpen(false)}
                         onUpload={async (data) => {
-                            try{
+                            try {
                                 for (let [key, value] of data.entries()) {
                                     console.log(key, value);
                                 }
@@ -433,7 +435,7 @@ export const ProfileView = ({
 
                                 alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
                                 setIsResultModalOpen(false);
-                            } catch (error){
+                            } catch (error) {
                                 console.error("업데이트 실패 : ", error);
                                 alert('업로드 실패');
                             }

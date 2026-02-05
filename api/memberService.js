@@ -9,14 +9,17 @@ export const memberService = {
           'Accept': 'application/json; charset=UTF-8'
         }
       });
-      
+
       console.log('매니저 목록 응답:', response.data);
       return response.data;
     } catch (error) {
       console.error('매니저 목록 조회 에러:', error);
       throw error;
     }
-  }
+  },
+
+  // 전체 직원 목록 조회
+  getAllMembers: () => api.get('/employees/')
 };
 
 // 백엔드 매니저 데이터를 프론트엔드 형식으로 변환

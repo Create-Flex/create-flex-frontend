@@ -11,21 +11,21 @@ import {
 import { useEffect } from 'react';
 import { teamService } from '../../api/teamService';
 import { useEmployeeStore } from '../../stores/useEmployeeStore';
+import { useCreatorStore } from '../../stores/useCreatorStore';
 
-export const TeamManagement = ({ employees, creators = [] }) => {
-    const { teams, setTeams } = useEmployeeStore(); // 스토어에서 가져옴.
-
-    const fetchTeams = async () => {
-        try {
-            const response = await teamService.getAllTeams();
-            setTeams(response.data); // 서버 데이터로 팀 목록 갱신
-        } catch (error) {
-            console.error("팀 목록 로드 실패:", error);
-        }
-    };
+export const TeamManagement = () => {
+    const { teams, fetchTeams, employees, fetchEmployees } = useEmployeeStore();
+    const { creators, fetchCreators } = useCreatorStore();
 
     useEffect(() => {
-        fetchTeams(); // 마운트 시 호출
+        const initData = async () => {
+            await Promise.all([
+                fetchEmployees(),
+                fetchCreators(),
+                fetchTeams()
+            ]);
+        };
+        initData();
     }, []);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -39,10 +39,10 @@ export const TeamManagement = ({ employees, creators = [] }) => {
     // Tab State for "Add Member" Pane
     const [activeAddTab, setActiveAddTab] = useState('employee');
 
-    const filteredTeams = teams.filter(t => 
-    (t.teamName?.includes(searchQuery)) || 
-    (t.teamDescription?.includes(searchQuery))
-);
+    const filteredTeams = teams.filter(t =>
+        (t.teamName?.includes(searchQuery)) ||
+        (t.teamDescription?.includes(searchQuery))
+    );
 
     // Combine employees and creators for selection logic reference
     const allMembers = [...employees, ...creators];
@@ -66,50 +66,50 @@ export const TeamManagement = ({ employees, creators = [] }) => {
     };
 
     const handleSave = async () => {
-    if (!teamForm.name) return alert('팀 이름을 입력해주세요.');
+        if (!teamForm.name) return alert('팀 이름을 입력해주세요.');
 
-    const teamData = {
-        teamName: teamForm.name,
-        teamDescription: teamForm.description
-    };
+        const teamData = {
+            teamName: teamForm.name,
+            teamDetail: teamForm.description,
+            memberIds: teamForm.memberIds // 생성 시 멤버도 함께 전달
+        };
 
-    try {
-        let teamId = managingTeam?.id;
+        try {
+            let teamId = managingTeam?.id;
 
-        if (managingTeam) {
-            // 기존 팀 정보 수정
-            await teamService.updateTeam(teamId, teamData);
-        } else {
-            // 새 팀 생성
-            const response = await teamService.createTeam(teamData);
-            teamId = response.data.id; // 생성된 팀의 ID 확보
+            if (managingTeam) {
+                // 기존 팀 정보 수정 (이름, 상세)
+                await teamService.updateTeam(teamId, teamData);
+                // 멤버 변경 사항 업데이트 (교체 방식)
+                await teamService.updateTeamMembers(teamId, teamForm.memberIds);
+            } else {
+                // 새 팀 생성
+                const response = await teamService.createTeam(teamData);
+                teamId = response.data; // 이제 백엔드에서 ID를 반환함
+            }
+
+            alert('저장되었습니다.');
+            fetchTeams(); // 목록 새로고침
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('팀 저장 오류:', error);
+            alert('팀 저장 중 오류가 발생했습니다.');
         }
-
-        // 멤버 변경 사항 업데이트 (TeamRelay 테이블)
-        // teamForm.memberIds에 담긴 멤버 리스트를 전송
-        await teamService.updateTeamMembers(teamId, teamForm.memberIds);
-
-        alert('저장되었습니다.');
-        fetchTeams(); // 목록 새로고침
-        setIsModalOpen(false);
-    } catch (error) {
-        alert('팀 저장 중 오류가 발생했습니다.');
-    }
-};
+    };
 
     // 팀 삭제 처리 핸들러
     const handleDeleteTeam = async (e, id) => {
-    e.stopPropagation();
-    if (window.confirm('정말로 이 팀을 삭제하시겠습니까?')) {
-        try {
-            await teamService.deleteTeam(id); // 서버 삭제 요청
-            alert('팀이 삭제되었습니다.');
-            fetchTeams(); // 삭제 후 목록 다시 불러오기
-        } catch (error) {
-            alert('삭제에 실패했습니다. (소속 멤버가 있는지 확인해주세요)');
+        e.stopPropagation();
+        if (window.confirm('정말로 이 팀을 삭제하시겠습니까?')) {
+            try {
+                await teamService.deleteTeam(id); // 서버 삭제 요청
+                alert('팀이 삭제되었습니다.');
+                fetchTeams(); // 삭제 후 목록 다시 불러오기
+            } catch (error) {
+                alert('삭제에 실패했습니다. (소속 멤버가 있는지 확인해주세요)');
+            }
         }
-    }
-};
+    };
 
     // Member Management Handlers
     const addMember = (id) => {
@@ -124,18 +124,18 @@ export const TeamManagement = ({ employees, creators = [] }) => {
 
     // Derived Lists for Modal
     const currentMembers = teamForm.memberIds
-        .map(id => allMembers.find(m => m.id === id))
+        .map(id => allMembers.find(m => m.id == id)) // Use loose equality for safety
         .filter((m) => m !== undefined);
 
     // Separate lists for filtering
     const availableEmployees = employees.filter(e =>
-        !teamForm.memberIds.includes(e.id) &&
-        (e.name.includes(addMemberSearch) || e.dept.includes(addMemberSearch) || e.role.includes(addMemberSearch))
+        !teamForm.memberIds.some(mid => mid == e.id) && // Use some with loose equality
+        ((e.name || '').includes(addMemberSearch) || (e.dept || '').includes(addMemberSearch) || (e.role || '').includes(addMemberSearch))
     );
 
     const availableCreators = creators.filter(c =>
-        !teamForm.memberIds.includes(c.id) &&
-        (c.name.includes(addMemberSearch) || (c.category || '').includes(addMemberSearch))
+        !teamForm.memberIds.some(mid => mid == c.id) && // Use some with loose equality
+        ((c.name || '').includes(addMemberSearch) || (c.category || '').includes(addMemberSearch))
     );
 
     const renderMemberInfo = (member) => {
@@ -163,14 +163,18 @@ export const TeamManagement = ({ employees, creators = [] }) => {
             return <img src={member.avatarUrl} alt={member.name} />;
         }
         if ('dept' in member) {
-            return member.name[0];
+            return (member.name ? member.name[0] : '?');
         } else {
             return <Monitor size={14} color="#c084fc" />;
         }
     };
 
     const renderMemberItem = (member) => (
-        <MemberItem key={member.id} $selectable onClick={() => addMember(member.id)}>
+        <MemberItem
+            key={member.id || `member-${member.name}-${Math.random()}`}
+            $selectable
+            onClick={() => addMember(member.id)}
+        >
             <MemberInfo>
                 <MemberAvatar>
                     {getMemberAvatar(member)}
@@ -220,14 +224,14 @@ export const TeamManagement = ({ employees, creators = [] }) => {
                             <AvatarGroup>
                                 {/* memberIds가 존재할 때만 slice를 실행하도록 수정 */}
                                 {team.memberIds?.slice(0, 3).map(id => {
-                                    const mem = allMembers.find(m => m.id === id);
+                                    const mem = allMembers.find(m => m.id == id);
                                     return (
                                         <AvatarSmall key={id}>
-                                            {mem?.avatarUrl ? <img src={mem.avatarUrl} alt="" /> : mem?.name?.[0]}
+                                            {mem?.avatarUrl ? <img src={mem.avatarUrl} alt="" /> : (mem?.name ? mem.name[0] : '?')}
                                         </AvatarSmall>
                                     )
                                 })}
-                               {(team.memberIds?.length > 3) && <AvatarMore>+{team.memberIds.length - 3}</AvatarMore>}
+                                {(team.memberIds?.length > 3) && <AvatarMore>+{team.memberIds.length - 3}</AvatarMore>}
                             </AvatarGroup>
                         </TeamCardFooter>
                     </TeamCard>
@@ -278,7 +282,7 @@ export const TeamManagement = ({ employees, creators = [] }) => {
                                 </SectionTitle>
                                 <MemberList>
                                     {currentMembers.length > 0 ? currentMembers.map(member => (
-                                        <MemberItem key={member.id}>
+                                        <MemberItem key={member.id || `current-${member.name}-${Math.random()}`}>
                                             <MemberInfo>
                                                 <MemberAvatar>
                                                     {getMemberAvatar(member)}

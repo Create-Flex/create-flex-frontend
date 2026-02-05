@@ -240,9 +240,9 @@ export const Login = () => {
         <S.Footer>
           <S.FooterTitle>테스트 계정 정보</S.FooterTitle>
           <S.FooterContent>
-            <S.TestAccountBadge>관리자: HR001 / admin123!</S.TestAccountBadge>
-            <S.TestAccountBadge>매니저: MG001 / manager123</S.TestAccountBadge>
-            <S.TestAccountBadge>크리에이터: gamst / gam12345</S.TestAccountBadge>
+            <S.TestAccountBadge>관리자: HR001/ admin123!</S.TestAccountBadge>
+            <S.TestAccountBadge>매니저: MG001/ manager123</S.TestAccountBadge>
+            <S.TestAccountBadge>크리에이터: gamst/ gam12345</S.TestAccountBadge>
           </S.FooterContent>
         </S.Footer>
       </S.LoginCard>

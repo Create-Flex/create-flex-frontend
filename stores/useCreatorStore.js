@@ -1,11 +1,41 @@
 import { create } from 'zustand';
+import { creatorService } from '../api/creatorService';
 
 export const useCreatorStore = create((set, get) => ({
   creators: [],
-  creatorEvents: [], 
-  supportRequests: [], 
+  creatorEvents: [],
+  supportRequests: [],
   isLoading: false,
   error: null,
+
+  // 크리에이터 목록 조회
+  fetchCreators: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await creatorService.getAllCreators();
+      // 백엔드 응답을 프론트엔드 형식으로 변환
+      const mappedCreators = data.map(creator => ({
+        id: creator.member_id,
+        name: creator.member_name,
+        platform: creator.creator_platform,
+        subscribers: creator.creator_subscribe,
+        category: creator.creator_category,
+        status: creator.creator_status === 'ACTIVE' ? '활동중' :
+          creator.creator_status === 'RETREAT' ? '은퇴' : '휴식중',
+        contactInfo: creator.creator_main_contact,
+        avatarUrl: creator.profile_image || '',
+        coverUrl: creator.profile_banner || '',
+        managementStartDate: creator.management_start_date || ''
+      }));
+      set({ creators: mappedCreators, isLoading: false });
+    } catch (error) {
+      console.error('크리에이터 목록 조회 실패:', error);
+      set({
+        error: error.response?.data?.message || '크리에이터 목록을 불러오는데 실패했습니다.',
+        isLoading: false
+      });
+    }
+  },
 
   // 크리에이터 목록 설정
   setCreators: (creators) => set({ creators }),

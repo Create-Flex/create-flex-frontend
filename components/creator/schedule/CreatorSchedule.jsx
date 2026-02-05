@@ -12,7 +12,7 @@ export const CreatorSchedule = ({
     events,
     onUpdateEvents
 }) => {
-    const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+    const [currentDate, setCurrentDate] = useState(new Date());
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [partnerSearchQuery, setPartnerSearchQuery] = useState('');
@@ -29,7 +29,7 @@ export const CreatorSchedule = ({
         { id: 'content', label: '콘텐츠' },
         { id: 'live', label: '라이브' },
         { id: 'meeting', label: '미팅' },
-        { id: 'other', label: '기타' },
+        { id: 'etc', label: '기타' },
     ];
 
     // Improved Filtering: Strictly include only my own events

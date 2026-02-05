@@ -12,42 +12,6 @@ export const INITIAL_SCHEDULE_EVENTS = [
     { id: 4, templateId: 'personal', title: '관리자 전용 일정', content: '이건 직원에게 보이면 안됨', date: '2026-01-15', ownerId: 'HR001' },
 ];
 
-export const EMPLOYEE_PROFILE_DATA = {
-    name: '이채연',
-    engName: 'Sophia Lee',
-    nickname: '소피아',
-    email: 'sophia@company.com',
-    personalEmail: 'sophia@gmail.com',
-    phone: '010-9876-5432',
-    employeeId: 'LP125',
-    joinDate: '2022년 01월 10일',
-    tenure: '2년 1개월 재직',
-    groupJoinDate: '2022년 01월 10일',
-    org: '기술본부 (Tech Div)',
-    job: 'Product Owner',
-    rank: '매니저 / Level 3',
-    avatarUrl: 'https://picsum.photos/id/64/400/400',
-    coverUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80'
-};
-
-export const ADMIN_PROFILE_DATA = {
-    name: '김유연',
-    engName: 'Jenny Kim',
-    nickname: '제니',
-    email: 'jenny@company.com',
-    personalEmail: 'jenny@naver.com',
-    phone: '010-1234-5678',
-    employeeId: 'HR001',
-    joinDate: '2019년 03월 15일',
-    tenure: '5년 재직',
-    groupJoinDate: '2019년 03월 15일',
-    org: '인사문화팀 (HR Team)',
-    job: 'Senior HR Manager',
-    rank: '팀장 / Level 5',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    coverUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80'
-};
-
 export const INITIAL_VACATION_LOGS = [
     { id: 101, name: '손흥민', type: '연차', startDate: '2026-02-14', endDate: '2026-02-15', days: 2, status: '대기중', reason: '개인 사정으로 인한 휴가' },
     { id: 102, name: '김민재', type: '워케이션', startDate: '2026-02-20', endDate: '2026-02-24', days: 5, status: '대기중', reason: '제주도 워케이션', location: '제주 오피스', emergencyContact: '010-1111-2222', workGoals: '백엔드 마이그레이션 기획' },

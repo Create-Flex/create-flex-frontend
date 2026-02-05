@@ -103,7 +103,13 @@ export const LegendDot = styled.div`
   border-radius: 9999px;
   background-color: ${props => {
     // Map ID to color map index
-    const idx = parseInt(props.$id || '0', 10);
+    // Map ID to color map index
+    const idStr = String(props.$id || '0');
+    let hash = 0;
+    for (let i = 0; i < idStr.length; i++) {
+      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash);
     return COLOR_MAP[idx % COLOR_MAP.length].dot;
   }};
 `;
@@ -211,7 +217,12 @@ export const EventItem = styled.div`
 
   ${props => {
     // Determine style based on Creator ID
-    const idx = parseInt(props.$creatorId || '0', 10);
+    const idStr = String(props.$creatorId || '0');
+    let hash = 0;
+    for (let i = 0; i < idStr.length; i++) {
+      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash);
     const theme = COLOR_MAP[idx % COLOR_MAP.length];
     return css`
       background-color: ${theme.bg};
@@ -240,7 +251,12 @@ export const EventDot = styled.div`
   border-radius: 9999px;
   flex-shrink: 0;
   background-color: ${props => {
-    const idx = parseInt(props.$creatorId || '0', 10);
+    const idStr = String(props.$creatorId || '0');
+    let hash = 0;
+    for (let i = 0; i < idStr.length; i++) {
+      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash);
     return COLOR_MAP[idx % COLOR_MAP.length].dot;
   }};
 `;

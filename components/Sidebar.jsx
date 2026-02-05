@@ -590,6 +590,13 @@ export const Sidebar = ({ onLogout }) => {
                         </S.CalendarWrapper>
                     </S.CalendarWidgetWrapper>
                 )}
+                {isCreator && !isCollapsed && (
+                    <S.CalendarWidgetWrapper onClick={() => navigate('/employee-creator-calendar')}>
+                        <S.CalendarWrapper>
+                            <CalendarWidget />
+                        </S.CalendarWrapper>
+                    </S.CalendarWidgetWrapper>
+                )}
             </S.MainContent>
         </S.SidebarContainer>
     );

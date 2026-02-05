@@ -21,22 +21,24 @@ export const AttendanceView = () => {
     const { attendanceLogs, refreshKey: attendanceRefreshKey } = useAttendanceStore();
     const { refreshKey: vacationRefreshKey } = useVacationStore();
 
-    // 프로필 데이터가 없으면 렌더링 안함
-    if (!userProfile) {
-        return null;
-    }
-
-    // Derived state
-    const userName = userProfile.name;
-    const memberId = user?.memberId || user?.id;
-    const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || userProfile?.role === 'CREATOR';
-
     const [activeTab, setActiveTab] = useState('work');
 
     // Stats Data (State for API data, Init with Mock/Default)
     const [stats, setStats] = useState({
         lateCount: '-',
         overtimeMinutes: '-',
+    });
+
+    // Derived state (Safe access)
+    const userName = userProfile?.name;
+    const memberId = user?.memberId || user?.id;
+    const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || userProfile?.role === 'CREATOR';
+
+    // 잔여 연차 상태
+    const [vacationStats, setVacationStats] = useState({
+        total: 15,
+        used: 0,
+        remaining: 15
     });
 
     // Fetch My Dashboard Stats
@@ -57,12 +59,7 @@ export const AttendanceView = () => {
         };
         fetchStats();
     }, [attendanceRefreshKey]); // Refresh stats when attendance changes
-    // 잔여 연차 상태
-    const [vacationStats, setVacationStats] = useState({
-        total: 15,
-        used: 0,
-        remaining: 15
-    });
+
 
     // 잔여 연차 조회 (휴가 신청/변경 시 자동 새로고침)
     useEffect(() => {
@@ -81,6 +78,11 @@ export const AttendanceView = () => {
         };
         fetchRemainder();
     }, [memberId, vacationRefreshKey, isCreator]);
+
+    // 프로필 데이터가 없으면 렌더링 안함 - AFTER all hooks
+    if (!userProfile) {
+        return null;
+    }
 
     return (
         <Container>

@@ -72,6 +72,7 @@ export const CreatorCalendar = ({
                                     onEventClick(evt);
                                 }}
                                 $creatorId={creator?.id}
+                                $isManager={evt.isManagerCreated}
                             >
                                 <EventContent>
                                     <EventDot $creatorId={creator?.id} />

@@ -81,13 +81,33 @@ export const Legend = styled.div`
   }
 `;
 
-// Helper map to convert PALETTE indices to hex values for Styled Components
-const COLOR_MAP = [
-  { dot: '#4b5563', bg: '#f3f4f6', text: '#111827', border: '#e5e7eb' }, // gray
-  { dot: '#00C471', bg: '#f9fafb', text: '#374151', border: '#e5e7eb' }, // green-ish default
-  { dot: '#2563eb', bg: '#f3f4f6', text: '#1f2937', border: '#e5e7eb' }, // blue
-  { dot: '#9333ea', bg: '#f9fafb', text: '#111827', border: '#e5e7eb' }, // purple
-];
+// Helper to generate consistent pastel colors from string ID
+const generatePastelColor = (idStr, isManager = false) => {
+  let hash = 0;
+  for (let i = 0; i < idStr.length; i++) {
+    hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Hue: 0-360 based on hash
+  const h = Math.abs(hash) % 360;
+
+  // Saturation: Fixed to keep it colorful but not neon
+  const s = 70;
+
+  // Lightness: Different for Manager vs Creator
+  // Creator: Richer background (85%), Darker text (30%)
+  // Manager: Very light "faded" background (95%), Lighter text (45%)
+  const bgL = isManager ? 95 : 85;
+  const textL = isManager ? 45 : 30;
+  const borderL = isManager ? 90 : 80;
+
+  return {
+    bg: `hsl(${h}, ${s}%, ${bgL}%)`,
+    text: `hsl(${h}, ${s}%, ${textL}%)`,
+    border: `hsl(${h}, ${s}%, ${borderL}%)`,
+    dot: `hsl(${h}, ${s}%, ${isManager ? 60 : 50}%)` // Dot is slightly darker than bg
+  };
+};
 
 export const LegendItem = styled.div`
   display: flex;
@@ -102,15 +122,8 @@ export const LegendDot = styled.div`
   height: 0.5rem;
   border-radius: 9999px;
   background-color: ${props => {
-    // Map ID to color map index
-    // Map ID to color map index
     const idStr = String(props.$id || '0');
-    let hash = 0;
-    for (let i = 0; i < idStr.length; i++) {
-      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const idx = Math.abs(hash);
-    return COLOR_MAP[idx % COLOR_MAP.length].dot;
+    return generatePastelColor(idStr, false).dot;
   }};
 `;
 
@@ -216,18 +229,17 @@ export const EventItem = styled.div`
   }
 
   ${props => {
-    // Determine style based on Creator ID
     const idStr = String(props.$creatorId || '0');
-    let hash = 0;
-    for (let i = 0; i < idStr.length; i++) {
-      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const idx = Math.abs(hash);
-    const theme = COLOR_MAP[idx % COLOR_MAP.length];
+    const isManager = props.$isManager || false;
+    const theme = generatePastelColor(idStr, isManager);
+
     return css`
       background-color: ${theme.bg};
       color: ${theme.text};
       border-color: ${theme.border};
+      ${isManager && css`
+        border-style: dashed; /* Optional: adds visual distinction for manager items */
+      `}
     `;
   }}
 `;
@@ -252,12 +264,7 @@ export const EventDot = styled.div`
   flex-shrink: 0;
   background-color: ${props => {
     const idStr = String(props.$creatorId || '0');
-    let hash = 0;
-    for (let i = 0; i < idStr.length; i++) {
-      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const idx = Math.abs(hash);
-    return COLOR_MAP[idx % COLOR_MAP.length].dot;
+    return generatePastelColor(idStr, false).dot;
   }};
 `;
 

@@ -15,3 +15,13 @@ export const putMyHealth = async (file, presignedUrl) => {
         headers: { 'Content-Type': file.type }
     });
 };
+
+export const getCreatorHealth = () =>
+    api.get('/health/creator/', {
+});
+
+export const saveCreatorMental = (score) =>{
+    return api.post('/health/creator/upload/mental', null, {
+        params: {score}
+    })
+};

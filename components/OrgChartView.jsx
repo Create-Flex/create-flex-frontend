@@ -47,8 +47,34 @@ export const OrgChartView = () => {
         }
     };
 
+     // 부서 상세 정보 조회 (멤버 목록 포함)
+    const handleCardClick = async (dept) => {
+        try {
+            const response = await departmentService.getDepartmentDetail(dept.id);
+            // DepartmentDetailResponse: { departmentId, departmentName, members: [...] }
+            // MemberSummaryResponse: { memberId, memberName, engName, task, attendanceStatus }
+
+            // Map backend member to frontend format
+            const mappedMembers = response.data.members.map(m => ({
+                id: m.memberId,
+                name: m.memberName,
+                engName: m.engName,
+                role: m.task, // 직책/직무
+                workStatus: m.attendanceStatus,
+                avatarUrl: null // DB에 없으면 null
+            }));
+
+            setSelectedDeptMembers(mappedMembers);
+            setSelectedDept(dept);
+        } catch (error) {
+            console.error("부서 상세 정보 로드 실패:", error);
+            alert("부서 정보를 불러오는데 실패했습니다.");
+        }
+    };
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState(null);
+     const [selectedDeptMembers, setSelectedDeptMembers] = useState([]); // 멤버 목록 상태 추가
 
     // Admin Management State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -176,12 +202,11 @@ export const OrgChartView = () => {
                 {/* Department Card Grid */}
                 <S.DeptGrid>
                     {filteredDepartments.map((dept) => {
-                        const memberCount = getDeptMembers(dept.name).length;
 
                         return (
                             <S.DeptCard
                                 key={dept.id}
-                                onClick={() => setSelectedDept(dept)}
+                                onClick={() => handleCardClick(dept)}
                             >
                                 {/* Color Bar */}
                                 <S.DeptColorBar className={dept.color}></S.DeptColorBar>
@@ -194,7 +219,7 @@ export const OrgChartView = () => {
                                         <S.DeptMeta>
                                             <S.MemberBadge>
                                                 <Users size={12} />
-                                                <span>{memberCount}명</span>
+                                                <span>{dept.memberCount}명</span>
                                             </S.MemberBadge>
                                             {isAdmin && (
                                                 <S.EditButton
@@ -237,7 +262,7 @@ export const OrgChartView = () => {
                                 <S.ModalMeta>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Phone size={12} /> {selectedDept.phone}</span>
                                     <span style={{ width: '1px', height: '0.75rem', backgroundColor: '#d1d5db' }}></span>
-                                    <span>총 {getDeptMembers(selectedDept.name).length}명</span>
+                                    <span>총 {selectedDeptMembers.length}명</span>
                                 </S.ModalMeta>
                             </div>
                             <S.CloseButton onClick={() => setSelectedDept(null)}>
@@ -247,9 +272,9 @@ export const OrgChartView = () => {
 
                         {/* Modal Body (List) */}
                         <S.ModalBody>
-                            {getDeptMembers(selectedDept.name).length > 0 ? (
+                            {selectedDeptMembers.length > 0 ? (
                                 <S.MemberList>
-                                    {getDeptMembers(selectedDept.name).map(member => (
+                                    {selectedDeptMembers.map(member => (
                                         <S.MemberItem key={member.id}>
                                             <S.Avatar>
                                                 {member.avatarUrl ? (

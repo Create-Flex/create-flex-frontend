@@ -8,8 +8,26 @@ import {
     MemberInfo, MemberAvatar, MemberDetails, MemberName, MemberSubText, IconButton, EmptyState,
     TabContainer, TabButton, AddMemberSearchWrapper, MemberListScrollable, ModalFooter, FooterButton
 } from './TeamManagement.styled';
+import { useEffect } from 'react';
+import { teamService } from '../../api/teamService';
+import { useEmployeeStore } from '../../stores/useEmployeeStore';
 
-export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] }) => {
+export const TeamManagement = ({ employees, creators = [] }) => {
+    const { teams, setTeams } = useEmployeeStore(); // 스토어에서 가져옴
+
+    const fetchTeams = async () => {
+        try {
+            const response = await teamService.getAllTeams();
+            setTeams(response.data); // 서버 데이터로 팀 목록 갱신
+        } catch (error) {
+            console.error("팀 목록 로드 실패:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTeams(); // 마운트 시 호출
+    }, []);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [managingTeam, setManagingTeam] = useState(null);
@@ -21,7 +39,10 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
     // Tab State for "Add Member" Pane
     const [activeAddTab, setActiveAddTab] = useState('employee');
 
-    const filteredTeams = teams.filter(t => t.name.includes(searchQuery) || t.description.includes(searchQuery));
+    const filteredTeams = teams.filter(t => 
+    (t.teamName?.includes(searchQuery)) || 
+    (t.teamDescription?.includes(searchQuery))
+);
 
     // Combine employees and creators for selection logic reference
     const allMembers = [...employees, ...creators];
@@ -30,9 +51,10 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
         if (team) {
             setManagingTeam(team);
             setTeamForm({
-                name: team.name,
-                description: team.description,
-                memberIds: [...team.memberIds]
+                name: team.teamName,
+                description: team.teamDescription,
+                // team.memberIds가 null/undefined일 경우를 대비해 빈 배열([]) 할당
+                memberIds: Array.isArray(team.memberIds) ? [...team.memberIds] : []
             });
         } else {
             setManagingTeam(null);
@@ -43,31 +65,51 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
         setIsModalOpen(true);
     };
 
-    const handleSave = () => {
-        if (!teamForm.name) return alert('팀 이름을 입력해주세요.');
+    const handleSave = async () => {
+    if (!teamForm.name) return alert('팀 이름을 입력해주세요.');
 
-        const updatedData = {
-            name: teamForm.name,
-            description: teamForm.description,
-            memberIds: teamForm.memberIds
-        };
+    const teamData = {
+        teamName: teamForm.name,
+        teamDescription: teamForm.description
+    };
+
+    try {
+        let teamId = managingTeam?.id;
 
         if (managingTeam) {
-            onUpdateTeams(teams.map(t => t.id === managingTeam.id ? { ...t, ...updatedData } : t));
+            // 1. 기존 팀 정보 수정
+            await teamService.updateTeam(teamId, teamData);
         } else {
-            onUpdateTeams([...teams, { id: `t${Date.now()}`, ...updatedData }]);
+            // 2. 새 팀 생성
+            const response = await teamService.createTeam(teamData);
+            teamId = response.data.id; // 생성된 팀의 ID 확보
         }
+
+        // 3. 멤버 변경 사항 업데이트 (TeamRelay 테이블)
+        // teamForm.memberIds에 담긴 멤버 리스트를 전송
+        await teamService.updateTeamMembers(teamId, teamForm.memberIds);
+
+        alert('저장되었습니다.');
+        fetchTeams(); // 목록 새로고침
         setIsModalOpen(false);
-    };
+    } catch (error) {
+        alert('팀 저장 중 오류가 발생했습니다.');
+    }
+};
 
     // 팀 삭제 처리 핸들러
-    const handleDeleteTeam = (e, id) => {
-        e.stopPropagation(); // 카드 클릭 시 발생하는 모달 열림 방지
-        if (window.confirm('정말로 이 팀을 삭제하시겠습니까?\n소속 멤버 정보는 삭제되지 않습니다.')) {
-            onUpdateTeams(teams.filter(t => t.id !== id));
+    const handleDeleteTeam = async (e, id) => {
+    e.stopPropagation();
+    if (window.confirm('정말로 이 팀을 삭제하시겠습니까?')) {
+        try {
+            await teamService.deleteTeam(id); // 서버 삭제 요청
             alert('팀이 삭제되었습니다.');
+            fetchTeams(); // 삭제 후 목록 다시 불러오기
+        } catch (error) {
+            alert('삭제에 실패했습니다. (소속 멤버가 있는지 확인해주세요)');
         }
-    };
+    }
+};
 
     // Member Management Handlers
     const addMember = (id) => {
@@ -159,7 +201,7 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
 
             <TeamGrid>
                 {filteredTeams.map(team => (
-                    <TeamCard key={team.id} onClick={() => openModal(team)}>
+                    <TeamCard key={team.id || `temp-${team.teamName}`} onClick={() => openModal(team)}>
                         <TeamCardHeader>
                             <IconBox>
                                 <Briefcase size={20} />
@@ -171,12 +213,13 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
                                 <Trash2 size={18} />
                             </DeleteButton>
                         </TeamCardHeader>
-                        <TeamName>{team.name}</TeamName>
-                        <TeamDescription>{team.description}</TeamDescription>
+                        <TeamName>{team.teamName}</TeamName>
+                        <TeamDescription>{team.teamDescription}</TeamDescription>
                         <TeamCardFooter>
-                            <MemberCount>멤버 {team.memberIds.length}명</MemberCount>
+                            <MemberCount>멤버 {team.memberIds?.length || 0}명</MemberCount>
                             <AvatarGroup>
-                                {team.memberIds.slice(0, 3).map(id => {
+                                {/* memberIds가 존재할 때만 slice를 실행하도록 수정 */}
+                                {team.memberIds?.slice(0, 3).map(id => {
                                     const mem = allMembers.find(m => m.id === id);
                                     return (
                                         <AvatarSmall key={id}>
@@ -184,7 +227,7 @@ export const TeamManagement = ({ teams, onUpdateTeams, employees, creators = [] 
                                         </AvatarSmall>
                                     )
                                 })}
-                                {team.memberIds.length > 3 && <AvatarMore>+{team.memberIds.length - 3}</AvatarMore>}
+                               {(team.memberIds?.length > 3) && <AvatarMore>+{team.memberIds.length - 3}</AvatarMore>}
                             </AvatarGroup>
                         </TeamCardFooter>
                     </TeamCard>

@@ -131,6 +131,7 @@ export const DeptCard = styled.div`
 export const DeptColorBar = styled.div`
   height: 0.5rem;
   width: 100%;
+  background-color: ${props => props.$color || '#e5e7eb'};
 `;
 
 export const DeptContent = styled.div`
@@ -387,14 +388,14 @@ export const StatusBadge = styled.span`
   border-radius: 0.375rem;
   
   ${props => {
-        switch (props.$status) {
-            case '출근': return css`background-color: #f0fdf4; color: #15803d;`;
-            case '퇴근': return css`background-color: #f3f4f6; color: #6b7280;`;
-            case '휴가': return css`background-color: #eff6ff; color: #1d4ed8;`;
-            case '병가': return css`background-color: #fef2f2; color: #b91c1c;`;
-            default: return css`background-color: #f3f4f6; color: #6b7280;`;
-        }
-    }}
+    switch (props.$status) {
+      case '출근': return css`background-color: #f0fdf4; color: #15803d;`;
+      case '퇴근': return css`background-color: #f3f4f6; color: #6b7280;`;
+      case '휴가': return css`background-color: #eff6ff; color: #1d4ed8;`;
+      case '병가': return css`background-color: #fef2f2; color: #b91c1c;`;
+      default: return css`background-color: #f3f4f6; color: #6b7280;`;
+    }
+  }}
 `;
 
 export const EmptyState = styled.div`
@@ -484,6 +485,7 @@ export const ColorButton = styled.button`
   border-radius: 9999px;
   border: 2px solid;
   transition: all 0.2s;
+  background-color: ${props => props.$color};
   
   ${props => props.$isSelected ? css`
     border-color: black;

@@ -30,17 +30,6 @@ export const INITIAL_EMPLOYEES = [
     { id: '1008', name: '한코딩', engName: 'Han Coding', dept: '기술본부', role: '프론트엔드 개발자', workStatus: '퇴근', email: 'han.code@naver.com', phone: '010-8888-8888', joinDate: '2020-07-15', avatarUrl: 'https://cdn.mcn.com/profiles/default.jpg', nickname: '한코더', rank: '직원', remainingVacation: 13 },
 ];
 
-export const INITIAL_DEPARTMENTS = [
-    { id: 'Executive', name: '경영지원본부 (Executive)', phone: '02-555-0001', description: '회사 경영 전반 및 전략 수립', color: 'bg-slate-800' },
-    { id: 'Business Div', name: '사업본부 (Business Div)', phone: '02-555-1000', description: '신규 사업 개발 및 제휴', color: 'bg-blue-600' },
-    { id: 'Creator Mgmt', name: '매니지먼트 (Creator Mgmt)', phone: '02-555-2000', description: '크리에이터 케어 및 일정 관리', color: 'bg-emerald-500' },
-    { id: 'Production', name: '제작본부 (Production)', phone: '02-555-3000', description: '오리지널 콘텐츠 기획 및 제작', color: 'bg-purple-500' },
-    { id: 'Marketing', name: '마케팅팀 (Marketing)', phone: '02-555-4000', description: '브랜드 마케팅 및 홍보', color: 'bg-orange-500' },
-    { id: 'Tech', name: '기술본부 (Tech Div)', phone: '02-555-5000', description: '플랫폼 개발 및 인프라 운영', color: 'bg-indigo-600' },
-    { id: 'HR', name: '인사문화팀 (HR Team)', phone: '02-555-6000', description: '채용, 평가, 보상 및 조직문화', color: 'bg-rose-500' },
-    { id: 'Global', name: '글로벌사업팀 (Global Biz)', phone: '02-555-7000', description: '해외 크리에이터 발굴 및 사업 확장', color: 'bg-cyan-600' },
-];
-
 export const INITIAL_HEALTH_RECORDS = [
     { id: 1, name: '김유연', lastCheck: '2025-10-15', hospital: 'KMI 여의도', result: '정상 (양호)', nextCheck: '2026-10-15' },
     { id: 2, name: '이채연', lastCheck: '2025-11-20', hospital: '강북삼성병원', result: '정상 (경미)', nextCheck: '2026-11-20' },

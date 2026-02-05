@@ -3,6 +3,7 @@ import { CalendarIcon, Plus, X } from 'lucide-react';
 import { CreatorCalendar } from '../shared/Calendar';
 import { getCreatorColorStyles } from '../shared/utils';
 import { EventDetailModal } from '../../employee/modals/EventDetailModal';
+import { scheduleService } from '../../../api/scheduleService';
 import * as S from './CreatorSchedule.styled';
 
 export const CreatorSchedule = ({
@@ -51,7 +52,7 @@ export const CreatorSchedule = ({
         setIsEventModalOpen(true);
     };
 
-    const handleSaveEvent = () => {
+    const handleSaveEvent = async () => {
         if (!newEventData.title) {
             alert('일정 제목을 입력해주세요.');
             return;
@@ -62,24 +63,37 @@ export const CreatorSchedule = ({
             return;
         }
 
-        const newEvent = {
-            id: Date.now().toString(),
-            creatorId: creator.id, // Always assign to self
-            title: newEventData.title,
-            date: newEventData.date,
-            type: newEventData.type,
-            content: newEventData.content,
-            partnerCreators: newEventData.type === 'joint' ? newEventData.partnerCreators : []
-        };
+        try {
+            const payload = {
+                scheduleName: newEventData.title,
+                scheduleDate: newEventData.date,
+                scheduleDetail: newEventData.content,
+                scheduleType: newEventData.type.toUpperCase() === 'JOINT' ? 'MERGE' : newEventData.type.toUpperCase(),
+                creatorId: creator.id,
+                visitorIds: newEventData.type === 'joint' ? newEventData.partnerCreators : []
+            };
 
-        onUpdateEvents([...events, newEvent]);
-        setIsEventModalOpen(false);
+            await scheduleService.createSchedule(payload);
+            onUpdateEvents();
+            setIsEventModalOpen(false);
+            alert('일정이 등록되었습니다.');
+        } catch (error) {
+            console.error('일정 등록 실패:', error);
+            alert('일정 등록에 실패했습니다.');
+        }
     };
 
-    const handleDeleteEvent = (eventId) => {
+    const handleDeleteEvent = async (eventId) => {
         if (window.confirm('이 일정을 삭제하시겠습니까?')) {
-            onUpdateEvents(events.filter(e => e.id !== eventId));
-            setSelectedEvent(null);
+            try {
+                await scheduleService.deleteSchedule(eventId);
+                onUpdateEvents();
+                setSelectedEvent(null);
+                alert('일정이 삭제되었습니다.');
+            } catch (error) {
+                console.error('일정 삭제 실패:', error);
+                alert('일정 삭제에 실패했습니다.');
+            }
         }
     };
 

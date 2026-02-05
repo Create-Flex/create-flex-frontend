@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { creatorService } from '../api/creatorService';
+import { scheduleService } from '../api/scheduleService';
 
 export const useCreatorStore = create((set, get) => ({
   creators: [],
@@ -39,6 +40,34 @@ export const useCreatorStore = create((set, get) => ({
 
   // 크리에이터 목록 설정
   setCreators: (creators) => set({ creators }),
+
+  // 크리에이터 일정 조회
+  fetchCreatorEvents: async (year, month) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await scheduleService.getCreatorSchedules(year, month);
+      // 백엔드 DTO를 프론트엔드 형식으로 매핑
+      const mappedEvents = data.map(event => ({
+        id: String(event.scheduleId),
+        creatorId: String(event.creatorId),
+        title: event.scheduleName,
+        date: event.scheduleDate,
+        type: event.scheduleType.toLowerCase(), // CONTENT, LIVE 등 -> content, live
+        content: event.scheduleDetail,
+        partnerCreators: event.visitorIds ? event.visitorIds.map(v => String(v)) : []
+      }));
+      set({ creatorEvents: mappedEvents, isLoading: false });
+    } catch (error) {
+      console.error('크리에이터 일정 조회 실패:', error);
+      set({
+        error: error.response?.data?.message || '일정을 불러오는데 실패했습니다.',
+        isLoading: false
+      });
+    }
+  },
+
+  // 크리에이터 일정 설정
+  setCreatorEvents: (events) => set({ creatorEvents: events }),
 
   // 크리에이터 추가
   addCreator: (newCreator) => set((state) => ({

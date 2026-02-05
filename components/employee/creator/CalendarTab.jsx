@@ -9,6 +9,7 @@ import {
     CalendarWrapper, BlurLayer, EmptyStateOverlay, EmptyStateCard,
     EmptyIconWrapper, EmptyTitle, EmptyText
 } from './CalendarTab.styled';
+import { ScheduleWriteModal } from './ScheduleWriteModal';
 
 export const CalendarTab = ({
     onAddEvent,
@@ -33,8 +34,8 @@ export const CalendarTab = ({
                 if (response && response.length > 0) {
                     // 크리에이터 데이터 변환
                     const formattedCreators = response.map(c => ({
-                        id: String(c.creator_id || c.creatorId),
-                        name: c.creator_name || c.creatorName || c.member_name,
+                        id: String(c.creator_id || c.creatorId || c.id || c.member_id || c.memberId || c.member_no),
+                        name: c.creator_name || c.creatorName || c.member_name || c.name || '이름 없음',
                         platform: c.creator_platform || c.creatorPlatform || 'YouTube',
                         subscribers: c.creator_subscribe || c.creatorSubscribe || '',
                         avatarUrl: c.profile_image || c.profileImage || '',
@@ -115,6 +116,19 @@ export const CalendarTab = ({
     // 크리에이터 맵 생성
     const creatorsMap = myCreators.reduce((acc, c) => ({ ...acc, [c.id]: c }), {});
 
+    // 모달 상태
+    const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+
+    // 일정 추가 버튼 클릭 핸들러
+    const handleAddEventClick = () => {
+        setIsWriteModalOpen(true);
+    };
+
+    // 일정 등록 성공 후 처리
+    const handleScheduleCreate = () => {
+        fetchCreatorSchedules();
+    };
+
     if (isLoading) {
         return (
             <Container>
@@ -139,7 +153,7 @@ export const CalendarTab = ({
                     <Subtitle>담당하는 모든 크리에이터의 일정을 한눈에 확인하세요.</Subtitle>
                 </TitleGroup>
                 <AddButton
-                    onClick={() => onAddEvent()}
+                    onClick={handleAddEventClick}
                     disabled={!hasCreators}
                 >
                     <Plus size={16} /> 일정 추가
@@ -153,7 +167,7 @@ export const CalendarTab = ({
                         creatorsMap={creatorsMap}
                         currentDate={currentDate}
                         onDateChange={setCurrentDate}
-                        onAddEvent={onAddEvent}
+                        onAddEvent={() => setIsWriteModalOpen(true)}
                         onEventClick={onEventClick}
                         legendCreators={myCreators}
                     />
@@ -175,6 +189,16 @@ export const CalendarTab = ({
                     </EmptyStateOverlay>
                 )}
             </CalendarWrapper>
+
+            {/* 일정 등록 모달 */}
+            <ScheduleWriteModal
+                isOpen={isWriteModalOpen}
+                onClose={() => setIsWriteModalOpen(false)}
+                date={currentDate.toISOString().split('T')[0]}
+                initialCreatorId={myCreators.length > 0 ? myCreators[0].id : ''}
+                myCreators={myCreators}
+                onConfirm={handleScheduleCreate}
+            />
         </Container>
     );
 };

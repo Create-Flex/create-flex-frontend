@@ -29,7 +29,7 @@ import { useVacationStore } from '../stores/useVacationStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
-import { postMyHealth, putMyHealth } from '../api/healthService';
+import { getMyHealth, postMyHealth, putMyHealth } from '../api/healthService';
 import { authService } from '../api/authService';
 
 export const ProfileView = ({
@@ -343,6 +343,7 @@ export const ProfileView = ({
                                 const file = data.get("file");
 
                                 await putMyHealth(file, presignedUrl);
+                                fetchHealth();
 
                                 alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
                                 setIsResultModalOpen(false);

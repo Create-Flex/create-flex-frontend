@@ -5,6 +5,8 @@ import { HealthSection } from './profile/HealthSection';
 import { ImageUploadModal } from './profile/modals/ImageUploadModal';
 import { PasswordChangeModal } from './profile/modals/PasswordChangeModal';
 import { HealthResultModal } from './profile/modals/HealthResultModal';
+import { EditProfileModal } from './modals/EditProfileModal';
+import { ChangePasswordModal } from './modals/ChangePasswordModal';
 import { Camera, ChevronLeft } from 'lucide-react';
 import {
     Container, HeaderButton, BackButtonWrapper, CoverButtonWrapper, CoverUpdateBtn,
@@ -27,7 +29,8 @@ import { useVacationStore } from '../stores/useVacationStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
-import { postMyHealth, putMyHealth } from '..//api/healthService';
+import { postMyHealth, putMyHealth } from '../api/healthService';
+import { authService } from '../api/authService';
 
 export const ProfileView = ({
     profile, // Optional prop for viewing other profiles
@@ -47,18 +50,7 @@ export const ProfileView = ({
     // Determine which profile to show
     const displayProfile = profile || userProfile;
 
-    // 프로필 데이터가 없으면 렌더링 안함 (App.jsx에서 로딩 처리)
-    if (!displayProfile) {
-        return null;
-    }
-
-    const isCurrentUser = user && String(displayProfile.employeeId) === String(user.id);
-
-    // Check if this profile view is for a Creator
-    // Logic: If user is creator, or if the displayed profile has job='Creator'
-    const isCreatorProfile = displayProfile.job === 'Creator' || displayProfile.rank === 'Creator' || displayProfile.role === 'CREATOR';
-
-    // Local States
+    // Local States - must be declared before any conditional returns
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('정보');
     const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -68,6 +60,9 @@ export const ProfileView = ({
 
     // Password Change State
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+    // Edit Profile Modal State
+    const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
     // Health Upload State - Mock Data source maintained locally for view history display
     const [checkupHistory, setCheckupHistory] = useState([
@@ -83,6 +78,12 @@ export const ProfileView = ({
     });
 
     const [creatorInfo, setCreatorInfo] = useState(null);
+
+    const isCurrentUser = user && String(displayProfile?.employeeId) === String(user.id);
+
+    // Check if this profile view is for a Creator
+    // Logic: If user is creator, or if the displayed profile has job='Creator'
+    const isCreatorProfile = displayProfile?.job === 'Creator' || displayProfile?.rank === 'Creator' || displayProfile?.role === 'CREATOR';
 
     // 크리에이터 정보 조회
     useEffect(() => {
@@ -103,11 +104,12 @@ export const ProfileView = ({
             }
         };
         fetchCreatorInfo();
-    }, [isCreatorProfile, displayProfile.employeeId]);
+    }, [isCreatorProfile, displayProfile?.employeeId]);
 
     // 잔여 연차 조회
     useEffect(() => {
         const fetchVacationRemainder = async () => {
+            if (!displayProfile) return;
             // 크리에이터는 연차 기능이 없으므로 API 호출 안함
             const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || displayProfile.role === 'CREATOR' || isCreatorProfile;
             if (!displayProfile.employeeId || isCreator) return;
@@ -123,7 +125,15 @@ export const ProfileView = ({
             }
         };
         fetchVacationRemainder();
-    }, [displayProfile.employeeId, isCreatorProfile]);
+    }, [displayProfile?.employeeId, isCreatorProfile]);
+
+    // Validation: Only allow updates if it's the current user's profile and not readOnly
+    const canUpdate = !readOnly && isCurrentUser;
+
+    // 프로필 데이터가 없으면 렌더링 안함 (App.jsx에서 로딩 처리) - AFTER all hooks
+    if (!displayProfile) {
+        return null;
+    }
 
     // Derived Data
     const tabs = (readOnly || isCreatorProfile) ? ['정보'] : ['정보', '건강'];
@@ -132,9 +142,6 @@ export const ProfileView = ({
 
     // Creator Tasks (filter by displayed user ID if creator)
     const creatorTasks = isCreatorProfile && displayProfile.employeeId ? allTasks.filter(t => t.creatorId === displayProfile.employeeId) : [];
-
-    // Validation: Only allow updates if it's the current user's profile and not readOnly
-    const canUpdate = !readOnly && isCurrentUser;
 
     const [healthList, setHealthList] = useState([]);
     const [healthCheck, setHealthCheck] = useState();
@@ -240,6 +247,7 @@ export const ProfileView = ({
                                 readOnly={readOnly || !canUpdate}
                                 onUpdateProfile={canUpdate ? updateProfile : undefined}
                                 onPasswordChangeClick={() => setIsPasswordModalOpen(true)}
+                                onEditProfileClick={() => setIsEditProfileModalOpen(true)}
                             />
 
                             {isCreatorProfile && !hideTasks && (
@@ -348,6 +356,36 @@ export const ProfileView = ({
                     />
                 </>
             )}
+
+            {/* 정보 수정 모달 */}
+            <EditProfileModal
+                isOpen={isEditProfileModalOpen}
+                onClose={() => setIsEditProfileModalOpen(false)}
+                profile={displayProfile}
+                onSave={async (data) => {
+                    const response = await authService.updateMyInfo(data);
+                    // 프로필 업데이트
+                    const updatedProfile = {
+                        ...displayProfile,
+                        name: data.memberName,
+                        engName: data.engName,
+                        address: data.address,
+                        personalEmail: data.personalEmail,
+                        phone: data.personalCall
+                    };
+                    updateProfile(updatedProfile);
+                    alert('정보가 성공적으로 수정되었습니다.');
+                }}
+            />
+
+            {/* 비밀번호 변경 모달 */}
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onSave={async (currentPassword, newPassword) => {
+                    await authService.changePassword(currentPassword, newPassword);
+                }}
+            />
         </Container>
     );
 };

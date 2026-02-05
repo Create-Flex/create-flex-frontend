@@ -14,7 +14,8 @@ export const ProfileInfo = ({
     isCreator,
     readOnly,
     onUpdateProfile,
-    onPasswordChangeClick
+    onPasswordChangeClick,
+    onEditProfileClick
 }) => {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -113,11 +114,8 @@ export const ProfileInfo = ({
                         <SectionTitle style={{ marginBottom: 0, marginTop: '0.25rem' }}>개인정보</SectionTitle>
                         {!readOnly && (
                             <EditActions>
-                                <EditButton
-                                    $active={isEditing}
-                                    onClick={() => setIsEditing(!isEditing)}
-                                >
-                                    <Pencil size={12} /> {isEditing ? '저장' : '정보 수정'}
+                                <EditButton onClick={onEditProfileClick}>
+                                    <Pencil size={12} /> 정보 수정
                                 </EditButton>
                                 <PasswordButton onClick={onPasswordChangeClick}>
                                     <Lock size={12} /> 비밀번호 변경
@@ -131,62 +129,24 @@ export const ProfileInfo = ({
                             <InfoIconWrapper $marginTop><UserCircle size={18} /></InfoIconWrapper>
                             <InfoLabel $paddingTop>이름</InfoLabel>
                             <InfoValue>
-                                {isEditing && !readOnly ? (
-                                    <EditFormGrid>
-                                        <InputGroup>
-                                            <Label>본명</Label>
-                                            <Input
-                                                value={profile.name}
-                                                onChange={(e) => handleChange('name', e.target.value)}
-                                            />
-                                        </InputGroup>
-                                        <InputGroup>
-                                            <Label>영문 이름</Label>
-                                            <Input
-                                                value={profile.engName}
-                                                onChange={(e) => handleChange('engName', e.target.value)}
-                                            />
-                                        </InputGroup>
-                                    </EditFormGrid>
-                                ) : (
-                                    <InfoAnimationWrapper>
-                                        <SubLabel>본명</SubLabel> {profile.name}
-                                        <Spacer><SubLabel>영문 이름</SubLabel> {profile.engName}</Spacer>
-                                    </InfoAnimationWrapper>
-                                )}
+                                <InfoAnimationWrapper>
+                                    <SubLabel>본명</SubLabel> {profile.name}
+                                    <Spacer><SubLabel>영문 이름</SubLabel> {profile.engName}</Spacer>
+                                </InfoAnimationWrapper>
                             </InfoValue>
                         </InfoRow>
                         <InfoRow $alignStart>
                             <InfoIconWrapper $marginTop><Mail size={16} /></InfoIconWrapper>
                             <InfoLabel $paddingTop>연락처</InfoLabel>
                             <InfoValue>
-                                {isEditing && !readOnly ? (
-                                    <EditFormGrid>
-                                        <InputGroup>
-                                            <Label>개인 이메일</Label>
-                                            <Input
-                                                value={profile.personalEmail}
-                                                onChange={(e) => handleChange('personalEmail', e.target.value)}
-                                            />
-                                        </InputGroup>
-                                        <InputGroup>
-                                            <Label>휴대전화</Label>
-                                            <Input
-                                                value={profile.phone}
-                                                onChange={(e) => handleChange('phone', e.target.value)}
-                                            />
-                                        </InputGroup>
-                                    </EditFormGrid>
-                                ) : (
-                                    <ContactInfoWrapper>
-                                        <ContactRow>
-                                            <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
-                                        </ContactRow>
-                                        <ContactRow>
-                                            <ContactLabel>휴대전화</ContactLabel> {profile.phone}
-                                        </ContactRow>
-                                    </ContactInfoWrapper>
-                                )}
+                                <ContactInfoWrapper>
+                                    <ContactRow>
+                                        <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
+                                    </ContactRow>
+                                    <ContactRow>
+                                        <ContactLabel>휴대전화</ContactLabel> {profile.phone}
+                                    </ContactRow>
+                                </ContactInfoWrapper>
                             </InfoValue>
                         </InfoRow>
                         <InfoRow $alignStart>

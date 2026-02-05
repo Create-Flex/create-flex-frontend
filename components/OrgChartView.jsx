@@ -8,16 +8,16 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useEmployeeStore } from '../stores/useEmployeeStore';
 
 const DEPT_COLORS = [
-    { label: 'Slate', value: 'bg-slate-800' },
-    { label: 'Blue', value: 'bg-blue-600' },
-    { label: 'Emerald', value: 'bg-emerald-500' },
-    { label: 'Purple', value: 'bg-purple-500' },
-    { label: 'Orange', value: 'bg-orange-500' },
-    { label: 'Indigo', value: 'bg-indigo-600' },
-    { label: 'Rose', value: 'bg-rose-500' },
-    { label: 'Cyan', value: 'bg-cyan-600' },
-    { label: 'Gray', value: 'bg-gray-600' },
-    { label: 'Teal', value: 'bg-teal-600' },
+    { label: 'Slate', value: '#1e293b' },
+    { label: 'Blue', value: '#2563eb' },
+    { label: 'Emerald', value: '#10b981' },
+    { label: 'Purple', value: '#a855f7' },
+    { label: 'Orange', value: '#f97316' },
+    { label: 'Indigo', value: '#4f46e5' },
+    { label: 'Rose', value: '#f43f5e' },
+    { label: 'Cyan', value: '#0891b2' },
+    { label: 'Gray', value: '#4b5563' },
+    { label: 'Teal', value: '#0d9488' },
 ];
 
 export const OrgChartView = () => {
@@ -84,7 +84,7 @@ export const OrgChartView = () => {
         name: '',
         description: '',
         phone: '',
-        color: 'bg-slate-800'
+        color: '#1e293b'
     });
 
     const isAdmin = user?.role === UserRole.ADMIN;
@@ -103,7 +103,7 @@ export const OrgChartView = () => {
 
     const handleOpenAdd = () => {
         setModalMode('add');
-        setDeptForm({ name: '', description: '', phone: '', color: 'bg-slate-800' });
+        setDeptForm({ name: '', description: '', phone: '', color: '#1e293b' });
         setIsModalOpen(true);
     };
 
@@ -205,7 +205,7 @@ export const OrgChartView = () => {
                                 onClick={() => handleCardClick(dept)}
                             >
                                 {/* Color Bar */}
-                                <S.DeptColorBar className={dept.color}></S.DeptColorBar>
+                                <S.DeptColorBar $color={dept.color}></S.DeptColorBar>
 
                                 <S.DeptContent>
                                     <S.DeptHeader>
@@ -356,7 +356,7 @@ export const OrgChartView = () => {
                                         <S.ColorButton
                                             key={c.value}
                                             onClick={() => setDeptForm({ ...deptForm, color: c.value })}
-                                            className={c.value}
+                                            $color={c.value}
                                             $isSelected={deptForm.color === c.value}
                                             title={c.label}
                                         />

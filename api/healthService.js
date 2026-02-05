@@ -25,3 +25,13 @@ export const saveCreatorMental = (score) =>{
         params: {score}
     })
 };
+
+export const getManageHealth = () => {
+    return api.get('/health/manage/')
+}
+
+export const getManageSearch = (name, startDate, endDate) => {
+    return api.get('/health/manage/search',{
+        params: { name, startDate, endDate }
+    })
+}

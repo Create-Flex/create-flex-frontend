@@ -178,7 +178,7 @@ export const TaskActionWrapper = styled.div`
   width: 6rem;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
 `;
 
 export const TaskDeleteBtn = styled.button`
@@ -188,6 +188,12 @@ export const TaskDeleteBtn = styled.button`
   &:hover {
     color: #ef4444;
   }
+`;
+
+export const TaskAssigneeName = styled.span`
+  font-size: 0.875rem;
+  color: #374151;
+  margin-right: 0.5rem;
 `;
 
 export const AddTaskBtn = styled.div`

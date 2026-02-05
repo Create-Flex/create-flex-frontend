@@ -13,7 +13,7 @@ import { teamService } from '../../api/teamService';
 import { useEmployeeStore } from '../../stores/useEmployeeStore';
 
 export const TeamManagement = ({ employees, creators = [] }) => {
-    const { teams, setTeams } = useEmployeeStore(); // 스토어에서 가져옴
+    const { teams, setTeams } = useEmployeeStore(); // 스토어에서 가져옴.
 
     const fetchTeams = async () => {
         try {
@@ -77,15 +77,15 @@ export const TeamManagement = ({ employees, creators = [] }) => {
         let teamId = managingTeam?.id;
 
         if (managingTeam) {
-            // 1. 기존 팀 정보 수정
+            // 기존 팀 정보 수정
             await teamService.updateTeam(teamId, teamData);
         } else {
-            // 2. 새 팀 생성
+            // 새 팀 생성
             const response = await teamService.createTeam(teamData);
             teamId = response.data.id; // 생성된 팀의 ID 확보
         }
 
-        // 3. 멤버 변경 사항 업데이트 (TeamRelay 테이블)
+        // 멤버 변경 사항 업데이트 (TeamRelay 테이블)
         // teamForm.memberIds에 담긴 멤버 리스트를 전송
         await teamService.updateTeamMembers(teamId, teamForm.memberIds);
 

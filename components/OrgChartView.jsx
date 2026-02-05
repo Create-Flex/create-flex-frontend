@@ -22,9 +22,8 @@ const DEPT_COLORS = [
 
 export const OrgChartView = () => {
     const { user } = useAuthStore();
-    const { departments, fetchDepartments: onUpdateDepartments, employees } = useEmployeeStore();
+    const { departments, setDepartments: onUpdateDepartments, employees } = useEmployeeStore();
 
-    
     // API Fetch
     useEffect(() => {
         fetchDepartments();
@@ -39,7 +38,8 @@ export const OrgChartView = () => {
                 name: d.departmentName,
                 phone: d.departmentCall,
                 description: d.departmentDetail,
-                color: d.departmentColor
+                color: d.departmentColor,
+                memberCount: d.memberCount || 0 // 멤버 수 매핑
             }));
             onUpdateDepartments(mappedDepts);
         } catch (error) {
@@ -47,7 +47,7 @@ export const OrgChartView = () => {
         }
     };
 
-     // 부서 상세 정보 조회 (멤버 목록 포함)
+    // 부서 상세 정보 조회 (멤버 목록 포함)
     const handleCardClick = async (dept) => {
         try {
             const response = await departmentService.getDepartmentDetail(dept.id);
@@ -74,7 +74,7 @@ export const OrgChartView = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState(null);
-     const [selectedDeptMembers, setSelectedDeptMembers] = useState([]); // 멤버 목록 상태 추가
+    const [selectedDeptMembers, setSelectedDeptMembers] = useState([]); // 멤버 목록 상태 추가
 
     // Admin Management State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,6 +120,19 @@ export const OrgChartView = () => {
         setIsModalOpen(true);
     };
 
+    const handleDeleteDepartment = async (id) => {
+        if (window.confirm('부서를 삭제하시겠습니까?')) {
+            try {
+                await departmentService.deleteDepartment(id);
+                alert('부서가 삭제되었습니다.');
+                fetchDepartments();
+                setSelectedDept(null);
+            } catch (error) {
+                alert('삭제에 실패했습니다.');
+            }
+        }
+    };
+
     const handleSave = async () => {
         if (!deptForm.name) return alert('조직 이름을 입력해주세요.');
 
@@ -143,23 +156,6 @@ export const OrgChartView = () => {
         } catch (error) {
             console.error(error);
             alert('저장 중 오류가 발생했습니다.');
-        }
-    };
-
-    useEffect(() => {
-        fetchDepartments();
-    }, []);
-
-     const handleDeleteDepartment = async (id) => {
-        if (window.confirm('부서를 삭제하시겠습니까?')) {
-            try {
-                await departmentService.deleteDepartment(id);
-                alert('부서가 삭제되었습니다.');
-                fetchDepartments();
-                setSelectedDept(null);
-            } catch (error) {
-                alert('삭제에 실패했습니다.');
-            }
         }
     };
 

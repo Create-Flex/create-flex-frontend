@@ -106,13 +106,6 @@ export const Sidebar = ({ onLogout }) => {
     // 미승인 휴가 건수 (백엔드에서 조회)
     const [pendingApprovals, setPendingApprovals] = useState(0);
 
-    if (!user || !userProfile) return null; // Safety check
-
-    const isAdmin = user.role === UserRole.ADMINISTRATOR || user.memberRole === 'ADMINISTRATOR';
-    const isManager = user.role === UserRole.MANAGER || user.memberRole === 'MANAGER';
-    const isCreator = user.role === UserRole.CREATOR || user.memberRole === 'CREATOR';
-    const isEmployee = user.role === UserRole.EMPLOYEE || user.memberRole === 'EMPLOYEE';
-
     const [isClockedIn, setIsClockedIn] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -127,6 +120,12 @@ export const Sidebar = ({ onLogout }) => {
     const [dayProgress, setDayProgress] = useState(0);
 
     const timerRef = useRef(null);
+
+    // Derived state (will be used after hooks, safe since they're just variable declarations)
+    const isAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
+    const isManager = user?.role === UserRole.MANAGER || user?.memberRole === 'MANAGER';
+    const isCreator = user?.role === UserRole.CREATOR || user?.memberRole === 'CREATOR';
+    const isEmployee = user?.role === UserRole.EMPLOYEE || user?.memberRole === 'EMPLOYEE';
 
     // Sync local state with global attendanceLogs on mount/update
     // Sync local state with real backend API on mount/update
@@ -247,6 +246,9 @@ export const Sidebar = ({ onLogout }) => {
         };
         fetchPendingCount();
     }, [user, vacationRefreshKey]);
+
+    // Safety check - must be AFTER all hooks
+    if (!user || !userProfile) return null;
 
     const handleClockInOut = async () => {
         if (!user) return;

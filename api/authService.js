@@ -37,5 +37,30 @@ export const authService = {
       console.error('내 정보 조회 에러:', error);
       throw error;
     }
+  },
+
+  // 내 정보 수정
+  updateMyInfo: async (data) => {
+    try {
+      const response = await api.patch('/employees/me', data);
+      return response.data;
+    } catch (error) {
+      console.error('내 정보 수정 에러:', error);
+      throw error;
+    }
+  },
+
+  // 비밀번호 변경
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await api.patch('/employees/password', {
+        currentPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      console.error('비밀번호 변경 에러:', error);
+      throw error;
+    }
   }
 };

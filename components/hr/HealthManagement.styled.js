@@ -133,6 +133,24 @@ export const SearchIconWrapper = styled.div`
   align-items: center;
 `;
 
+export const SearchButton = styled.button`
+  padding-left: 0.5rem; // pl-9
+  padding-right: 0.5rem; // pr-4
+  padding-top: 0.5rem; // py-2
+  padding-bottom: 0.5rem;
+  font-size: 0.875rem; // text-sm
+  border: 1px solid #e5e7eb; // border-gray-200
+  border-radius: 0.5rem; // rounded-lg
+  width: 3rem; // w-56
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  
+  &:hover {
+    color: #4b5563;
+    background-color: #ccd3df;
+  }
+`;
+
 export const SelectWrapper = styled.div`
   position: relative;
 `;
@@ -313,11 +331,11 @@ export const ResultBadge = styled.span`
   
   ${props => {
     const res = props.$result || '';
-    if (res.includes('양호')) return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
-    if (res.includes('경미')) return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
-    if (res.includes('주의')) return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
-    if (res.includes('위험')) return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
-    if (res.includes('재검')) return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
+    if (res.includes('NORMAL_AB')) return css`background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;`;
+    if (res.includes('NORMAL_B')) return css`background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;`;
+    if (res.includes('CAUTION')) return css`background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;`;
+    if (res.includes('DANGER')) return css`background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;`;
+    if (res.includes('RETEST_NEED')) return css`background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff;`;
     return css`background-color: #f9fafb; color: #6b7280; border-color: #e5e7eb;`;
   }}
 `;

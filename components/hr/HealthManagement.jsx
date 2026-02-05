@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, X, FileText, Download, Calendar, User, Activity, ArrowRight, Trash2, Edit3, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, ChevronDown } from 'lucide-react';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, IconWrapper, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
@@ -6,8 +6,9 @@ import {
     TableContainer, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, ResultBadge, ActionButtonsData, ActionIconBtn,
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalBody, FormSection, FormGroup, FormGrid, FormLabel, FormInput, FormSelect,
     InfoValue, AttachmentCard, FileIconWrapper, FileName, FileSize, DownloadBtn, Disclaimer, ModalFooter, FooterBtn,
-    AttachmentSection, AttachmentHeader, AttachmentLabel, FileContent, ButtonGroup
+    AttachmentSection, AttachmentHeader, AttachmentLabel, FileContent, ButtonGroup, SearchButton
 } from './HealthManagement.styled';
+import { getManageHealth, getManageSearch } from '../../api/healthService';
 
 export const HealthManagement = ({ healthRecords: initialRecords }) => {
     // CRUD 기능을 위해 로컬 상태로 관리 (App.tsx를 수정할 수 없는 제약 사항 때문)
@@ -19,20 +20,72 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
 
     const formatDate = (date) => date.toISOString().split('T')[0];
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [name, setName] = useState('');
     const [resultFilter, setResultFilter] = useState('All'); // 결과 필터 상태 추가
-    const [startDate, setStartDate] = useState(formatDate(oneYearAgo));
-    const [endDate, setEndDate] = useState(formatDate(today));
+    const [startDate, setStartDate] = useState();
+    const [endDate, setEndDate] = useState();
+
+    const [healthManageList, setHealthManage] = useState([]);
+    const [manageCountNormal, setManageCountNormal] = useState(0);
+    const [manageCountCaution, setManageCountCaution] = useState(0);
+    const [manageCountDanger, setManageCountDanger] = useState(0);
+    const [menageCountRetest, setManageCountRetest] = useState(0);
 
     // 모달 및 편집 상태
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState(null);
 
+    const fetchManageHealth = async () => {
+        try{
+            const {data} = await getManageHealth();
+            console.log('조회결과 : ', data);
+            setHealthManage(data.healthInfoList);
+                
+            const manageSummanary = data.healthSummanaryCountList
+            const normalAB = manageSummanary.find(item => item.checkupSummanary === 'NORMAL_AB')?.totalCount ?? 0;
+            const normalB = manageSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
+            const caution = manageSummanary.find(item => item.checkupSummanary === 'CAUTION')?.totalCount ?? 0;
+            const danger = manageSummanary.find(item => item.checkupSummanary === 'DANGER')?.totalCount ?? 0;
+            const retest = manageSummanary.find(item => item.checkupSummanary === 'RETEST_NEED')?.totalCount ?? 0;
+            setManageCountNormal(normalAB + normalB);
+            setManageCountCaution(caution);
+            setManageCountDanger(danger);
+            setManageCountRetest(retest);
+            } catch (err) {
+                console.error('Health 조회 실패', err);
+        }
+    }
+
+    const healthManageSearch = async () => {
+            try {
+                const { data } = await getManageSearch(name, startDate, endDate);
+                console.log('검색 결과:', data);
+                setHealthManage(data.healthInfoList);
+            } catch (e) {
+                console.error('검색 실패', e);
+            }
+        };
+
+    useEffect(() => {
+        fetchManageHealth();
+    }, []);
+
+    const handleReset = () =>{
+        fetchManageHealth();
+    }
+
+    const handleSearch = () =>{
+        console.log('검색정보 : ', name, ", ", startDate, ", ", endDate);
+        healthManageSearch();
+    }
+    
+    
+
     // 필터링된 데이터
     const filtered = useMemo(() => {
         return records.filter(h => {
-            const matchesName = h.name.includes(searchQuery);
+            const matchesName = h.name.includes(name);
             const matchesResult = resultFilter === 'All' || h.result.includes(resultFilter);
 
             let matchesDate = true;
@@ -44,18 +97,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
 
             return matchesName && matchesDate && matchesResult;
         });
-    }, [records, searchQuery, startDate, endDate, resultFilter]);
-
-    // 통계 계산
-    const stats = useMemo(() => {
-        return {
-            total: filtered.length,
-            normal: filtered.filter(r => r.result.includes('양호') || r.result.includes('경미')).length,
-            caution: filtered.filter(r => r.result.includes('주의')).length,
-            risk: filtered.filter(r => r.result.includes('위험')).length,
-            retest: filtered.filter(r => r.result.includes('재검')).length,
-        };
-    }, [filtered]);
+    }, [records, name, startDate, endDate, resultFilter]);
 
     // CRUD 핸들러
     const handleDelete = (id, e) => {
@@ -99,34 +141,42 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
         </StatCardContainer>
     );
 
+    const summaryLabelMap = {
+        NORMAL_AB: '정상AB',
+        NORMAL_B: '정상B',
+        CAUTION: '주의',
+        DANGER: '위험',
+        RETEST_NEED: '재검 필요'
+    };
+
     return (
         <Container>
             {/* Statistics Dashboard */}
             <StatsGrid>
                 <StatCard
                     label="정상 (양호/경미)"
-                    value={stats.normal}
+                    value={manageCountNormal}
                     icon={CheckCircle2}
                     colorClass="green"
                     subLabel="건강 상태가 양호한 인원"
                 />
                 <StatCard
                     label="주의 (유소견)"
-                    value={stats.caution}
+                    value={manageCountCaution}
                     icon={AlertTriangle}
                     colorClass="orange"
                     subLabel="추적 관찰이 필요한 인원"
                 />
                 <StatCard
                     label="위험 (질환의심)"
-                    value={stats.risk}
+                    value={manageCountDanger}
                     icon={AlertCircle}
                     colorClass="red"
                     subLabel="정밀 검사가 필요한 인원"
                 />
                 <StatCard
                     label="재검 필요"
-                    value={stats.retest}
+                    value={menageCountRetest}
                     icon={RefreshCw}
                     colorClass="purple"
                     subLabel="재검사가 확정된 인원"
@@ -143,11 +193,11 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                         <SearchInput
                             type="text"
                             placeholder="직원 이름 검색..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                         />
                     </SearchWrapper>
-
+                    {/*}
                     <SelectWrapper>
                         <ResultSelect
                             value={resultFilter}
@@ -163,7 +213,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             <ChevronDown size={14} />
                         </SelectIconWrapper>
                     </SelectWrapper>
-
+                    */}
                     <DateFilter>
                         <Calendar size={14} color="#9ca3af" />
                         <DateLabel>검진일</DateLabel>
@@ -181,14 +231,17 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </DateFilter>
+                    <SearchWrapper>
+                        <SearchButton onClick={handleSearch}>검색</SearchButton>
+                    </SearchWrapper>
                 </FilterGroup>
 
                 <ResetButton
                     onClick={() => {
-                        setSearchQuery('');
-                        setResultFilter('All');
-                        setStartDate(formatDate(oneYearAgo));
-                        setEndDate(formatDate(today));
+                        handleReset();
+                        setName('');
+                        setStartDate('');
+                        setEndDate('');
                     }}
                 >
                     필터 초기화
@@ -202,39 +255,39 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                         <tr>
                             <TableHeaderCell>이름</TableHeaderCell>
                             <TableHeaderCell>최근 검진일</TableHeaderCell>
-                            <TableHeaderCell>검진 기관</TableHeaderCell>
+                            <TableHeaderCell>       </TableHeaderCell>
                             <TableHeaderCell $center>결과 판정</TableHeaderCell>
                             <TableHeaderCell $right>관리</TableHeaderCell>
                         </tr>
                     </TableHead>
                     <TableBody>
-                        {filtered.length > 0 ? filtered.map(rec => (
+                        {healthManageList.length > 0 ? healthManageList.map((rec) => (
                             <TableRow
-                                key={rec.id}
+                                key={`${rec.healthId}-${rec.checkupDate}`}
                                 onClick={() => { setSelectedRecord(rec); setIsEditing(false); }}
                             >
                                 <TableCell $bold $color="#111827">
-                                    {rec.name}
+                                    {rec.checkupName}
                                 </TableCell>
                                 <TableCell $color="#4b5563">
-                                    {rec.lastCheck}
+                                    {rec.checkupDate}
                                 </TableCell>
-                                <TableCell $color="#6b7280">
-                                    {rec.hospital}
-                                </TableCell>
+                                <TableCell>     </TableCell>
                                 <TableCell $center>
-                                    <ResultBadge $result={rec.result}>
-                                        {rec.result}
+                                    <ResultBadge $result={rec.checkupSummanary}>
+                                        {summaryLabelMap[rec.checkupSummanary] ?? rec.checkupSummanary}
                                     </ResultBadge>
                                 </TableCell>
                                 <TableCell $right>
                                     <ActionButtonsData>
+                                        {/*
                                         <ActionIconBtn
                                             onClick={(e) => { e.stopPropagation(); setSelectedRecord(rec); handleEditStart(); }}
                                             title="기록 수정"
                                         >
                                             <Edit3 size={14} />
                                         </ActionIconBtn>
+                                        */}
                                         <ActionIconBtn
                                             $danger
                                             onClick={(e) => handleDelete(rec.id, e)}
@@ -311,13 +364,13 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                         <FormGroup>
                                             <FormLabel>성명</FormLabel>
                                             <InfoValue $bold $color="#111827">
-                                                <User size={14} color="#6b7280" /> {selectedRecord.name}
+                                                <User size={14} color="#6b7280" /> {selectedRecord.checkupName}
                                             </InfoValue>
                                         </FormGroup>
                                         <FormGroup>
                                             <FormLabel>최근 검진일</FormLabel>
                                             <InfoValue>
-                                                <Calendar size={14} color="#6b7280" /> {selectedRecord.lastCheck}
+                                                <Calendar size={14} color="#6b7280" /> {selectedRecord.checkupDate}
                                             </InfoValue>
                                         </FormGroup>
                                     </FormGrid>
@@ -326,8 +379,8 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                         {/* "검진 기관" field removed from display as per user request */}
                                         <FormGroup>
                                             <FormLabel>종합 판정</FormLabel>
-                                            <ResultBadge $result={selectedRecord.result}>
-                                                {selectedRecord.result}
+                                            <ResultBadge $result={selectedRecord.checkupSummanary}>
+                                                {summaryLabelMap[selectedRecord.checkupSummanary] ?? selectedRecord.checkupSummanary}
                                             </ResultBadge>
                                         </FormGroup>
                                     </FormGrid>
@@ -342,11 +395,11 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                                     <FileText size={20} />
                                                 </FileIconWrapper>
                                                 <div>
-                                                    <FileName>{selectedRecord.name}_건강검진결과표.pdf</FileName>
+                                                    <FileName>{selectedRecord.checkupName}_건강검진결과표.pdf</FileName>
                                                     <FileSize>2.4 MB</FileSize>
                                                 </div>
                                             </FileContent>
-                                            <DownloadBtn>
+                                            <DownloadBtn title="결과지 다운로드" onClick={() => window.open(selectedRecord.checkupFileUrl, "_blank")}>
                                                 <Download size={18} />
                                             </DownloadBtn>
                                         </AttachmentCard>

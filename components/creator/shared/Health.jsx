@@ -303,6 +303,7 @@ export const CreatorHealthView = ({
     };
 
     useEffect(() => {
+        console.log(User);
         fetchCreatorHealth();
     }, []);
 

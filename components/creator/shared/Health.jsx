@@ -113,6 +113,7 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
         });
         await saveCreatorMental(totalScore);
         onClose();
+        window.location.reload();
     };
 
     return (
@@ -194,7 +195,8 @@ export const CreatorHealthView = ({
     isCreator = false
 }) => {
     // Filter records
-    const creatorNames = creators.map(c => c.name);
+    {/*
+    const creatorNames = creators.map(c => c.checkupName);
     const filteredRecords = records.filter(r => creatorNames.includes(r.name));
     const filteredLogs = logs.filter(l => creatorNames.includes(l.creator));
 
@@ -207,6 +209,7 @@ export const CreatorHealthView = ({
             l.category.includes('중등') || l.category.includes('심각') || l.status === '치료필요' || l.status === '휴식권고'
         ).length
     };
+    */}
 
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isCheckModalOpen, setIsCheckModalOpen] = useState(false);
@@ -264,8 +267,8 @@ export const CreatorHealthView = ({
             </div>
         </StatCardWrapper>
     );
-
-    const [creatorHealthList, setCreatorHealth] = useState([]);
+    
+        const [creatorHealthList, setCreatorHealth] = useState([]);
     const [creatorCountNormal, setCreatorCountNormal] = useState();
     const [creatorCountCaution, setCreatorCountCaution] = useState();
     const [creatorCountDanger, setCreatorCountDanger] = useState();

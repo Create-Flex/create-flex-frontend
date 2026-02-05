@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole } from '../enums';
 import { AdminCreatorView } from './AdminCreatorView';
 import { EmployeeCreatorView } from './EmployeeCreatorView';
@@ -14,6 +14,8 @@ import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUserStore } from '../stores/useUserStore';
 import { useUIStore } from '../stores/useUIStore';
 
+import { getCreatorHealth, saveCreatorMental } from '../api/healthService';
+
 // --- Creator Self View (Refactored) ---
 const CreatorSelfView = ({
     user,
@@ -26,6 +28,40 @@ const CreatorSelfView = ({
     onUpdateIssueLogs,
     currentView
 }) => {
+
+    const [creatorHealthList, setCreatorHealth] = useState([]);
+    const [creatorCountNormal, setCreatorCountNormal] = useState();
+    const [creatorCountCaution, setCreatorCountCaution] = useState();
+    const [creatorCountDanger, setCreatorCountDanger] = useState();
+    const [creatorMentalWarning, setCreatorMentalCount] = useState();
+    const [creatorMentalList, setCreatorMental] = useState([]);
+
+    const fetchCreatorHealth = async () => {
+            try{
+                const {data} = await getCreatorHealth();
+                console.log('조회결과 : ', data);
+                setCreatorHealth(data.healthInfoList);
+                setCreatorMental(data.mentalHealthInfoList);
+                
+                const creatorSummanary = data.healthSummanaryCountList
+                const normalAB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_AB')?.totalCount ?? 0;
+                const normalB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
+                const caution = creatorSummanary.find(item => item.checkupSummanary === 'CAUTION')?.totalCount ?? 0
+                const danger = creatorSummanary.find(item => item.checkupSummanary === 'DANGER')?.totalCount ?? 0
+                const mentalWorn = data.mentalWarningHealthInfoList.length;
+                setCreatorCountNormal(normalAB + normalB);
+                setCreatorCountCaution(caution);
+                setCreatorCountDanger(danger);
+                setCreatorMentalCount(mentalWorn);
+            } catch (err) {
+                    console.error('Health 조회 실패', err);
+            }
+        }
+
+    useEffect(() => {
+        fetchCreatorHealth()
+    }, [])
+
     // Identify the creator based on logged-in user account or ID
     const myCreator = creators.find(c =>
         c.loginId === user.memberAccount ||
@@ -37,7 +73,7 @@ const CreatorSelfView = ({
         avatarUrl: user.profileImage || ''
     } : null);
     const isHealthView = currentView === 'creator-health';
-
+    {/*
     if (!myCreator) {
         return (
             <S.MessageContainer>
@@ -45,6 +81,7 @@ const CreatorSelfView = ({
             </S.MessageContainer>
         );
     }
+    */}
 
     if (isHealthView) {
         return (

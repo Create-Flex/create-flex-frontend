@@ -30,7 +30,6 @@ export const INITIAL_EMPLOYEES = [
     { id: '1008', name: '한코딩', engName: 'Han Coding', dept: '기술본부', role: '프론트엔드 개발자', workStatus: '퇴근', email: 'han.code@naver.com', phone: '010-8888-8888', joinDate: '2020-07-15', avatarUrl: 'https://cdn.mcn.com/profiles/default.jpg', nickname: '한코더', rank: '직원', remainingVacation: 13 },
 ];
 
-
 export const INITIAL_DEPARTMENTS = [
     { id: 'Executive', name: '경영지원본부 (Executive)', phone: '02-555-0001', description: '회사 경영 전반 및 전략 수립', color: 'bg-slate-800' },
     { id: 'Business Div', name: '사업본부 (Business Div)', phone: '02-555-1000', description: '신규 사업 개발 및 제휴', color: 'bg-blue-600' },

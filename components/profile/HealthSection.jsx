@@ -11,45 +11,12 @@ import { getMyHealth } from '../../api/healthService';
 
 export const HealthSection = ({
     profile,
-    checkupHistory,
+    healthList,
+    onUpdateHealthList,
+    healthCheck,
+    onUpdateHealthCheck,
     onOpenResultModal
 }) => {
-
-    const [healthList, setHealthList] = useState([]);
-    const [healthCheck, setHealthCheck] = useState();
-
-    useEffect(() => {
-
-        const fetchHealth = async () => {
-            const today = new Date();
-            const oneYearAgo = new Date(today);
-            oneYearAgo.setFullYear(today.getFullYear() - 2);
-
-            const toLocalDateString = (date) => {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            };
-
-            const startDate = toLocalDateString(oneYearAgo);
-            const endDate = toLocalDateString(today);
-
-            try {
-                const { data } = await getMyHealth(startDate, endDate); // API 호출
-                console.log('Health API 응답:', data); // ✅ 여기서 확인
-                setHealthList(data.healthInfoList); // 상태에 저장
-                setHealthCheck(data.haveHealthChecked);
-            } catch (err) {
-                console.error('Health 조회 실패', err);
-            }
-        };
-        
-
-        fetchHealth();
-    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
-
-    
     
     // Helper for ISO Date calculation
     const getInitialDates = () => {
@@ -64,7 +31,6 @@ export const HealthSection = ({
 
     const initialDates = getInitialDates();
     
-    
     // History Filter State
     const [historyStartDate, setHistoryStartDate] = useState(initialDates.TwoYearsAgo);
     const [historyEndDate, setHistoryEndDate] = useState(initialDates.today);
@@ -73,7 +39,8 @@ export const HealthSection = ({
         try {
             const { data } = await getMyHealth(historyStartDate, historyEndDate);
             console.log('검색 결과:', data);
-            setHealthList(data.healthInfoList);
+            if(onUpdateHealthList) onUpdateHealthList(data.healthInfoList);
+            if(onUpdateHealthCheck) onUpdateHealthCheck(data.haveHealthChecked);
         } catch (e) {
             console.error('검색 실패', e);
         }
@@ -154,9 +121,11 @@ export const HealthSection = ({
                                 <span>{value.checkupDate}</span>
                                 </HistoryDateRow>
                             </HistoryItemContent>
-                            <DownloadButton title="결과지 다운로드">
+                            {value.checkupFileUrl && (
+                            <DownloadButton title="결과지 다운로드" onClick={() => window.open(value.checkupFileUrl, "_blank")}>
                                 <Download size={18} />
                             </DownloadButton>
+                            )}
                         </HistoryItem>
                     )) : (
                         <EmptyState>

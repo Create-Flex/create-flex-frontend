@@ -28,6 +28,7 @@ import { useHealthStore } from '../stores/useHealthStore';
 import { useVacationStore } from '../stores/useVacationStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
+import { getMyHealth, postMyHealth, putMyHealth } from '../api/healthService';
 import { authService } from '../api/authService';
 
 export const ProfileView = ({
@@ -230,6 +231,38 @@ export const ProfileView = ({
     // Filter vacation logs for displayed user
     const userVacationLogs = vacationLogs.filter(log => log.name === displayProfile.name);
 
+    const [healthList, setHealthList] = useState([]);
+    const [healthCheck, setHealthCheck] = useState();
+
+    const fetchHealth = async () => {
+            const today = new Date();
+            const oneYearAgo = new Date(today);
+            oneYearAgo.setFullYear(today.getFullYear() - 2);
+    
+            const toLocalDateString = (date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            };
+    
+            const startDate = toLocalDateString(oneYearAgo);
+            const endDate = toLocalDateString(today);
+    
+            try {
+                const { data } = await getMyHealth(startDate, endDate); // API 호출
+                console.log('Health API 응답:', data); // ✅ 여기서 확인
+                setHealthList(data.healthInfoList); // 상태에 저장
+                setHealthCheck(data.haveHealthChecked);
+            } catch (err) {
+                console.error('Health 조회 실패', err);
+            }
+        };
+    
+    useEffect(() => {
+        fetchHealth();
+    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
+
     return (
         <Container>
             {onBack && (
@@ -319,9 +352,11 @@ export const ProfileView = ({
                         {activeTab === '건강' && !isCreatorProfile && (
                             <HealthSection
                                 profile={displayProfile}
-                                checkupHistory={checkupHistory}
+                                healthList={healthList}
+                                onUpdateHealthList={(newList) => {setHealthList(newList);}}
+                                healthCheck={healthCheck}
+                                onUpdateHealthCheck={(newBoolean) => {setHealthCheck(newBoolean);}}
                                 onOpenResultModal={() => setIsResultModalOpen(true)}
-                                readOnly={readOnly || !canUpdate}
                             />
                         )}
                     </MainContent>
@@ -383,31 +418,24 @@ export const ProfileView = ({
                     <HealthResultModal
                         isOpen={isResultModalOpen}
                         onClose={() => setIsResultModalOpen(false)}
-                        onUpload={(data) => {
-                            const newLocalRecord = {
-                                id: Date.now(),
-                                year: new Date(data.date).getFullYear().toString(),
-                                type: '정기 건강검진',
-                                date: data.date.replace(/-/g, '. '),
-                                result: data.status
-                            };
-                            setCheckupHistory([newLocalRecord, ...checkupHistory]);
+                        onUpload={async (data) => {
+                            try{
+                                for (let [key, value] of data.entries()) {
+                                    console.log(key, value);
+                                }
 
-                            if (addHealthRecord) {
-                                const nextYear = new Date(data.date);
-                                nextYear.setFullYear(nextYear.getFullYear() + 1);
-                                const nextCheckStr = nextYear.toISOString().split('T')[0];
+                                const response = await postMyHealth(data);
+                                const presignedUrl = response.data.presignedUrl;
+                                const file = data.get("file");
 
-                                const newHealthRecord = {
-                                    id: Date.now(),
-                                    name: displayProfile.name,
-                                    lastCheck: data.date,
-                                    hospital: '병원 (파일참조)',
-                                    result: data.status,
-                                    nextCheck: nextCheckStr,
-                                    bp: '-', sugar: '-', chol: '-', bmi: '-'
-                                };
-                                addHealthRecord(newHealthRecord);
+                                await putMyHealth(file, presignedUrl);
+                                fetchHealth();
+
+                                alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
+                                setIsResultModalOpen(false);
+                            } catch (error){
+                                console.error("업데이트 실패 : ", error);
+                                alert('업로드 실패');
                             }
                             alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
                             setIsResultModalOpen(false);

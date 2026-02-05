@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { UserRole } from '../enums';
 import { AdminCreatorView } from './AdminCreatorView';
 import { EmployeeCreatorView } from './EmployeeCreatorView';
@@ -11,6 +11,7 @@ import { useCreatorStore } from '../stores/useCreatorStore';
 import { useEmployeeStore } from '../stores/useEmployeeStore';
 import { useHealthStore } from '../stores/useHealthStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
+import { useUserStore } from '../stores/useUserStore';
 import { useUIStore } from '../stores/useUIStore';
 
 // --- Creator Self View (Refactored) ---
@@ -30,7 +31,11 @@ const CreatorSelfView = ({
         c.loginId === user.memberAccount ||
         c.id === String(user.memberId) ||
         c.id === String(user.id)
-    );
+    ) || (user.role === UserRole.CREATOR || user.memberRole === 'CREATOR' ? {
+        id: String(user.memberId || user.id),
+        name: user.memberName || user.name,
+        avatarUrl: user.profileImage || ''
+    } : null);
     const isHealthView = currentView === 'creator-health';
 
     if (!myCreator) {
@@ -67,8 +72,8 @@ const CreatorSelfView = ({
 export const CreatorManagerView = ({ view }) => {
     const { user } = useAuthStore();
     const {
-        creators, setCreators,
-        creatorEvents, setCreatorEvents,
+        creators, setCreators, fetchCreators,
+        creatorEvents, setCreatorEvents, fetchCreatorEvents,
         addSupportRequest, supportRequests
     } = useCreatorStore();
 
@@ -77,9 +82,25 @@ export const CreatorManagerView = ({ view }) => {
         creatorHealthRecords, setCreatorHealthRecords,
         creatorIssueLogs, setCreatorIssueLogs
     } = useHealthStore();
+
     const { allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
-    const { currentView: storeView } = useUIStore();
+    const { currentDate, currentView: storeView } = useUIStore();
     const currentView = view || storeView;
+
+    // Fetch creators and events
+    useEffect(() => {
+        if (creators.length === 0) {
+            fetchCreators();
+        }
+    }, [fetchCreators, creators.length]);
+
+    useEffect(() => {
+        if (user && (user.role === UserRole.CREATOR || user.memberRole === 'CREATOR')) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            fetchCreatorEvents(year, month);
+        }
+    }, [currentDate, user, fetchCreatorEvents]);
 
     if (!user) return null;
 
@@ -91,7 +112,11 @@ export const CreatorManagerView = ({ view }) => {
             user={user}
             creators={creators}
             events={creatorEvents}
-            onUpdateEvents={setCreatorEvents}
+            onUpdateEvents={() => {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth() + 1;
+                fetchCreatorEvents(year, month);
+            }}
             healthRecords={creatorHealthRecords}
             onUpdateHealthRecords={setCreatorHealthRecords}
             issueLogs={creatorIssueLogs}

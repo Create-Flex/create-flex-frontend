@@ -15,7 +15,36 @@ import {
     UploadGuideBox, GuideIcon, GuideContent, GuideTitle, GuideText,
     FormStackSpaced, Label, Select, ActionButton
 } from '../../profile/modals/Modal.styled';
-import { getCreatorHealth } from '../../../api/healthService';
+import { getCreatorHealth, saveCreatorMental } from '../../../api/healthService';
+
+const mentalResult = (score) =>{
+    if (score <= 4) {
+            return {
+                status: '우울아님',
+                badgeText: '정상',
+                badgeColor: 'bg-green-50 text-green-700 border-green-200', // Legacy classes, handled by styled prop logic or specialized component
+                icon: CheckCircle2
+            };
+        } else if (score <= 9) {
+            return {
+                status: '가벼운 우울',
+                badgeText: '주의 (경미)',
+                icon: AlertTriangle
+            };
+        } else if (score <= 19) {
+            return {
+                status: '중간정도의 우울',
+                badgeText: '주의',
+                icon: AlertTriangle
+            };
+        } else {
+            return {
+                status: '심한 우울',
+                badgeText: '위험',
+                icon: AlertCircle
+            };
+        }
+}
 
 // PHQ-9 Survey Modal Component (Shows Completed only)
 export const PhqSurveyModal = ({ onClose, onSubmit }) => {
@@ -74,7 +103,7 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
         setStep(2);
     };
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         onSubmit && onSubmit({
             date: new Date().toISOString().split('T')[0],
             score: totalScore,
@@ -82,6 +111,7 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
             description: resultData.description,
             status: '확인완료'
         });
+        await saveCreatorMental(totalScore);
         onClose();
     };
 
@@ -143,16 +173,6 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
                                     {resultData.badgeText}
                                 </ResultBadge>
                             </ScoreDisplay>
-
-                            <ResultDescriptionBox>
-                                <DescriptionHeader>
-                                    <ClipboardList size={16} /> 결과 설명
-                                </DescriptionHeader>
-                                <p className="text-sm text-gray-600 leading-relaxed">
-                                    <span className="font-bold">[{resultData.status}]</span> {resultData.description}
-                                </p>
-                            </ResultDescriptionBox>
-
                             <SurveyActionButton onClick={handleFinalize} $fullWidth>
                                 확인 완료
                             </SurveyActionButton>
@@ -249,6 +269,7 @@ export const CreatorHealthView = ({
     const [creatorCountNormal, setCreatorCountNormal] = useState();
     const [creatorCountCaution, setCreatorCountCaution] = useState();
     const [creatorCountDanger, setCreatorCountDanger] = useState();
+    const [creatorMentalWarning, setCreatorMentalCount] = useState();
     const [creatorMentalList, setCreatorMental] = useState([]);
 
     const fetchCreatorHealth = async () => {
@@ -263,9 +284,11 @@ export const CreatorHealthView = ({
             const normalB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
             const caution = creatorSummanary.find(item => item.checkupSummanary === 'CAUTION')?.totalCount ?? 0
             const danger = creatorSummanary.find(item => item.checkupSummanary === 'DANGER')?.totalCount ?? 0
+            const mentalWorn = data.mentalWarningHealthInfoList.length;
             setCreatorCountNormal(normalAB + normalB);
             setCreatorCountCaution(caution);
             setCreatorCountDanger(danger);
+            setCreatorMentalCount(mentalWorn);
         } catch (err) {
                 console.error('Health 조회 실패', err);
         }
@@ -290,7 +313,7 @@ export const CreatorHealthView = ({
                     <StatCard label="정상 (양호/경미)" value={creatorCountNormal} icon={CheckCircle2} subLabel="건강 상태가 양호한 크리에이터" />
                     <StatCard label="주의 (유소견)" value={creatorCountCaution} icon={AlertTriangle} subLabel="추적 관찰이 필요한 크리에이터" />
                     <StatCard label="위험 (질환의심)" value={creatorCountDanger} icon={AlertCircle} subLabel="정밀 검사가 필요한 크리에이터" />
-                    <StatCard label="우울증 심각 현황" value={stats.mentalSevere} icon={BrainCircuit} subLabel="심리 상담 및 휴식이 권고된 인원" />
+                    <StatCard label="우울증 심각 현황" value={creatorMentalWarning} icon={BrainCircuit} subLabel="심리 상담 및 휴식이 권고된 인원" />
                 </StatGrid>
             )}
 
@@ -353,26 +376,19 @@ export const CreatorHealthView = ({
                     </SectionHeader>
 
                     <LogList>
-                        {filteredLogs.map(log => (
-                            <LogItem key={log.id}>
+                        {creatorMentalList.length > 0 ? creatorMentalList.map((red) => (
+                            <LogItem key={`${red.memberId}-${red.creatorMentalDate}`}>
 
                                 <LogHeader>
-                                    <LogCreator>{log.creator}</LogCreator>
-                                    <LogDate>{log.date}</LogDate>
+                                    <LogCreator>{red.memberName}</LogCreator>
+                                    <LogDate>{red.creatorMentalDate}</LogDate>
                                 </LogHeader>
-                                <LogCategoryWrapper>
-                                    <span className={`inline-block text-xs font-bold px-2 py-1 rounded border bg-gray-50 border-gray-200 text-gray-700`}>
-                                        {log.category}
-                                    </span>
-                                </LogCategoryWrapper>
                                 <LogContent>
                                     <span className="text-gray-500 mr-1">[PHQ-9 자가진단]</span>
-                                    {log.score !== undefined ? `총점 ${log.score}점 ` : ''}
-                                    {log.description}
+                                    {red.creatorMentalScore !== undefined ? ` 총점 ${red.creatorMentalScore}점, ${mentalResult(red.creatorMentalScore).badgeText} 입니다.` : ''}
                                 </LogContent>
                             </LogItem>
-                        ))}
-                        {filteredLogs.length === 0 && (
+                        )) :(
                             <EmptyLogs>기록된 검사 내역이 없습니다.</EmptyLogs>
                         )}
                     </LogList>

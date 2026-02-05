@@ -25,11 +25,11 @@ export const CalendarTab = ({
     useEffect(() => {
         const checkMyCreators = async () => {
             if (!user || !user.id) return;
-            
+
             try {
                 setIsLoading(true);
                 const response = await creatorService.getMyCreators(user.id);
-                
+
                 if (response && response.length > 0) {
                     // 크리에이터 데이터 변환
                     const formattedCreators = response.map(c => ({
@@ -39,10 +39,10 @@ export const CalendarTab = ({
                         subscribers: c.creator_subscribe || c.creatorSubscribe || '',
                         avatarUrl: c.profile_image || c.profileImage || '',
                     }));
-                    
+
                     setMyCreators(formattedCreators);
                     setHasCreators(true);
-                    
+
                     // 크리에이터가 있으면 일정 조회
                     await fetchCreatorSchedules();
                 } else {
@@ -68,9 +68,9 @@ export const CalendarTab = ({
         try {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth() + 1;
-            
+
             const response = await scheduleService.getCreatorSchedules(year, month);
-            
+
             // 응답 데이터를 이벤트 형식으로 변환
             const formattedEvents = response.map(schedule => {
                 // scheduleType을 event type으로 매핑
@@ -81,7 +81,7 @@ export const CalendarTab = ({
                     'MERGE': 'joint',
                     'LIVE': 'live'
                 };
-                
+
                 return {
                     id: String(schedule.scheduleId),
                     creatorId: String(schedule.memberId), // memberId가 작성자
@@ -97,7 +97,7 @@ export const CalendarTab = ({
                     isManagerCreated: schedule.creatorId !== null
                 };
             });
-            
+
             setEvents(formattedEvents);
         } catch (error) {
             console.error('크리에이터 일정 조회 실패:', error);
@@ -118,10 +118,10 @@ export const CalendarTab = ({
     if (isLoading) {
         return (
             <Container>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     minHeight: '400px',
                     color: '#6b7280'
                 }}>

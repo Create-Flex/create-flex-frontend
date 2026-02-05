@@ -167,6 +167,22 @@ export const AdminCreatorView = ({
                 {currentView === 'admin-creator-contract' && (
                     <ContractManagement creators={creators} />
                 )}
+                {currentView === 'employee-creator-calendar' && (
+                    <CalendarTab
+                        onAddEvent={(dateStr) => {
+                            setEventModalData({
+                                date: dateStr || new Date().toISOString().split('T')[0],
+                                creatorId: '',
+                                title: '',
+                                type: 'content',
+                                content: ''
+                            });
+                            setIsEventModalOpen(true);
+                        }}
+                        onEventClick={setSelectedEvent}
+                    />
+                )}
+
 
                 {currentView === 'admin-creator-health' && (
                     <CreatorHealthView

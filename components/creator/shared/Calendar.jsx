@@ -61,11 +61,12 @@ export const CreatorCalendar = ({
 
                 {/* Events */}
                 <EventList>
-                    {dayEvents.map(evt => {
+                    {dayEvents.map((evt, index) => {
                         const creator = creatorsMap[evt.creatorId];
+                        const uniqueKey = (evt.id && evt.id !== 'undefined' && evt.id !== 'null') ? evt.id : `evt-${dateStr}-${index}`;
                         return (
                             <EventItem
-                                key={evt.id}
+                                key={uniqueKey}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent onAddEvent trigger
                                     onEventClick(evt);
@@ -115,12 +116,15 @@ export const CreatorCalendar = ({
 
                 {/* Creator Legend */}
                 <Legend>
-                    {legendList.map((c) => (
-                        <LegendItem key={c.id}>
-                            <LegendDot $id={c.id} />
-                            {c.name}
-                        </LegendItem>
-                    ))}
+                    {legendList.map((c, index) => {
+                        const uniqueKey = (c.id && c.id !== 'undefined' && c.id !== 'null') ? c.id : `legend-${index}`;
+                        return (
+                            <LegendItem key={uniqueKey}>
+                                <LegendDot $id={c.id} />
+                                {c.name}
+                            </LegendItem>
+                        );
+                    })}
                 </Legend>
             </CalendarHeader>
 

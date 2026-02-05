@@ -8,6 +8,12 @@ export const scheduleService = {
     return response.data;
   },
 
+  // 크리에이터 일정 조회 (매니저용)
+  getCreatorSchedules: async (year, month) => {
+    const formattedMonth = `${year}-${String(month).padStart(2, '0')}`;
+    const response = await axiosInstance.get(`/schedules/creator?month=${formattedMonth}`);
+    return response.data;
+  },
   // 일정 등록
   createSchedule: async (scheduleData) => {
     const response = await axiosInstance.post('/schedules/', scheduleData);
@@ -25,4 +31,5 @@ export const scheduleService = {
     const response = await axiosInstance.delete(`/schedules/${id}`);
     return response.data;
   }
+
 };

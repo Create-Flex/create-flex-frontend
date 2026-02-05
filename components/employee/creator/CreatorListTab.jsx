@@ -19,9 +19,19 @@ import {
     AvatarSection, AvatarWrapper, AvatarImg, EmptyAvatar, InfoSection, CreatorName, MetaInfo, MetaItem, DotSeparator, StatusBadge, Divider,
     TaskSection, TaskHeader, TaskTitle, TaskCount, TaskLegend, LegendItem, LegendDot, LegendValue,
     TaskList, ListHeader, ListHeaderItem, ListBody, TaskItem, TaskContent, CheckButton, TaskText, TaskStatus, StatusTag,
-    TaskAssignee, AssigneeInfo, AssigneeAvatar, AssigneeName, DeleteButton, AddTaskRow, AddTaskInputWrapper, AddTaskInput,
+    TaskAssignee, AssigneeName, DeleteButton, AddTaskRow, AddTaskInputWrapper, AddTaskInput,
     CreatorGrid, CreatorCard, CardCover, CardOverlay, CardContent, CardAvatar, CardInfo, CardName, CardSubscribers, CardStatus, CardStatusBadge
 } from './CreatorListTab.styled';
+
+// 백엔드 상태를 프론트엔드 형식으로 변환
+const mapWorkStatusToFrontend = (backendStatus) => {
+    return backendStatus === 'DONE' ? '완료됨' : '진행중';
+};
+
+// 프론트엔드 상태를 백엔드 형식으로 변환
+const mapWorkStatusToBackend = (frontendStatus) => {
+    return frontendStatus === '완료됨' ? 'WORKING' : 'DONE'; // 토글이므로 반대로
+};
 
 const CreatorDetailView = ({
     creator,
@@ -33,6 +43,7 @@ const CreatorDetailView = ({
     onAddTask,
     onToggleTask,
     onDeleteTask,
+    isTaskLoading,
 }) => {
     const [isAddingTask, setIsAddingTask] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -124,43 +135,48 @@ const CreatorDetailView = ({
                     <ListHeader>
                         <ListHeaderItem $flex>이름</ListHeaderItem>
                         <ListHeaderItem $width="6rem">상태</ListHeaderItem>
-                        <ListHeaderItem $width="6rem">담당자</ListHeaderItem>
+                        <ListHeaderItem $width="6rem">작성자</ListHeaderItem>
                     </ListHeader>
                     <ListBody>
-                        {tasks.map(task => (
-                            <TaskItem key={task.id}>
-                                <TaskContent>
-                                    <CheckButton
-                                        onClick={() => onToggleTask(task.id)}
-                                        $completed={task.status === '완료됨'}
-                                    >
-                                        <CheckSquare size={16} />
-                                    </CheckButton>
-                                    <TaskText $completed={task.status === '완료됨'}>
-                                        {task.title}
-                                    </TaskText>
-                                </TaskContent>
-                                <TaskStatus>
-                                    <StatusTag $status={task.status}>
-                                        {task.status}
-                                    </StatusTag>
-                                </TaskStatus>
-                                <TaskAssignee>
-                                    <AssigneeInfo>
-                                        <AssigneeAvatar>
-                                            {task.assignee.charAt(0)}
-                                        </AssigneeAvatar>
-                                        <AssigneeName>{task.assignee}</AssigneeName>
-                                    </AssigneeInfo>
-                                    <DeleteButton
-                                        onClick={() => onDeleteTask(task.id)}
-                                        title="삭제"
-                                    >
-                                        <Trash2 size={14} />
-                                    </DeleteButton>
-                                </TaskAssignee>
-                            </TaskItem>
-                        ))}
+                        {isTaskLoading ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                                업무 목록을 불러오는 중...
+                            </div>
+                        ) : tasks.length === 0 ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
+                                등록된 업무가 없습니다.
+                            </div>
+                        ) : (
+                            tasks.map(task => (
+                                <TaskItem key={task.id}>
+                                    <TaskContent>
+                                        <CheckButton
+                                            onClick={() => onToggleTask(task.id, task.status)}
+                                            $completed={task.status === '완료됨'}
+                                        >
+                                            <CheckSquare size={16} />
+                                        </CheckButton>
+                                        <TaskText $completed={task.status === '완료됨'}>
+                                            {task.title}
+                                        </TaskText>
+                                    </TaskContent>
+                                    <TaskStatus>
+                                        <StatusTag $status={task.status}>
+                                            {task.status}
+                                        </StatusTag>
+                                    </TaskStatus>
+                                    <TaskAssignee>
+                                        <AssigneeName>{task.assignee || '-'}</AssigneeName>
+                                        <DeleteButton
+                                            onClick={() => onDeleteTask(task.id)}
+                                            title="삭제"
+                                        >
+                                            <Trash2 size={14} />
+                                        </DeleteButton>
+                                    </TaskAssignee>
+                                </TaskItem>
+                            ))
+                        )}
 
                         {!isAddingTask ? (
                             <AddTaskRow onClick={() => setIsAddingTask(true)}>
@@ -194,16 +210,14 @@ const CreatorDetailView = ({
 export const CreatorListTab = ({
     onAddEvent,
     onEventClick,
-    onAddTask,
-    onToggleTask,
-    onDeleteTask,
 }) => {
     const { user } = useAuthStore();
     const [myCreators, setMyCreators] = useState([]);
     const [selectedCreatorId, setSelectedCreatorId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [allTasks] = useState([]); // 업무 데이터 (추후 구현)
+    const [tasks, setTasks] = useState([]); // 업무 데이터 (백엔드 연동)
+    const [isTaskLoading, setIsTaskLoading] = useState(false);
     const [events] = useState([]); // 이벤트 데이터 (추후 구현)
 
     // 백엔드에서 담당 크리에이터 목록 불러오기
@@ -220,21 +234,21 @@ export const CreatorListTab = ({
                 setError(null);
 
                 console.log('매니저 ID:', user.id);
-                
+
                 // 백엔드 API 호출: GET /api/creators/manager/{managerId}
                 const response = await creatorService.getMyCreators(user.id);
-                
+
                 console.log('백엔드 응답 (담당 크리에이터):', response);
 
                 // 백엔드 데이터를 프론트엔드 형식으로 변환
                 const formattedCreators = response.map(mapCreatorFromBackend);
-                
+
                 console.log('변환된 크리에이터 데이터:', formattedCreators);
-                
+
                 setMyCreators(formattedCreators);
             } catch (err) {
                 console.error('담당 크리에이터 조회 실패:', err);
-                
+
                 if (err.response?.status === 404) {
                     setError('매니저 정보를 찾을 수 없습니다.');
                 } else if (err.response?.status === 403) {
@@ -249,6 +263,99 @@ export const CreatorListTab = ({
 
         fetchMyCreators();
     }, [user]);
+
+    // 크리에이터 선택 시 업무 목록 조회
+    useEffect(() => {
+        const fetchTasks = async () => {
+            if (!selectedCreatorId) {
+                setTasks([]);
+                return;
+            }
+
+            try {
+                setIsTaskLoading(true);
+                const response = await creatorService.getCreatorWorks(selectedCreatorId);
+
+                // 백엔드 데이터를 프론트엔드 형식으로 변환
+                const formattedTasks = (response || []).map(work => ({
+                    id: work.creatorWorkId,
+                    title: work.workName,
+                    status: mapWorkStatusToFrontend(work.workStatus),
+                    assignee: work.workerName,
+                    creatorId: selectedCreatorId
+                }));
+
+                setTasks(formattedTasks);
+            } catch (err) {
+                console.error('크리에이터 업무 목록 조회 실패:', err);
+                setTasks([]);
+            } finally {
+                setIsTaskLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, [selectedCreatorId]);
+
+    // 업무 추가 핸들러
+    const handleAddTask = async (title) => {
+        if (!selectedCreatorId || !title.trim()) return;
+
+        try {
+            const response = await creatorService.createCreatorWork(selectedCreatorId, title.trim());
+
+            // 새 업무를 목록에 추가
+            const newTask = {
+                id: response.creatorWorkId,
+                title: response.workName,
+                status: mapWorkStatusToFrontend(response.workStatus),
+                assignee: response.workerName,
+                creatorId: selectedCreatorId
+            };
+
+            setTasks(prev => [...prev, newTask]);
+        } catch (err) {
+            console.error('업무 추가 실패:', err);
+            alert('업무 추가에 실패했습니다.');
+        }
+    };
+
+    // 업무 상태 토글 핸들러
+    const handleToggleTask = async (taskId, currentStatus) => {
+        if (!selectedCreatorId) return;
+
+        try {
+            const newStatus = mapWorkStatusToBackend(currentStatus);
+            const response = await creatorService.updateCreatorWorkStatus(selectedCreatorId, taskId, newStatus);
+
+            // 목록에서 해당 업무 상태 업데이트
+            setTasks(prev => prev.map(task =>
+                task.id === taskId
+                    ? { ...task, status: mapWorkStatusToFrontend(response.workStatus) }
+                    : task
+            ));
+        } catch (err) {
+            console.error('업무 상태 변경 실패:', err);
+            alert('업무 상태 변경에 실패했습니다.');
+        }
+    };
+
+    // 업무 삭제 핸들러
+    const handleDeleteTask = async (taskId) => {
+        if (!selectedCreatorId) return;
+
+        if (!window.confirm('이 업무를 삭제하시겠습니까?')) return;
+
+        try {
+            await creatorService.deleteCreatorWork(selectedCreatorId, taskId);
+
+            // 목록에서 해당 업무 제거
+            setTasks(prev => prev.filter(task => task.id !== taskId));
+        } catch (err) {
+            console.error('업무 삭제 실패:', err);
+            alert('업무 삭제에 실패했습니다.');
+        }
+    };
 
     // 로딩 중 표시
     if (isLoading) {
@@ -338,14 +445,15 @@ export const CreatorListTab = ({
         return (
             <CreatorDetailView
                 creator={selectedCreator}
-                tasks={allTasks.filter(t => t.creatorId === selectedCreator.id)}
+                tasks={tasks}
                 events={events.filter(e => e.creatorId === selectedCreator.id)}
                 onBack={() => setSelectedCreatorId(null)}
                 onAddEvent={onAddEvent}
                 onEventClick={onEventClick}
-                onAddTask={(title) => onAddTask(title, selectedCreator.id)}
-                onToggleTask={onToggleTask}
-                onDeleteTask={onDeleteTask}
+                onAddTask={handleAddTask}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+                isTaskLoading={isTaskLoading}
             />
         );
     }

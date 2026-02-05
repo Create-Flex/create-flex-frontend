@@ -4,7 +4,7 @@ import {
     TaskSectionWrapper, TaskHeader, TaskTitle, TaskCount, TaskLegend, TaskLegendItem,
     TaskLegendDot, LegendCount, TaskListContainer, TaskListHeader, HeaderItem,
     TaskListBody, TaskItem, TaskItemWrapper, TaskItemContent, TaskToggleBtn, TaskText,
-    TaskStatusWrapper, TaskStatusBadge, TaskActionWrapper, TaskDeleteBtn,
+    TaskStatusWrapper, TaskStatusBadge, TaskActionWrapper, TaskDeleteBtn, TaskAssigneeName,
     AddTaskBtn, AddTaskInputContainer, InputWrapper, InputIcon, AddTaskInput
 } from './TaskSection.styled';
 
@@ -54,40 +54,47 @@ export const TaskSection = ({
             <TaskListContainer>
                 <TaskListHeader>
                     <HeaderItem $flex>이름</HeaderItem>
-                    <HeaderItem $width="6rem">상태</HeaderItem> {/* w-24 is 6rem */}
-                    <HeaderItem $width="6rem" $align="right">관리</HeaderItem>
+                    <HeaderItem $width="6rem">상태</HeaderItem>
+                    <HeaderItem $width="6rem">작성자</HeaderItem>
                 </TaskListHeader>
                 <TaskListBody>
-                    {tasks.map(task => (
-                        <TaskItem key={task.id}>
-                            <TaskItemWrapper style={{ width: '100%' }}>
-                                <TaskItemContent>
-                                    <TaskToggleBtn
-                                        $completed={task.status === '완료됨'}
-                                        onClick={() => onToggleTask && onToggleTask(task.id)}
-                                    >
-                                        <CheckSquare size={16} />
-                                    </TaskToggleBtn>
-                                    <TaskText $completed={task.status === '완료됨'}>
-                                        {task.title}
-                                    </TaskText>
-                                </TaskItemContent>
-                                <TaskStatusWrapper>
-                                    <TaskStatusBadge $status={task.status}>
-                                        {task.status}
-                                    </TaskStatusBadge>
-                                </TaskStatusWrapper>
-                                <TaskActionWrapper>
-                                    <TaskDeleteBtn
-                                        onClick={() => onDeleteTask && onDeleteTask(task.id)}
-                                        title="업무 삭제"
-                                    >
-                                        <Trash2 size={14} />
-                                    </TaskDeleteBtn>
-                                </TaskActionWrapper>
-                            </TaskItemWrapper>
-                        </TaskItem>
-                    ))}
+                    {tasks.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
+                            등록된 업무가 없습니다.
+                        </div>
+                    ) : (
+                        tasks.map(task => (
+                            <TaskItem key={task.id}>
+                                <TaskItemWrapper style={{ width: '100%' }}>
+                                    <TaskItemContent>
+                                        <TaskToggleBtn
+                                            $completed={task.status === '완료됨'}
+                                            onClick={() => onToggleTask && onToggleTask(task.id)}
+                                        >
+                                            <CheckSquare size={16} />
+                                        </TaskToggleBtn>
+                                        <TaskText $completed={task.status === '완료됨'}>
+                                            {task.title}
+                                        </TaskText>
+                                    </TaskItemContent>
+                                    <TaskStatusWrapper>
+                                        <TaskStatusBadge $status={task.status}>
+                                            {task.status}
+                                        </TaskStatusBadge>
+                                    </TaskStatusWrapper>
+                                    <TaskActionWrapper>
+                                        <TaskAssigneeName>{task.assignee || '-'}</TaskAssigneeName>
+                                        <TaskDeleteBtn
+                                            onClick={() => onDeleteTask && onDeleteTask(task.id)}
+                                            title="업무 삭제"
+                                        >
+                                            <Trash2 size={14} />
+                                        </TaskDeleteBtn>
+                                    </TaskActionWrapper>
+                                </TaskItemWrapper>
+                            </TaskItem>
+                        ))
+                    )}
 
                     {!isAddingTask ? (
                         <AddTaskBtn onClick={() => setIsAddingTask(true)}>

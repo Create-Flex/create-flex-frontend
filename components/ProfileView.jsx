@@ -26,7 +26,6 @@ import { creatorService } from '../api/creatorService';
 import { useUserStore } from '../stores/useUserStore';
 import { useHealthStore } from '../stores/useHealthStore';
 import { useVacationStore } from '../stores/useVacationStore';
-import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUIStore } from '../stores/useUIStore';
 import { UserRole } from '../enums';
 import { getMyHealth, postMyHealth, putMyHealth } from '../api/healthService';
@@ -44,7 +43,6 @@ export const ProfileView = ({
     const { userProfile, updateProfile } = useUserStore();
     const { addEmployeeHealthRecord: addHealthRecord } = useHealthStore();
     const { vacationLogs } = useVacationStore();
-    const { allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
     const { openVacationModal, openPhqModal } = useUIStore();
 
     // Determine which profile to show
@@ -78,11 +76,12 @@ export const ProfileView = ({
     });
 
     const [creatorInfo, setCreatorInfo] = useState(null);
+    const [creatorTasks, setCreatorTasks] = useState([]);
+    const [isTaskLoading, setIsTaskLoading] = useState(false);
 
     const isCurrentUser = user && String(displayProfile?.employeeId) === String(user.id);
 
     // Check if this profile view is for a Creator
-    // Logic: If user is creator, or if the displayed profile has job='Creator'
     const isCreatorProfile = displayProfile?.job === 'Creator' || displayProfile?.rank === 'Creator' || displayProfile?.role === 'CREATOR';
 
     // 크리에이터 정보 조회
@@ -105,6 +104,98 @@ export const ProfileView = ({
         };
         fetchCreatorInfo();
     }, [isCreatorProfile, displayProfile?.employeeId]);
+
+    // 크리에이터 업무 목록 조회
+    useEffect(() => {
+        const fetchCreatorTasks = async () => {
+            if (!isCreatorProfile || !displayProfile.employeeId) {
+                setCreatorTasks([]);
+                return;
+            }
+
+            try {
+                setIsTaskLoading(true);
+                const response = await creatorService.getCreatorWorks(displayProfile.employeeId);
+
+                // 백엔드 데이터를 프론트엔드 형식으로 변환
+                const formattedTasks = (response || []).map(work => ({
+                    id: work.creatorWorkId,
+                    title: work.workName,
+                    status: work.workStatus === 'DONE' ? '완료됨' : '진행중',
+                    assignee: work.workerName,
+                    creatorId: displayProfile.employeeId
+                }));
+
+                setCreatorTasks(formattedTasks);
+            } catch (error) {
+                console.error('크리에이터 업무 목록 조회 실패:', error);
+                setCreatorTasks([]);
+            } finally {
+                setIsTaskLoading(false);
+            }
+        };
+
+        fetchCreatorTasks();
+    }, [isCreatorProfile, displayProfile.employeeId]);
+
+    // 크리에이터 업무 추가 핸들러
+    const handleAddCreatorTask = async (title) => {
+        if (!displayProfile.employeeId || !title.trim()) return;
+
+        try {
+            const response = await creatorService.createCreatorWork(displayProfile.employeeId, title.trim());
+
+            const newTask = {
+                id: response.creatorWorkId,
+                title: response.workName,
+                status: response.workStatus === 'DONE' ? '완료됨' : '진행중',
+                assignee: response.workerName,
+                creatorId: displayProfile.employeeId
+            };
+
+            setCreatorTasks(prev => [...prev, newTask]);
+        } catch (error) {
+            console.error('업무 추가 실패:', error);
+            alert('업무 추가에 실패했습니다.');
+        }
+    };
+
+    // 크리에이터 업무 상태 토글 핸들러
+    const handleToggleCreatorTask = async (taskId) => {
+        if (!displayProfile.employeeId) return;
+
+        const task = creatorTasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        try {
+            const newStatus = task.status === '완료됨' ? 'WORKING' : 'DONE';
+            const response = await creatorService.updateCreatorWorkStatus(displayProfile.employeeId, taskId, newStatus);
+
+            setCreatorTasks(prev => prev.map(t =>
+                t.id === taskId
+                    ? { ...t, status: response.workStatus === 'DONE' ? '완료됨' : '진행중' }
+                    : t
+            ));
+        } catch (error) {
+            console.error('업무 상태 변경 실패:', error);
+            alert('업무 상태 변경에 실패했습니다.');
+        }
+    };
+
+    // 크리에이터 업무 삭제 핸들러
+    const handleDeleteCreatorTask = async (taskId) => {
+        if (!displayProfile.employeeId) return;
+
+        if (!window.confirm('이 업무를 삭제하시겠습니까?')) return;
+
+        try {
+            await creatorService.deleteCreatorWork(displayProfile.employeeId, taskId);
+            setCreatorTasks(prev => prev.filter(t => t.id !== taskId));
+        } catch (error) {
+            console.error('업무 삭제 실패:', error);
+            alert('업무 삭제에 실패했습니다.');
+        }
+    };
 
     // 잔여 연차 조회
     useEffect(() => {
@@ -139,9 +230,6 @@ export const ProfileView = ({
     const tabs = (readOnly || isCreatorProfile) ? ['정보'] : ['정보', '건강'];
     // Filter vacation logs for displayed user
     const userVacationLogs = vacationLogs.filter(log => log.name === displayProfile.name);
-
-    // Creator Tasks (filter by displayed user ID if creator)
-    const creatorTasks = isCreatorProfile && displayProfile.employeeId ? allTasks.filter(t => t.creatorId === displayProfile.employeeId) : [];
 
     const [healthList, setHealthList] = useState([]);
     const [healthCheck, setHealthCheck] = useState();
@@ -253,11 +341,9 @@ export const ProfileView = ({
                             {isCreatorProfile && !hideTasks && (
                                 <TaskSection
                                     tasks={creatorTasks}
-                                    onAddTask={(title) => {
-                                        if (canUpdate) addTask(title, user.id, user.name)
-                                    }}
-                                    onToggleTask={canUpdate ? toggleTask : undefined}
-                                    onDeleteTask={canUpdate ? deleteTask : undefined}
+                                    onAddTask={canUpdate ? handleAddCreatorTask : undefined}
+                                    onToggleTask={canUpdate ? handleToggleCreatorTask : undefined}
+                                    onDeleteTask={canUpdate ? handleDeleteCreatorTask : undefined}
                                     readOnly={readOnly || !canUpdate}
                                 />
                             )}

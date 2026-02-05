@@ -7,7 +7,7 @@ import {
 
 export const useEmployeeStore = create((set) => ({
     employees: INITIAL_EMPLOYEES,
-    teams: INITIAL_TEAMS,
+    teams: [],
     departments: INITIAL_DEPARTMENTS,
 
     setEmployees: (employees) => set({ employees }),

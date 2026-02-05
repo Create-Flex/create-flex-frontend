@@ -106,7 +106,7 @@ export const Sidebar = ({ onLogout }) => {
     // 미승인 휴가 건수 (백엔드에서 조회)
     const [pendingApprovals, setPendingApprovals] = useState(0);
 
-    if (!user) return null; // Safety check
+    if (!user || !userProfile) return null; // Safety check
 
     const isAdmin = user.role === UserRole.ADMINISTRATOR || user.memberRole === 'ADMINISTRATOR';
     const isManager = user.role === UserRole.MANAGER || user.memberRole === 'MANAGER';

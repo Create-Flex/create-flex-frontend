@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
     Users,
     User as UserIcon,
@@ -316,7 +317,7 @@ export const CreatorListTab = ({
             setTasks(prev => [...prev, newTask]);
         } catch (err) {
             console.error('업무 추가 실패:', err);
-            alert('업무 추가에 실패했습니다.');
+            toast.error('업무 추가에 실패했습니다.');
         }
     };
 
@@ -336,7 +337,7 @@ export const CreatorListTab = ({
             ));
         } catch (err) {
             console.error('업무 상태 변경 실패:', err);
-            alert('업무 상태 변경에 실패했습니다.');
+            toast.error('업무 상태 변경에 실패했습니다.');
         }
     };
 
@@ -353,7 +354,7 @@ export const CreatorListTab = ({
             setTasks(prev => prev.filter(task => task.id !== taskId));
         } catch (err) {
             console.error('업무 삭제 실패:', err);
-            alert('업무 삭제에 실패했습니다.');
+            toast.error('업무 삭제에 실패했습니다.');
         }
     };
 

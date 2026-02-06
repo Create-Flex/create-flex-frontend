@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { ChevronLeft, ChevronRight, X, Filter, Check } from 'lucide-react';
 import { UserRole } from '../enums';
 import { css } from 'styled-components';
@@ -141,8 +142,8 @@ export const ScheduleView = () => {
 
     // Event Handlers
     const handleSave = async () => {
-        if (!scheduleForm.scheduleName) return alert('일정 제목을 입력해주세요.');
-        if (scheduleForm.scheduleType === 'COMPANY' && !isAdministrator) return alert('회사 일정은 관리자만 등록할 수 있습니다.');
+        if (!scheduleForm.scheduleName) return toast.error('일정 제목을 입력해주세요.');
+        if (scheduleForm.scheduleType === 'COMPANY' && !isAdministrator) return toast.error('회사 일정은 관리자만 등록할 수 있습니다.');
 
         try {
             const payload = {
@@ -163,11 +164,12 @@ export const ScheduleView = () => {
             }
 
             await fetchSchedules(); // Refresh
+            await fetchSchedules(); // Refresh
             setIsModalOpen(false);
-            alert('일정이 저장되었습니다.');
+            toast.success('일정이 저장되었습니다.');
         } catch (error) {
             console.error("Failed to save schedule:", error);
-            alert("일정 저장에 실패했습니다.");
+            toast.error("일정 저장에 실패했습니다.");
         }
     };
 
@@ -178,7 +180,7 @@ export const ScheduleView = () => {
         if (!targetEvent) return;
 
         if (targetEvent.scheduleType === 'COMPANY' && !isAdministrator) {
-            alert('회사 일정은 관리자만 삭제할 수 있습니다.');
+            toast.error('회사 일정은 관리자만 삭제할 수 있습니다.');
             return;
         }
 
@@ -187,10 +189,10 @@ export const ScheduleView = () => {
                 await scheduleService.deleteSchedule(id);
                 await fetchSchedules();
                 setIsModalOpen(false);
-                alert('일정이 삭제되었습니다.');
+                toast.success('일정이 삭제되었습니다.');
             } catch (error) {
                 console.error("Failed to delete schedule:", error);
-                alert("일정 삭제에 실패했습니다.");
+                toast.error("일정 삭제에 실패했습니다.");
             }
         }
     };

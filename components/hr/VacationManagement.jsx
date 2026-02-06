@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
     Search, CheckCircle2, XCircle, AlertCircle, Calendar, ArrowRight, ArrowUpDown,
     ArrowUp, ArrowDown, Plane, Info, Stethoscope, Gift, X, ChevronDown
@@ -110,7 +111,7 @@ export const VacationManagement = ({ employees = [] }) => {
             setSelectedDetailLog(mappedDetail);
         } catch (error) {
             console.error('휴가 상세 조회 실패:', error);
-            alert('휴가 상세 정보를 불러오는데 실패했습니다.');
+            toast.error('휴가 상세 정보를 불러오는데 실패했습니다.');
         } finally {
             setIsDetailLoading(false);
         }
@@ -249,14 +250,14 @@ export const VacationManagement = ({ employees = [] }) => {
                 await vacationService.rejectVacation(targetLog.id, rejectionReason);
             }
 
-            alert(approved ? '휴가 승인이 완료되었습니다.' : '휴가가 반려 처리되었습니다.');
+            toast.success(approved ? '휴가 승인이 완료되었습니다.' : '휴가가 반려 처리되었습니다.');
             triggerRefresh(); // 목록 새로고침
             setSelectedDetailLog(null);
             setIsRejectionInputOpen(false);
             setRejectionReason('');
         } catch (error) {
             console.error('휴가 처리 실패:', error);
-            alert(error.response?.data?.message || '휴가 처리 중 오류가 발생했습니다.');
+            toast.error(error.response?.data?.message || '휴가 처리 중 오류가 발생했습니다.');
         }
     };
 
@@ -408,30 +409,30 @@ export const VacationManagement = ({ employees = [] }) => {
                     </TableHead>
                     <TableBody>
                         {filteredAndSorted.length > 0 ? filteredAndSorted.map(vac => (
-                                <TableRow
-                                    key={vac.id}
-                                    onClick={() => handleRowClick(vac)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <TableCell $xs $color="#4b5563">{vac.requestDate || '-'}</TableCell>
-                                    <TableCell $bold $color="#111827">{vac.name}</TableCell>
-                                    <TableCell>
-                                        <TypeBadge $type={vac.type}>{vac.type}</TypeBadge>
-                                    </TableCell>
-                                    <TableCell $xs $color="#4b5563">{vac.startDate}</TableCell>
-                                    <TableCell $xs $color="#4b5563">{vac.endDate}</TableCell>
-                                    <TableCell>{vac.days}일</TableCell>
-                                    <TableCell $bold $color="var(--primary-600)">{vac.remainingVacation != null ? `${vac.remainingVacation}일` : '-'}</TableCell>
-                                    <TableCell>
-                                        <StatusBadge $status={vac.status}>
-                                            {vac.status === '승인됨' && <CheckCircle2 size={12} />}
-                                            {vac.status === '반려됨' && <XCircle size={12} />}
-                                            {vac.status === '대기중' && ''}
-                                            {vac.status === '대기중' ? '결재하기' : vac.status}
-                                        </StatusBadge>
-                                    </TableCell>
-                                </TableRow>
-                            )
+                            <TableRow
+                                key={vac.id}
+                                onClick={() => handleRowClick(vac)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <TableCell $xs $color="#4b5563">{vac.requestDate || '-'}</TableCell>
+                                <TableCell $bold $color="#111827">{vac.name}</TableCell>
+                                <TableCell>
+                                    <TypeBadge $type={vac.type}>{vac.type}</TypeBadge>
+                                </TableCell>
+                                <TableCell $xs $color="#4b5563">{vac.startDate}</TableCell>
+                                <TableCell $xs $color="#4b5563">{vac.endDate}</TableCell>
+                                <TableCell>{vac.days}일</TableCell>
+                                <TableCell $bold $color="var(--primary-600)">{vac.remainingVacation != null ? `${vac.remainingVacation}일` : '-'}</TableCell>
+                                <TableCell>
+                                    <StatusBadge $status={vac.status}>
+                                        {vac.status === '승인됨' && <CheckCircle2 size={12} />}
+                                        {vac.status === '반려됨' && <XCircle size={12} />}
+                                        {vac.status === '대기중' && ''}
+                                        {vac.status === '대기중' ? '결재하기' : vac.status}
+                                    </StatusBadge>
+                                </TableCell>
+                            </TableRow>
+                        )
                         ) : (
                             <tr>
                                 <TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>

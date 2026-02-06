@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Users, FileText, Activity, Network, Scale } from 'lucide-react';
 import { CreatorHealthView } from './creator/shared/Health';
 import { CreatorList } from './admin/creator/CreatorList';
@@ -89,7 +90,7 @@ export const AdminCreatorView = ({
     const handleDeleteCreator = (id) => {
         if (window.confirm('정말로 이 크리에이터를 삭제하시겠습니까? (미구현)')) {
             // Implement delete logic here
-            alert('삭제 기능은 아직 구현되지 않았습니다.');
+            toast.error('삭제 기능은 아직 구현되지 않았습니다.');
         }
     }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { X, Check } from 'lucide-react';
 import { legalTaxService } from '../../../api/legalTaxService';
 import { useLegalTaxStore } from '../../../stores/useLegalTaxStore';
@@ -23,7 +24,7 @@ export const SupportRequestModal = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [myCreators, setMyCreators] = useState([]);
     const [isLoadingCreators, setIsLoadingCreators] = useState(false);
-    
+
     const { addRequest, setLoading, setError } = useLegalTaxStore();
 
     // 모달이 열릴 때 내가 담당하는 크리에이터 목록 가져오기
@@ -37,18 +38,18 @@ export const SupportRequestModal = ({
         setIsLoadingCreators(true);
         try {
             const creators = await legalTaxService.getMyCreators();
-            
+
             // 백엔드 응답 형식에 맞게 매핑 (필요시 조정)
             const mappedCreators = creators.map(creator => ({
                 id: creator.member_id || creator.memberId,
                 name: creator.member_name || creator.memberName || creator.name
             }));
-            
+
             setMyCreators(mappedCreators);
         } catch (error) {
             console.error('담당 크리에이터 목록 조회 실패:', error);
             setError(error.message);
-            alert('크리에이터 목록을 불러오는데 실패했습니다.');
+            toast.error('크리에이터 목록을 불러오는데 실패했습니다.');
         } finally {
             setIsLoadingCreators(false);
         }
@@ -56,7 +57,7 @@ export const SupportRequestModal = ({
 
     const handleSubmit = async () => {
         if (!form.creatorId || !form.title || !form.content) {
-            alert('필수 정보를 입력해주세요.');
+            toast.error('필수 정보를 입력해주세요.');
             return;
         }
 
@@ -73,7 +74,7 @@ export const SupportRequestModal = ({
 
             // API 호출
             const response = await legalTaxService.createRequest(requestData);
-            
+
             console.log('법률/세무 신청 성공:', response);
 
             // 성공 시 스토어에 추가 (onConfirm을 통해)
@@ -81,15 +82,15 @@ export const SupportRequestModal = ({
                 onConfirm({ ...form, type });
             }
 
-            alert(response.message || '상담 신청이 완료되었습니다.');
-            
+            toast.success(response.message || '상담 신청이 완료되었습니다.');
+
             // 폼 초기화 및 모달 닫기
             setForm({ creatorId: '', title: '', content: '' });
             onClose();
         } catch (error) {
             console.error('법률/세무 신청 실패:', error);
             setError(error.message);
-            alert('상담 신청에 실패했습니다. 다시 시도해주세요.');
+            toast.error('상담 신청에 실패했습니다. 다시 시도해주세요.');
         } finally {
             setIsSubmitting(false);
             setLoading(false);

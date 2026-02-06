@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { FileText, Download, X } from 'lucide-react';
 import contractService from '../../../api/contractService';
 import {
@@ -35,7 +36,7 @@ export const ContractManagement = () => {
             setContracts(data);
         } catch (error) {
             console.error('계약 목록 조회 실패:', error);
-            alert('계약 목록을 불러오는데 실패했습니다.');
+            toast.error('계약 목록을 불러오는데 실패했습니다.');
         } finally {
             setLoading(false);
         }
@@ -45,18 +46,18 @@ export const ContractManagement = () => {
     const handleContractSubmit = async () => {
         // 필수 항목 검증
         if (!contractForm.contract_name || !contractForm.creator_name) {
-            alert('계약서 제목과 크리에이터 이름은 필수입니다.');
+            toast.error('계약서 제목과 크리에이터 이름은 필수입니다.');
             return;
         }
 
         if (!contractForm.contract_start || !contractForm.contract_end) {
-            alert('계약 시작일과 종료일을 입력해주세요.');
+            toast.error('계약 시작일과 종료일을 입력해주세요.');
             return;
         }
 
         // 날짜 유효성 검증
         if (new Date(contractForm.contract_start) > new Date(contractForm.contract_end)) {
-            alert('계약 시작일이 종료일보다 늦을 수 없습니다.');
+            toast.error('계약 시작일이 종료일보다 늦을 수 없습니다.');
             return;
         }
 
@@ -73,18 +74,18 @@ export const ContractManagement = () => {
             };
 
             await contractService.createContract(contractData);
-            
-            alert('계약서가 성공적으로 등록되었습니다.');
-            
+
+            toㅅast.success('계약서가 성공적으로 등록되었습니다.');
+
             // 폼 초기화 및 모달 닫기
             handleCloseModal();
-            
+
             // 목록 새로고침
             fetchContracts();
         } catch (error) {
             console.error('계약 등록 실패:', error);
             const errorMessage = error.response?.data?.message || '계약 등록에 실패했습니다.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -105,7 +106,7 @@ export const ContractManagement = () => {
     // 계약서 다운로드
     const handleDownload = (contractFileUrl, contractName) => {
         if (!contractFileUrl) {
-            alert('다운로드할 파일이 없습니다.');
+            toast.error('다운로드할 파일이 없습니다.');
             return;
         }
 
@@ -170,13 +171,13 @@ export const ContractManagement = () => {
                                             <Dot />
                                             <span>{contract.creator_name}</span>
                                             <Dot />
-                                            <span 
-                                                style={{ 
-                                                    color: getContractStatus(contract.contract_start, contract.contract_end) === '진행중' 
-                                                        ? '#00C853' 
+                                            <span
+                                                style={{
+                                                    color: getContractStatus(contract.contract_start, contract.contract_end) === '진행중'
+                                                        ? '#00C853'
                                                         : getContractStatus(contract.contract_start, contract.contract_end) === '예정'
-                                                        ? '#2196F3'
-                                                        : '#999'
+                                                            ? '#2196F3'
+                                                            : '#999'
                                                 }}
                                             >
                                                 {getContractStatus(contract.contract_start, contract.contract_end)}
@@ -186,11 +187,11 @@ export const ContractManagement = () => {
                                 </CardLeft>
 
                                 <ActionArea>
-                                    <DownloadButton 
+                                    <DownloadButton
                                         title="다운로드"
                                         onClick={() => handleDownload(contract.contract_file_url, contract.contract_name)}
                                         disabled={!contract.contract_file_url}
-                                        style={{ 
+                                        style={{
                                             opacity: contract.contract_file_url ? 1 : 0.3,
                                             cursor: contract.contract_file_url ? 'pointer' : 'not-allowed'
                                         }}
@@ -220,9 +221,9 @@ export const ContractManagement = () => {
                                 <Input
                                     placeholder="예: 겜돌이 표준 전속 계약서"
                                     value={contractForm.contract_name}
-                                    onChange={e => setContractForm({ 
-                                        ...contractForm, 
-                                        contract_name: e.target.value 
+                                    onChange={e => setContractForm({
+                                        ...contractForm,
+                                        contract_name: e.target.value
                                     })}
                                 />
                             </InputGroup>
@@ -231,9 +232,9 @@ export const ContractManagement = () => {
                                 <Input
                                     placeholder="크리에이터 이름 입력"
                                     value={contractForm.creator_name}
-                                    onChange={e => setContractForm({ 
-                                        ...contractForm, 
-                                        creator_name: e.target.value 
+                                    onChange={e => setContractForm({
+                                        ...contractForm,
+                                        creator_name: e.target.value
                                     })}
                                 />
                             </InputGroup>
@@ -243,9 +244,9 @@ export const ContractManagement = () => {
                                     <Input
                                         type="date"
                                         value={contractForm.contract_start}
-                                        onChange={e => setContractForm({ 
-                                            ...contractForm, 
-                                            contract_start: e.target.value 
+                                        onChange={e => setContractForm({
+                                            ...contractForm,
+                                            contract_start: e.target.value
                                         })}
                                     />
                                 </InputGroup>
@@ -254,9 +255,9 @@ export const ContractManagement = () => {
                                     <Input
                                         type="date"
                                         value={contractForm.contract_end}
-                                        onChange={e => setContractForm({ 
-                                            ...contractForm, 
-                                            contract_end: e.target.value 
+                                        onChange={e => setContractForm({
+                                            ...contractForm,
+                                            contract_end: e.target.value
                                         })}
                                     />
                                 </InputGroup>
@@ -266,9 +267,9 @@ export const ContractManagement = () => {
                                 <Input
                                     placeholder="https://example.com/contract.pdf"
                                     value={contractForm.contract_file_url}
-                                    onChange={e => setContractForm({ 
-                                        ...contractForm, 
-                                        contract_file_url: e.target.value 
+                                    onChange={e => setContractForm({
+                                        ...contractForm,
+                                        contract_file_url: e.target.value
                                     })}
                                 />
                                 <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.25rem' }}>
@@ -280,8 +281,8 @@ export const ContractManagement = () => {
                             <FooterButton onClick={handleCloseModal} disabled={loading}>
                                 취소
                             </FooterButton>
-                            <FooterButton 
-                                $primary 
+                            <FooterButton
+                                $primary
                                 onClick={handleContractSubmit}
                                 disabled={loading}
                             >

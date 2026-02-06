@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { departmentService } from '../api/departmentService';
 import { Search, Phone, Building, Users, ChevronRight, X, User, Plus, Edit3, Trash2 } from 'lucide-react';
 import { UserRole } from '../enums';
@@ -68,7 +69,7 @@ export const OrgChartView = () => {
             setSelectedDept(dept);
         } catch (error) {
             console.error("부서 상세 정보 로드 실패:", error);
-            alert("부서 정보를 불러오는데 실패했습니다.");
+            toast.error("부서 정보를 불러오는데 실패했습니다.");
         }
     };
 
@@ -124,17 +125,17 @@ export const OrgChartView = () => {
         if (window.confirm('부서를 삭제하시겠습니까?')) {
             try {
                 await departmentService.deleteDepartment(id);
-                alert('부서가 삭제되었습니다.');
+                toast.success('부서가 삭제되었습니다.');
                 fetchDepartments();
                 setSelectedDept(null);
             } catch (error) {
-                alert('삭제에 실패했습니다.');
+                toast.error('삭제에 실패했습니다.');
             }
         }
     };
 
     const handleSave = async () => {
-        if (!deptForm.name) return alert('조직 이름을 입력해주세요.');
+        if (!deptForm.name) return toast.error('조직 이름을 입력해주세요.');
 
         const apiData = {
             departmentName: deptForm.name,
@@ -146,16 +147,16 @@ export const OrgChartView = () => {
         try {
             if (modalMode === 'add') {
                 await departmentService.createDepartment(apiData);
-                alert('부서가 생성되었습니다.');
+                toast.success('부서가 생성되었습니다.');
             } else if (modalMode === 'edit' && editingDeptId) {
                 await departmentService.updateDepartment(editingDeptId, apiData);
-                alert('부서 정보가 수정되었습니다.');
+                toast.success('부서 정보가 수정되었습니다.');
             }
             fetchDepartments();
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            alert('저장 중 오류가 발생했습니다.');
+            toast.error('저장 중 오류가 발생했습니다.');
         }
     };
 

@@ -269,10 +269,17 @@ export const StatusDot = styled.span`
   border-radius: 9999px;
   background-color: ${props => {
     switch (props.$status) {
-      case '출근': return '#22c55e'; // green-500
-      case '퇴근': return '#d1d5db'; // gray-300
+      case '출근': return '#22c55e'; // green-500 (정상)
+      case '근무중': return '#3b82f6'; // blue-500
+      case '지각': return '#f59e0b'; // amber-500
+      case '조퇴': return '#f59e0b'; // amber-500
+      case '결근': return '#ef4444'; // red-500
       case '병가': return '#ef4444'; // red-500
       case '휴가': return '#3b82f6'; // blue-500
+      case '반차': return '#3b82f6'; // blue-500
+      case '초과': return '#8b5cf6'; // violet-500
+      case '워케이션': return '#06b6d4'; // cyan-500
+      case '퇴근': return '#d1d5db'; // gray-300
       default: return '#9ca3af';
     }
   }};
@@ -284,6 +291,15 @@ export const StatusLabel = styled.span`
   color: ${props => {
     switch (props.$status) {
       case '출근': return '#15803d'; // green-700
+      case '근무중': return '#1d4ed8'; // blue-700
+      case '지각': return '#b45309'; // amber-700
+      case '조퇴': return '#b45309'; // amber-700
+      case '결근': return '#b91c1c'; // red-700
+      case '병가': return '#b91c1c'; // red-700
+      case '휴가': return '#1d4ed8'; // blue-700
+      case '반차': return '#1d4ed8'; // blue-700
+      case '초과': return '#6d28d9'; // violet-700
+      case '워케이션': return '#0e7490'; // cyan-700
       case '퇴근': return '#6b7280'; // gray-500
       default: return '#374151';
     }

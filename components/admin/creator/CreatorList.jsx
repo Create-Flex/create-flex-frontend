@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Search, Plus, User, MoreHorizontal, Edit3, Trash2, Link as LinkIcon } from 'lucide-react';
 import { renderPlatformIcon } from '../../creator/shared/utils';
 import { creatorService } from '../../../api/creatorService';
@@ -29,11 +30,11 @@ export const CreatorList = ({
         try {
             const response = await creatorService.getAllCreators(name);
             console.log('받아온 크리에이터 데이터:', response);
-            
-            const mappedCreators = Array.isArray(response) 
-                ? response.map(mapCreatorFromBackend) 
+
+            const mappedCreators = Array.isArray(response)
+                ? response.map(mapCreatorFromBackend)
                 : [];
-            
+
             console.log('변환된 크리에이터 데이터:', mappedCreators);
             setCreators(mappedCreators);
         } catch (error) {
@@ -70,12 +71,12 @@ export const CreatorList = ({
 
         try {
             const response = await creatorService.deleteCreator(creatorId);
-            alert(response.message || '크리에이터가 삭제되었습니다.');
+            toast.success(response.message || '크리에이터가 삭제되었습니다.');
             removeCreator(creatorId);
             setActiveMenuId(null);
         } catch (error) {
             console.error('크리에이터 삭제 실패:', error);
-            alert(error.response?.data?.message || '크리에이터 삭제에 실패했습니다.');
+            toast.error(error.response?.data?.message || '크리에이터 삭제에 실패했습니다.');
         }
     };
 

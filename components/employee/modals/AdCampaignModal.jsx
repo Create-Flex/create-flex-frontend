@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { X } from 'lucide-react';
 import { advertisementService } from '../../../api/AdvertisementService';
 import {
@@ -25,14 +26,14 @@ export const AdCampaignModal = ({
 
     const handleSubmit = async () => {
         if (!form.brandName || !form.campaignTitle || !form.budget || !form.creatorId) {
-            alert('필수 정보를 입력해주세요.');
+            toast.error('필수 정보를 입력해주세요.');
             return;
         }
 
         setIsSubmitting(true);
         try {
             console.log('광고 등록 요청:', form);
-            
+
             const response = await advertisementService.createAdvertisement({
                 creatorId: Number(form.creatorId),
                 brandName: form.brandName,
@@ -41,11 +42,11 @@ export const AdCampaignModal = ({
                 description: form.description,
                 targetDate: form.targetDate
             });
-            
+
             console.log('광고 등록 성공:', response);
-            
-            alert(response.message || '광고 캠페인이 성공적으로 등록되었습니다.');
-            
+
+            toast.success(response.message || '광고 캠페인이 성공적으로 등록되었습니다.');
+
             // 폼 초기화
             setForm({
                 brandName: '',
@@ -55,17 +56,17 @@ export const AdCampaignModal = ({
                 description: '',
                 targetDate: new Date().toISOString().split('T')[0],
             });
-            
+
             // 모달 닫기
             onClose();
-            
+
             // 부모에게 성공 알림 (목록 새로고침용)
             if (onSuccess) {
                 onSuccess();
             }
         } catch (error) {
             console.error('광고 등록 실패:', error);
-            alert(error.response?.data?.message || '광고 캠페인 등록에 실패했습니다.');
+            toast.error(error.response?.data?.message || '광고 캠페인 등록에 실패했습니다.');
         } finally {
             setIsSubmitting(false);
         }

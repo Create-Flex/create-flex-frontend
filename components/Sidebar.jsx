@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
@@ -167,11 +168,14 @@ export const Sidebar = ({ onLogout }) => {
                     } else if (inTime && outTime) {
                         // Clocked out for today
                         setIsClockedIn(false);
+                        const isEarly = (myLog.attendanceStatus === 'EARLY_LEAVE' || myLog.attendanceStatus === '조퇴')
+                            || (outTime < '18:00' && myLog.attendanceStatus !== 'HALF_VACATION' && myLog.attendanceStatus !== '반차');
+
                         setAttendanceState({
                             inTime: inTime,
                             outTime: outTime,
                             isLate: myLog.attendanceStatus === 'LATE' || myLog.attendanceStatus === '지각',
-                            isEarlyLeave: false
+                            isEarlyLeave: isEarly
                         });
 
                         // Calculate duration for validation
@@ -260,7 +264,7 @@ export const Sidebar = ({ onLogout }) => {
             if (!isClockedIn) {
                 // Processing Clock In
                 await attendanceService.checkIn();
-                alert('출근 처리되었습니다.');
+                toast.success('출근 처리되었습니다.');
 
                 // Optimistic UI Update
                 setWorkSeconds(0);
@@ -279,20 +283,23 @@ export const Sidebar = ({ onLogout }) => {
             } else {
                 // Processing Clock Out
                 await attendanceService.checkOut();
-                alert('퇴근 처리되었습니다.');
+                toast.success('퇴근 처리되었습니다.');
 
                 setIsClockedIn(false);
                 // Last work record calc
                 setLastWorkRecord(formatTime(workSeconds));
 
-                setAttendanceState(prev => ({ ...prev, outTime: timeString }));
+                const sixPM = new Date(now);
+                sixPM.setHours(18, 0, 0, 0);
+                const isEarly = now.getTime() < sixPM.getTime();
+
+                setAttendanceState(prev => ({ ...prev, outTime: timeString, isEarlyLeave: isEarly }));
 
                 // Trigger refresh for other components
                 if (triggerAttendanceRefresh) triggerAttendanceRefresh();
             }
         } catch (error) {
             console.error(error);
-            alert('요청 처리 중 오류가 발생했습니다.');
         }
     };
 
@@ -316,7 +323,7 @@ export const Sidebar = ({ onLogout }) => {
                 {!isCollapsed && (
                     <S.IconGroup>
                         <S.LogoutButton onClick={onLogout} title="로그아웃"><LogOut size={16} /></S.LogoutButton>
-                        <S.IconButton onClick={() => alert("설정 페이지는 준비 중입니다.")} title="설정"><Settings size={16} /></S.IconButton>
+                        <S.IconButton onClick={() => toast('설정 페이지는 준비 중입니다.', { icon: '⚙️' })} title="설정"><Settings size={16} /></S.IconButton>
                     </S.IconGroup>
                 )}
                 <S.CollapseButton>

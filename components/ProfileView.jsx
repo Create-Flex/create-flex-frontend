@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { ProfileInfo } from './profile/ProfileInfo';
 import { TaskSection } from './profile/TaskSection';
 import { HealthSection } from './profile/HealthSection';
@@ -158,7 +159,7 @@ export const ProfileView = ({
             setCreatorTasks(prev => [...prev, newTask]);
         } catch (error) {
             console.error('업무 추가 실패:', error);
-            alert('업무 추가에 실패했습니다.');
+            toast.error('업무 추가에 실패했습니다.');
         }
     };
 
@@ -180,7 +181,7 @@ export const ProfileView = ({
             ));
         } catch (error) {
             console.error('업무 상태 변경 실패:', error);
-            alert('업무 상태 변경에 실패했습니다.');
+            toast.error('업무 상태 변경에 실패했습니다.');
         }
     };
 
@@ -195,7 +196,7 @@ export const ProfileView = ({
             setCreatorTasks(prev => prev.filter(t => t.id !== taskId));
         } catch (error) {
             console.error('업무 삭제 실패:', error);
-            alert('업무 삭제에 실패했습니다.');
+            toast.error('업무 삭제에 실패했습니다.');
         }
     };
 
@@ -433,14 +434,12 @@ export const ProfileView = ({
                                 await putMyHealth(file, presignedUrl);
                                 fetchHealth();
 
-                                alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
+                                toast.success('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
                                 setIsResultModalOpen(false);
                             } catch (error) {
                                 console.error("업데이트 실패 : ", error);
-                                alert('업로드 실패');
+                                toast.error('업로드 실패');
                             }
-                            alert('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
-                            setIsResultModalOpen(false);
                         }}
                     />
                 </>
@@ -463,7 +462,7 @@ export const ProfileView = ({
                         phone: data.personalCall
                     };
                     updateProfile(updatedProfile);
-                    alert('정보가 성공적으로 수정되었습니다.');
+                    toast.success('정보가 성공적으로 수정되었습니다.');
                 }}
             />
 

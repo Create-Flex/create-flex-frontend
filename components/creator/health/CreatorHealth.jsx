@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Activity, ClipboardList } from 'lucide-react';
 import { CreatorHealthView, PhqSurveyModal } from '../shared/Health';
 import * as S from './CreatorHealth.styled';
@@ -23,7 +24,7 @@ export const CreatorHealth = ({
             status: '확인완료'
         };
         onUpdateIssueLogs([newLog, ...issueLogs]);
-        alert('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
+        toast.success('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
         setIsPhqModalOpen(false);
     };
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Search, X, FileText, Download, Calendar, User, Activity, ArrowRight, Trash2, Edit3, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, ChevronDown } from 'lucide-react';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, IconWrapper, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
@@ -37,11 +38,11 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
     const [editForm, setEditForm] = useState(null);
 
     const fetchManageHealth = async () => {
-        try{
-            const {data} = await getManageHealth();
+        try {
+            const { data } = await getManageHealth();
             console.log('조회결과 : ', data);
             setHealthManage(data.healthInfoList);
-                
+
             const manageSummanary = data.healthSummanaryCountList
             const normalAB = manageSummanary.find(item => item.checkupSummanary === 'NORMAL_AB')?.totalCount ?? 0;
             const normalB = manageSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
@@ -52,35 +53,35 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
             setManageCountCaution(caution);
             setManageCountDanger(danger);
             setManageCountRetest(retest);
-            } catch (err) {
-                console.error('Health 조회 실패', err);
+        } catch (err) {
+            console.error('Health 조회 실패', err);
         }
     }
 
     const healthManageSearch = async () => {
-            try {
-                const { data } = await getManageSearch(name, startDate, endDate);
-                console.log('검색 결과:', data);
-                setHealthManage(data.healthInfoList);
-            } catch (e) {
-                console.error('검색 실패', e);
-            }
-        };
+        try {
+            const { data } = await getManageSearch(name, startDate, endDate);
+            console.log('검색 결과:', data);
+            setHealthManage(data.healthInfoList);
+        } catch (e) {
+            console.error('검색 실패', e);
+        }
+    };
 
     useEffect(() => {
         fetchManageHealth();
     }, []);
 
-    const handleReset = () =>{
+    const handleReset = () => {
         fetchManageHealth();
     }
 
-    const handleSearch = () =>{
+    const handleSearch = () => {
         console.log('검색정보 : ', name, ", ", startDate, ", ", endDate);
         healthManageSearch();
     }
-    
-    
+
+
 
     // 필터링된 데이터
     const filtered = useMemo(() => {
@@ -120,7 +121,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
         setSelectedRecord(editForm);
         setIsEditing(false);
         setEditForm(null);
-        alert('기록이 수정되었습니다.');
+        toast.success('기록이 수정되었습니다.');
     };
 
     const StatCard = ({ label, value, icon: Icon, colorClass, subLabel }) => (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { vacationService } from '../../../api/vacationService';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useUIStore } from '../../../stores/useUIStore';
@@ -99,7 +100,7 @@ export const MyVacation = () => {
             setSelectedDetailLog(mappedDetail);
         } catch (error) {
             console.error('휴가 상세 조회 실패:', error);
-            alert('휴가 상세 정보를 불러오는데 실패했습니다.');
+            toast.error('휴가 상세 정보를 불러오는데 실패했습니다.');
         } finally {
             setIsDetailLoading(false);
         }
@@ -283,88 +284,88 @@ export const MyVacation = () => {
                                                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>{selectedDetailLog.type}
                                             </InfoValue>
                                         </div>
-                                <div>
-                                    <InfoLabel>신청 상태</InfoLabel>
-                                    <StatusBadge $status={selectedDetailLog.status}>
-                                        {selectedDetailLog.status === '대기중' ? '승인대기중' : selectedDetailLog.status}
-                                    </StatusBadge>
-                                </div>
-                            </DetailGrid>
+                                        <div>
+                                            <InfoLabel>신청 상태</InfoLabel>
+                                            <StatusBadge $status={selectedDetailLog.status}>
+                                                {selectedDetailLog.status === '대기중' ? '승인대기중' : selectedDetailLog.status}
+                                            </StatusBadge>
+                                        </div>
+                                    </DetailGrid>
 
-                            <div className="mt-6">
-                                <InfoLabel>휴가 기간</InfoLabel>
-                                <InfoValue>
-                                    <DetailDateRow>
-                                        <DetailDateItem>
-                                            <DateLabel>시작일</DateLabel>
-                                            <span>{selectedDetailLog.startDate}</span>
-                                        </DetailDateItem>
-                                        <ArrowRight size={16} color="#d1d5db" />
-                                        <DetailDateItem $align="right">
-                                            <DateLabel>종료일</DateLabel>
-                                            <span>{selectedDetailLog.endDate}</span>
-                                        </DetailDateItem>
-                                    </DetailDateRow>
-                                </InfoValue>
-                            </div>
+                                    <div className="mt-6">
+                                        <InfoLabel>휴가 기간</InfoLabel>
+                                        <InfoValue>
+                                            <DetailDateRow>
+                                                <DetailDateItem>
+                                                    <DateLabel>시작일</DateLabel>
+                                                    <span>{selectedDetailLog.startDate}</span>
+                                                </DetailDateItem>
+                                                <ArrowRight size={16} color="#d1d5db" />
+                                                <DetailDateItem $align="right">
+                                                    <DateLabel>종료일</DateLabel>
+                                                    <span>{selectedDetailLog.endDate}</span>
+                                                </DetailDateItem>
+                                            </DetailDateRow>
+                                        </InfoValue>
+                                    </div>
 
-                            <div className="mt-6">
-                                <InfoLabel>신청 사유</InfoLabel>
-                                <ReasonBox>
-                                    {selectedDetailLog.reason || '입력된 사유가 없습니다.'}
-                                </ReasonBox>
-                            </div>
+                                    <div className="mt-6">
+                                        <InfoLabel>신청 사유</InfoLabel>
+                                        <ReasonBox>
+                                            {selectedDetailLog.reason || '입력된 사유가 없습니다.'}
+                                        </ReasonBox>
+                                    </div>
 
-                            <div className="mt-6">
-                                {selectedDetailLog.type === '워케이션' && (
-                                    <DetailInfoBox $type="워케이션">
-                                        <DetailHeader $color="#1d4ed8"><Info size={14} /> 워케이션 상세 내역</DetailHeader>
-                                        <DetailRow>
-                                            <span>근무 장소</span><span>{selectedDetailLog.location || '-'}</span>
-                                        </DetailRow>
-                                        <DetailRow>
-                                            <span>비상 연락망</span><MonoText>{selectedDetailLog.emergencyContact || '-'}</MonoText>
-                                        </DetailRow>
-                                        <DetailRow $col $border $pt>
-                                            <span>업무 목표</span><span>{selectedDetailLog.workGoals || '-'}</span>
-                                        </DetailRow>
-                                        <DetailRow $col $border $pt>
-                                            <span>업무 인계 사항</span><span>{selectedDetailLog.handover || '-'}</span>
-                                        </DetailRow>
-                                    </DetailInfoBox>
-                                )}
-                                {selectedDetailLog.type === '병가' && (
-                                    <DetailInfoBox $type="병가">
-                                        <DetailHeader $color="#15803d"><Stethoscope size={14} /> 병가 상세 내역</DetailHeader>
-                                        <DetailRow>
-                                            <span>증상/사유</span><span>{selectedDetailLog.symptoms || '-'}</span>
-                                        </DetailRow>
-                                        <DetailRow>
-                                            <span>진료 병원</span><span>{selectedDetailLog.hospital || '-'}</span>
-                                        </DetailRow>
-                                    </DetailInfoBox>
-                                )}
-                                {selectedDetailLog.type === '경조사' && (
-                                    <DetailInfoBox $type="경조사">
-                                        <DetailHeader $color="#7e22ce"><Gift size={14} /> 경조사 상세 내역</DetailHeader>
-                                        <DetailRow>
-                                            <span>대상(관계)</span><span>{selectedDetailLog.relationship || '-'}</span>
-                                        </DetailRow>
-                                        <DetailRow>
-                                            <span>경조 내용</span><span>{selectedDetailLog.eventType || '-'}</span>
-                                        </DetailRow>
-                                    </DetailInfoBox>
-                                )}
-                            </div>
+                                    <div className="mt-6">
+                                        {selectedDetailLog.type === '워케이션' && (
+                                            <DetailInfoBox $type="워케이션">
+                                                <DetailHeader $color="#1d4ed8"><Info size={14} /> 워케이션 상세 내역</DetailHeader>
+                                                <DetailRow>
+                                                    <span>근무 장소</span><span>{selectedDetailLog.location || '-'}</span>
+                                                </DetailRow>
+                                                <DetailRow>
+                                                    <span>비상 연락망</span><MonoText>{selectedDetailLog.emergencyContact || '-'}</MonoText>
+                                                </DetailRow>
+                                                <DetailRow $col $border $pt>
+                                                    <span>업무 목표</span><span>{selectedDetailLog.workGoals || '-'}</span>
+                                                </DetailRow>
+                                                <DetailRow $col $border $pt>
+                                                    <span>업무 인계 사항</span><span>{selectedDetailLog.handover || '-'}</span>
+                                                </DetailRow>
+                                            </DetailInfoBox>
+                                        )}
+                                        {selectedDetailLog.type === '병가' && (
+                                            <DetailInfoBox $type="병가">
+                                                <DetailHeader $color="#15803d"><Stethoscope size={14} /> 병가 상세 내역</DetailHeader>
+                                                <DetailRow>
+                                                    <span>증상/사유</span><span>{selectedDetailLog.symptoms || '-'}</span>
+                                                </DetailRow>
+                                                <DetailRow>
+                                                    <span>진료 병원</span><span>{selectedDetailLog.hospital || '-'}</span>
+                                                </DetailRow>
+                                            </DetailInfoBox>
+                                        )}
+                                        {selectedDetailLog.type === '경조사' && (
+                                            <DetailInfoBox $type="경조사">
+                                                <DetailHeader $color="#7e22ce"><Gift size={14} /> 경조사 상세 내역</DetailHeader>
+                                                <DetailRow>
+                                                    <span>대상(관계)</span><span>{selectedDetailLog.relationship || '-'}</span>
+                                                </DetailRow>
+                                                <DetailRow>
+                                                    <span>경조 내용</span><span>{selectedDetailLog.eventType || '-'}</span>
+                                                </DetailRow>
+                                            </DetailInfoBox>
+                                        )}
+                                    </div>
 
-                            {selectedDetailLog.status === '반려됨' && selectedDetailLog.rejectionReason && (
-                                <RejectionBox>
-                                    <DetailHeader $color="#b91c1c"><AlertCircle size={14} /> 관리자 반려 사유</DetailHeader>
-                                    <RejectionText>
-                                        {selectedDetailLog.rejectionReason}
-                                    </RejectionText>
-                                </RejectionBox>
-                            )}
+                                    {selectedDetailLog.status === '반려됨' && selectedDetailLog.rejectionReason && (
+                                        <RejectionBox>
+                                            <DetailHeader $color="#b91c1c"><AlertCircle size={14} /> 관리자 반려 사유</DetailHeader>
+                                            <RejectionText>
+                                                {selectedDetailLog.rejectionReason}
+                                            </RejectionText>
+                                        </RejectionBox>
+                                    )}
                                 </>
                             )}
                         </ModalBody>

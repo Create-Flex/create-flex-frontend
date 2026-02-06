@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList, Check } from 'lucide-react';
 import {
     Container, StatGrid, StatCardWrapper, StatHeader, StatLabel, IconBox, StatValueGroup, StatValue, StatUnit, StatSubLabel,
     MainGrid, LeftSection, RightSection, SectionHeader, SectionTitleGroup, SectionTitle, SectionDesc, AddButton,
@@ -16,7 +16,7 @@ import {
     UploadGuideBox, GuideIcon, GuideContent, GuideTitle, GuideText,
     FormStackSpaced, Label, Select, ActionButton
 } from '../../profile/modals/Modal.styled';
-import { getCreatorHealth, saveCreatorMental } from '../../../api/healthService';
+import { getCreatorHealth, saveCreatorMental, putMyHealth, postMyHealth } from '../../../api/healthService';
 
 const mentalResult = (score) => {
     if (score <= 4) {
@@ -220,8 +220,13 @@ export const CreatorHealthView = ({
         creatorName: '',
         checkupName: '',
         date: new Date().toISOString().split('T')[0],
-        result: '정상 (양호)'
+        result: 'NORMAL_AB'
     });
+    const [file, setFile] = useState(null);
+    const fileInputRef = useRef(null);
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
 
     const handleAddCheckup = () => {
         const effectiveName = isCreator ? creators[0].name : newCheckup.creatorName;
@@ -249,6 +254,49 @@ export const CreatorHealthView = ({
         setUploadedFile(null);
         toast.success('검진 결과가 성공적으로 등록되었습니다.');
     };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
+                return;
+            }
+            setFile(file);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!newCheckup.checkupName.trim()) {
+            toast.error('검진 명을 입력해주세요.');
+            return;
+        }
+        if (!newCheckup.date) {
+            toast.error('검진일을 선택해주세요.');
+            return;
+        }
+        if (!file) {
+            toast.error('검진 결과 파일(PDF)을 업로드해주세요.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("name", newCheckup.checkupName);
+        formData.append("date", newCheckup.date);
+        formData.append("summanary", newCheckup.result);
+        formData.append("file", file);
+
+        const response = await postMyHealth(formData);
+        const presignedUrl = response.data.presignedUrl;
+        await putMyHealth(file, presignedUrl);
+
+        fetchCreatorHealth();
+
+        toast.success('검진 결과가 성공적으로 업로드되었으며, 인사팀 리스트에 반영되었습니다.');
+
+        setIsCheckModalOpen(false);
+    };
+
 
     // Helper Component for Stat Cards
     const StatCard = ({ label, value, icon: Icon, subLabel }) => (
@@ -520,34 +568,33 @@ export const CreatorHealthView = ({
                                         value={newCheckup.result}
                                         onChange={e => setNewCheckup({ ...newCheckup, result: e.target.value })}
                                     >
-                                        <option value="정상 (양호)">정상 (A/B) - 양호</option>
-                                        <option value="정상 (경미)">정상 (B) - 경미한 소견</option>
-                                        <option value="유소견 (주의)">주의 (식생활 습관 개선 필요)</option>
-                                        <option value="유소견 (위험)">위험 (질환 의심/치료 필요)</option>
-                                        <option value="재검">재검 필요</option>
+                                        <option value="NORMAL_AB">정상 (A/B) - 양호</option>
+                                        <option value="NORMAL_B">정상 (B) - 경미한 소견</option>
+                                        <option value="CAUTION">주의 (식생활 습관 개선 필요)</option>
+                                        <option value="DANGER">위험 (질환 의심/치료 필요)</option>
+                                        <option value="RETEST_NEED">재검 필요</option>
                                     </Select>
                                 </div>
 
                                 <div>
                                     <Label>결과 파일 업로드</Label>
                                     <input
-                                        id="file-upload-creator"
                                         type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept=".pdf,.jpg,.jpeg,.png"
                                         className="hidden"
-                                        accept=".pdf"
                                         style={{ display: 'none' }}
-                                        onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
                                     />
                                     <UploadArea
-                                        onClick={() => document.getElementById('file-upload-creator')?.click()}
-                                        $hasFile={!!uploadedFile}
+                                        onClick={triggerFileInput} $hasFile={!!file}
                                     >
-                                        <UploadIconWrapper $hasFile={!!uploadedFile}>
-                                            {uploadedFile ? <CheckCircle2 size={24} /> : <Upload size={24} />}
+                                        <UploadIconWrapper $hasFile={!!File}>
+                                            {file ? <Check size={24} /> : <Upload size={24} />}
                                         </UploadIconWrapper>
-                                        {uploadedFile ? (
+                                        {file ? (
                                             <>
-                                                <UploadText>{uploadedFile.name}</UploadText>
+                                                <UploadText>{file.name}</UploadText>
                                                 <UploadSubText className="text-green-600">업로드 완료</UploadSubText>
                                             </>
                                         ) : (
@@ -560,7 +607,7 @@ export const CreatorHealthView = ({
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                                    <ActionButton onClick={handleAddCheckup} style={{ width: '100%', justifyContent: 'center' }}>
+                                    <ActionButton onClick={handleSubmit} style={{ width: '100%', justifyContent: 'center' }}>
                                         <CheckCircle2 size={16} /> 저장하기
                                     </ActionButton>
                                 </div>

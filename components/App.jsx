@@ -25,6 +25,7 @@ import { authService } from '../api/authService';
 import { UserRole } from '../enums';
 
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
     const { user, isAuthenticated, login, logout } = useAuthStore();
@@ -184,7 +185,7 @@ function App() {
             score: result.score
         };
         setCreatorIssueLogs([newLog, ...creatorIssueLogs]);
-        alert('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
+        toast.success('설문이 완료되었습니다. 결과가 담당 매니저에게 공유되었습니다.');
         closePhqModal();
     };
 
@@ -215,10 +216,13 @@ function App() {
     // 로그인하지 않은 경우
     if (!isAuthenticated) {
         return (
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
+            <>
+                <GlobalStyles />
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+            </>
         );
     }
 
@@ -277,6 +281,30 @@ function App() {
                         onSubmit={handlePhqSubmit}
                     />
                 )}
+                <Toaster
+                    position="bottom-center"
+                    toastOptions={{
+                        style: {
+                            background: '#333',
+                            color: '#fff',
+                            fontSize: '0.875rem',
+                            maxWidth: '500px',
+                            padding: '16px 24px',
+                        },
+                        success: {
+                            iconTheme: {
+                                primary: '#4ade80',
+                                secondary: '#fff',
+                            },
+                        },
+                        error: {
+                            iconTheme: {
+                                primary: '#ef4444',
+                                secondary: '#fff',
+                            },
+                        },
+                    }}
+                />
             </S.AppContainer>
         </>
     );

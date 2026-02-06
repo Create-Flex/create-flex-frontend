@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Search, Plus, Briefcase, X, User, Trash2, UserPlus, CheckCircle2, Monitor } from 'lucide-react';
 import {
     Container, Header, SearchWrapper, SearchInput, SearchIconWrapper, TeamGrid, TeamCard, TeamCardHeader, IconBox, DeleteButton,
@@ -66,7 +67,7 @@ export const TeamManagement = () => {
     };
 
     const handleSave = async () => {
-        if (!teamForm.name) return alert('팀 이름을 입력해주세요.');
+        if (!teamForm.name) return toast.error('팀 이름을 입력해주세요.');
 
         const teamData = {
             teamName: teamForm.name,
@@ -88,12 +89,12 @@ export const TeamManagement = () => {
                 teamId = response.data; // 이제 백엔드에서 ID를 반환함
             }
 
-            alert('저장되었습니다.');
+            toast.success('저장되었습니다.');
             fetchTeams(); // 목록 새로고침
             setIsModalOpen(false);
         } catch (error) {
             console.error('팀 저장 오류:', error);
-            alert('팀 저장 중 오류가 발생했습니다.');
+            toast.error('팀 저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -103,10 +104,10 @@ export const TeamManagement = () => {
         if (window.confirm('정말로 이 팀을 삭제하시겠습니까?')) {
             try {
                 await teamService.deleteTeam(id); // 서버 삭제 요청
-                alert('팀이 삭제되었습니다.');
+                toast.success('팀이 삭제되었습니다.');
                 fetchTeams(); // 삭제 후 목록 다시 불러오기
             } catch (error) {
-                alert('삭제에 실패했습니다. (소속 멤버가 있는지 확인해주세요)');
+                toast.error('삭제에 실패했습니다. (소속 멤버가 있는지 확인해주세요)');
             }
         }
     };

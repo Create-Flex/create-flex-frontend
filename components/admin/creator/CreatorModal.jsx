@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { X, Lock } from 'lucide-react';
 import { renderPlatformIcon } from '../../creator/shared/utils';
 import { creatorService } from '../../../api/creatorService';
@@ -29,7 +30,7 @@ export const CreatorModal = ({
     const isEdit = !!initialData;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { addCreator, updateCreator } = useCreatorStore();
-    
+
     // 매니저 목록 상태
     const [managers, setManagers] = useState([]);
     const [isLoadingManagers, setIsLoadingManagers] = useState(false);
@@ -64,7 +65,7 @@ export const CreatorModal = ({
             console.log('매니저 목록 로드 완료:', mappedManagers);
         } catch (error) {
             console.error('매니저 목록 로드 실패:', error);
-            alert('매니저 목록을 불러오는데 실패했습니다.');
+            toast.error('매니저 목록을 불러오는데 실패했습니다.');
         } finally {
             setIsLoadingManagers(false);
         }
@@ -74,7 +75,7 @@ export const CreatorModal = ({
         if (initialData) {
             // 매니저 ID 찾기 (API에서 불러온 매니저 목록 사용)
             const manager = managers.find(mgr => mgr.name === initialData.manager);
-            
+
             setFormData({
                 name: initialData.name,
                 platform: initialData.platform,
@@ -107,13 +108,13 @@ export const CreatorModal = ({
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.platform || !formData.subscribers || !formData.category || !formData.contactInfo) {
-            alert('필수 정보를 모두 입력해주세요.');
+            toast.error('필수 정보를 모두 입력해주세요.');
             return;
         }
 
         // 신규 등록 시 비밀번호 필수
         if (!isEdit && !formData.password) {
-            alert('비밀번호를 입력해주세요.');
+            toast.error('비밀번호를 입력해주세요.');
             return;
         }
 
@@ -129,7 +130,7 @@ export const CreatorModal = ({
                 // 백엔드 API 호출
                 const response = await creatorService.updateCreator(initialData.id, formData);
                 console.log('크리에이터 수정 성공:', response);
-                
+
                 // 스토어 업데이트
                 updateCreator(initialData.id, {
                     ...initialData,
@@ -152,7 +153,7 @@ export const CreatorModal = ({
 
         } catch (error) {
             console.error('크리에이터 저장 실패:', error);
-            alert(error.response?.data?.message || '작업에 실패했습니다.');
+            toast.error(error.response?.data?.message || '작업에 실패했습니다.');
         } finally {
             setIsSubmitting(false);
         }
@@ -161,9 +162,9 @@ export const CreatorModal = ({
     const handleManagerChange = (e) => {
         const selectedManagerId = parseInt(e.target.value);
         const selectedManager = managers.find(mgr => mgr.id === selectedManagerId);
-        
-        setFormData({ 
-            ...formData, 
+
+        setFormData({
+            ...formData,
             managerName: selectedManager ? selectedManager.name : '',
             managerId: selectedManagerId || null
         });

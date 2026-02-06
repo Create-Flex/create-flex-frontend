@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Search, Plus, Edit3, Lock, Home, Mail, Users, Clock, UserPlus, X, AlertCircle, UserCheck, Calendar, ChevronDown } from 'lucide-react';
 import { staffService } from '../../api/staffService.js';
 import {
@@ -10,6 +11,18 @@ import {
     FormGrid, FormGroup, Label, InputWrapper, FormInput, SelectWrapper, SelectIconWrapper, FormSelect,
     PrimaryButton, SecondaryButton, ResignationButton, ResignationTextarea, SearchButton
 } from './StaffManagement.styled';
+
+const STATUS_DISPLAY_MAP = {
+    'NORMAL': '출근',
+    'LATE': '지각',
+    'EARLY_LEAVE': '조퇴',
+    'OVERTIME': '초과',
+    'WORKING': '근무중',
+    'ABSENT': '결근',
+    'HALF_VACATION': '반차',
+    'VACATION': '휴가',
+    'WORKATION': '워케이션'
+};
 
 export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }) => {
     const [employeeList, setEmployeeList] = useState([]);
@@ -42,7 +55,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
             setSummary(response.data.summary || null);
         } catch (error) {
             console.error('Failed to fetch employees:', error);
-            alert('데이터를 불러오지 못했습니다.');
+            toast.error('데이터를 불러오지 못했습니다.');
         } finally {
             setLoading(false);
         }
@@ -55,7 +68,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
             setDepartmentList(response.data || []);
         } catch (error) {
             console.error('Failed to fetch departments:', error);
-            alert('부서 목록을 불러오지 못했습니다.');
+            toast.error('부서 목록을 불러오지 못했습니다.');
         }
     };
 
@@ -114,12 +127,12 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
             setModalType('edit');
         } catch (error) {
             console.error('Failed to fetch employee detail:', error);
-            alert('정보를 불러오지 못했습니다.');
+            toast.error('정보를 불러오지 못했습니다.');
         }
     };
 
     const handleSave = async () => {
-        if (!staffForm.name || !staffForm.employeeId) return alert('필수 정보를 입력해주세요.');
+        if (!staffForm.name || !staffForm.employeeId) return toast.error('필수 정보를 입력해주세요.');
 
         const permissionToEnum = {
             '직원': 'EMPLOYEE',
@@ -153,7 +166,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                 };
 
                 await staffService.registerEmployee(employeeData);
-                alert(`${staffForm.name} 님이 등록되었습니다.`);
+                toast.success(`${staffForm.name} 님이 등록되었습니다.`);
             } else {
                 const employeeUpdateData = {
                     memberName: staffForm.name,
@@ -173,18 +186,18 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                 };
 
                 await staffService.updateEmployee(staffForm.memberid, employeeUpdateData);
-                alert('직원 정보가 수정되었습니다.');
+                toast.success('직원 정보가 수정되었습니다.');
             }
             setModalType('none');
             fetchEmployees();
         } catch (error) {
             console.error('작업 실패:', error);
-            alert('작업에 실패했습니다. 입력 정보를 확인해주세요.');
+            toast.error('작업에 실패했습니다. 입력 정보를 확인해주세요.');
         }
     };
 
     const handleResignation = () => {
-        if (!resignationReason) return alert('사유를 입력해주세요.');
+        if (!resignationReason) return toast.error('사유를 입력해주세요.');
 
         setModalType('none');
         fetchEmployees();
@@ -272,10 +285,15 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                                         <SecondaryText>{emp.personalCall}</SecondaryText>
                                     </TableCell>
                                     <TableCell $color="#4b5563">{emp.hireDate}</TableCell>
+
+
+
                                     <TableCell>
                                         <StatusBadge>
-                                            <StatusDot $status={emp.attendanceStatus} />
-                                            <StatusLabel $status={emp.attendanceStatus}>{emp.attendanceStatus}</StatusLabel>
+                                            <StatusDot $status={STATUS_DISPLAY_MAP[emp.attendanceStatus] || emp.attendanceStatus} />
+                                            <StatusLabel $status={STATUS_DISPLAY_MAP[emp.attendanceStatus] || emp.attendanceStatus}>
+                                                {STATUS_DISPLAY_MAP[emp.attendanceStatus] || emp.attendanceStatus}
+                                            </StatusLabel>
                                         </StatusBadge>
                                     </TableCell>
                                     <TableCell $center>

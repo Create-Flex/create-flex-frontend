@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift } from 'lucide-react';
 import * as S from './VacationModal.styled';
 import { vacationService } from '../../api/vacationService';
@@ -16,13 +17,13 @@ export const VacationModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async () => {
         if (!vacationForm.startDate || !vacationForm.endDate) {
-            return alert('날짜를 선택해주세요.');
+            return toast.error('날짜를 선택해주세요.');
         }
 
         const start = new Date(vacationForm.startDate);
         const end = new Date(vacationForm.endDate);
         if (end < start) {
-            return alert('종료일이 시작일보다 빠를 수 없습니다.');
+            return toast.error('종료일이 시작일보다 빠를 수 없습니다.');
         }
 
         let calculatedDays = 1;
@@ -62,15 +63,15 @@ export const VacationModal = ({ isOpen, onClose }) => {
 
             addVacationLog(newLog);
             triggerRefresh(); // MyVacation 리스트 새로고침 트리거
-            alert(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
+            toast.success(`${vacationForm.type} 신청이 완료되었습니다. (사용 일수: ${calculatedDays}일)`);
             resetVacationForm();
             onClose();
         } catch (error) {
             console.error('휴가 신청 실패:', error);
             if (error.response?.status === 403) {
-                alert('크리에이터는 휴가 신청을 할 수 없습니다.');
+                toast.error('크리에이터는 휴가 신청을 할 수 없습니다.');
             } else {
-                alert(error.response?.data?.message || '휴가 신청 중 오류가 발생했습니다.');
+                toast.error(error.response?.data?.message || '휴가 신청 중 오류가 발생했습니다.');
             }
         } finally {
             setIsSubmitting(false);

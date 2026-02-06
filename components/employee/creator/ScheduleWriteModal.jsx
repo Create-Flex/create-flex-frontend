@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { CalendarIcon, X, User as UserIcon, CheckCircle2 } from 'lucide-react';
 import {
   ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton,
@@ -70,7 +71,7 @@ export const ScheduleWriteModal = ({
 
   const handleSubmit = async () => {
     if (!form.scheduleName || !form.creatorId) {
-      alert('일정 제목과 담당 크리에이터를 선택해주세요.');
+      toast.error('일정 제목과 담당 크리에이터를 선택해주세요.');
       return;
     }
 
@@ -89,7 +90,7 @@ export const ScheduleWriteModal = ({
       const response = await scheduleService.createSchedule(payload);
 
       if (response) {
-        alert('일정이 성공적으로 등록되었습니다.');
+        toast.success('일정이 성공적으로 등록되었습니다.');
         onConfirm(); // Refresh parent
         onClose();   // Close modal
 
@@ -105,7 +106,7 @@ export const ScheduleWriteModal = ({
       }
     } catch (error) {
       console.error('일정 등록 실패:', error);
-      alert('일정 등록에 실패했습니다.');
+      toast.error('일정 등록에 실패했습니다.');
     }
   };
 

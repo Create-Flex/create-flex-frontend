@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { CalendarIcon, X, User as UserIcon, CheckCircle2 } from 'lucide-react';
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton,
@@ -50,7 +51,7 @@ export const EventModal = ({
 
     const handleSubmit = () => {
         if (!form.title || !form.creatorId) {
-            alert('제목과 주최 크리에이터를 모두 입력해주세요.');
+            toast.error('제목과 주최 크리에이터를 모두 입력해주세요.');
             return;
         }
         onConfirm(form);

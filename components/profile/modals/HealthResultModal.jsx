@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { X, FileText, Upload, Check } from 'lucide-react';
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton, ModalBody,
@@ -24,7 +25,7 @@ export const HealthResultModal = ({
         const file = e.target.files[0];
         if (file) {
             if (file.size > 10 * 1024 * 1024) {
-                alert('파일 크기는 10MB를 초과할 수 없습니다.');
+                toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
                 return;
             }
             setFile(file);
@@ -34,18 +35,18 @@ export const HealthResultModal = ({
     const triggerFileInput = () => {
         fileInputRef.current?.click();
     };
-    
+
     const handleSubmit = () => {
         if (!name.trim()) {
-            alert('검진 명을 입력해주세요.');
+            toast.error('검진 명을 입력해주세요.');
             return;
         }
         if (!date) {
-            alert('검진일을 선택해주세요.');
+            toast.error('검진일을 선택해주세요.');
             return;
         }
         if (!file) {
-            alert('검진 결과 파일(PDF)을 업로드해주세요.');
+            toast.error('검진 결과 파일(PDF)을 업로드해주세요.');
             return;
         }
 

@@ -6,7 +6,10 @@ import { useAuthStore } from '../../../stores/useAuthStore';
 import { useUserStore } from '../../../stores/useUserStore';
 import * as S from './Login.styled';
 
-const BACKGROUND_IMAGE_URL = "assets/MCN.png";
+import logoImg from '../../../assets/creator-flex.png';
+
+
+import bgImg from '../../../assets/MCN.png';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -172,15 +175,12 @@ export const Login = () => {
       // 로그인 실패 시 토큰 제거
       localStorage.removeItem('token');
 
-      if (err.response?.status === 401) {
-        setError('아이디 또는 비밀번호가 일치하지 않습니다.');
-      } else if (err.response?.status === 404) {
-        setError('존재하지 않는 사용자입니다.');
-      } else if (err.code === 'ECONNABORTED') {
-        setError('서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.');
-      } else if (err.code === 'ERR_NETWORK') {
-        setError('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
+      if (err.code === 'ERR_NETWORK') {
+        // 1. 네트워크 에러 (백엔드 서버 다운 등)
+        setError('시스템에 접속할 수 없습니다. 관리자에게 문의해주세요.');
       } else {
+        // 2. 그 외 모든 에러는 백엔드에서 보내준 메시지를 그대로 표시
+        // GlobalExceptionHandler가 반환하는 ErrorResponse의 message 필드 사용
         setError(err.response?.data?.message || '로그인 중 오류가 발생했습니다.');
       }
     } finally {
@@ -189,13 +189,15 @@ export const Login = () => {
   };
 
   return (
-    <S.Container style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}>
+    <S.Container style={{ backgroundImage: `url(${bgImg})` }}>
       <S.Overlay />
 
       <S.LoginCard>
         <S.Header>
-          <S.LogoBox>N</S.LogoBox>
-          <S.Title>HR Workspace</S.Title>
+          <S.LogoBox>
+            <img src={logoImg} alt="creator-flex logo" />
+          </S.LogoBox>
+          <S.Title>creator-flex</S.Title>
           <S.SubTitle>직원 관리 시스템</S.SubTitle>
         </S.Header>
 
@@ -237,14 +239,6 @@ export const Login = () => {
           </S.SubmitButton>
         </S.Form>
 
-        <S.Footer>
-          <S.FooterTitle>테스트 계정 정보</S.FooterTitle>
-          <S.FooterContent>
-            <S.TestAccountBadge>관리자: HR001/ admin123!</S.TestAccountBadge>
-            <S.TestAccountBadge>매니저: MG001/ manager123</S.TestAccountBadge>
-            <S.TestAccountBadge>크리에이터: gamst/ gam12345</S.TestAccountBadge>
-          </S.FooterContent>
-        </S.Footer>
       </S.LoginCard>
     </S.Container>
   );

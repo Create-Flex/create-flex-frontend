@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton, ModalBody, ModalFooter,
     PrimaryButton, SecondaryButton, FormStack, Label
@@ -14,14 +15,14 @@ export const PasswordChangeModal = ({
 
     const handlePasswordChange = () => {
         if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
-            alert('모든 필드를 입력해주세요.');
+            toast.error('모든 필드를 입력해주세요.');
             return;
         }
         if (passwordForm.new !== passwordForm.confirm) {
-            alert('새 비밀번호가 일치하지 않습니다.');
+            toast.error('새 비밀번호가 일치하지 않습니다.');
             return;
         }
-        alert('비밀번호가 성공적으로 변경되었습니다.');
+        toast.success('비밀번호가 성공적으로 변경되었습니다.');
         onClose();
         setPasswordForm({ current: '', new: '', confirm: '' });
     };

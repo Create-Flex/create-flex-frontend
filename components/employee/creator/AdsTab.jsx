@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Megaphone, Plus, DollarSign, Ban, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { advertisementService } from '../../../api/AdvertisementService';
 import { useAdvertisementStore } from '../../../stores/useAdvertisementStore';
@@ -26,13 +27,13 @@ export const AdsTab = ({
         try {
             const backendFilter = filter === 'pending' ? 'waiting' : filter === 'history' ? 'processed' : 'all';
             const response = await advertisementService.getMyAdvertisements(backendFilter);
-            
+
             console.log('받아온 광고 데이터:', response);
-            
+
             const mappedAds = Array.isArray(response) ? response.map(mapAdvertisementFromBackend) : [];
-            
+
             console.log('변환된 광고 데이터:', mappedAds);
-            
+
             setAdvertisements(mappedAds);
         } catch (error) {
             console.error('광고 목록 조회 실패:', error);
@@ -61,11 +62,11 @@ export const AdsTab = ({
         try {
             const backendStatus = decision === 'accepted' ? 'ACCEPTED' : 'REJECTED';
             const response = await advertisementService.updateAdvertisementStatus(adId, backendStatus);
-            
-            alert(response.message || (decision === 'accepted' ? '광고가 수락되었습니다.' : '광고가 거절되었습니다.'));
+
+            toast.success(response.message || (decision === 'accepted' ? '광고가 수락되었습니다.' : '광고가 거절되었습니다.'));
             await fetchAdvertisements(adFilter);
         } catch (error) {
-            alert(error.response?.data?.message || '광고 상태 변경에 실패했습니다.');
+            toast.error(error.response?.data?.message || '광고 상태 변경에 실패했습니다.');
         }
     };
 
@@ -111,7 +112,7 @@ export const AdsTab = ({
                 <GridContainer>
                     {advertisements.map(ad => {
                         const creator = creators.find(c => c.id === String(ad.creatorId));
-                        
+
                         return (
                             <AdCard key={ad.id}>
                                 <AdHeader>

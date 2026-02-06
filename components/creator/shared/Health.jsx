@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList } from 'lucide-react';
 import {
     Container, StatGrid, StatCardWrapper, StatHeader, StatLabel, IconBox, StatValueGroup, StatValue, StatUnit, StatSubLabel,
@@ -17,33 +18,33 @@ import {
 } from '../../profile/modals/Modal.styled';
 import { getCreatorHealth, saveCreatorMental } from '../../../api/healthService';
 
-const mentalResult = (score) =>{
+const mentalResult = (score) => {
     if (score <= 4) {
-            return {
-                status: '우울아님',
-                badgeText: '정상',
-                badgeColor: 'bg-green-50 text-green-700 border-green-200', // Legacy classes, handled by styled prop logic or specialized component
-                icon: CheckCircle2
-            };
-        } else if (score <= 9) {
-            return {
-                status: '가벼운 우울',
-                badgeText: '주의 (경미)',
-                icon: AlertTriangle
-            };
-        } else if (score <= 19) {
-            return {
-                status: '중간정도의 우울',
-                badgeText: '주의',
-                icon: AlertTriangle
-            };
-        } else {
-            return {
-                status: '심한 우울',
-                badgeText: '위험',
-                icon: AlertCircle
-            };
-        }
+        return {
+            status: '우울아님',
+            badgeText: '정상',
+            badgeColor: 'bg-green-50 text-green-700 border-green-200', // Legacy classes, handled by styled prop logic or specialized component
+            icon: CheckCircle2
+        };
+    } else if (score <= 9) {
+        return {
+            status: '가벼운 우울',
+            badgeText: '주의 (경미)',
+            icon: AlertTriangle
+        };
+    } else if (score <= 19) {
+        return {
+            status: '중간정도의 우울',
+            badgeText: '주의',
+            icon: AlertTriangle
+        };
+    } else {
+        return {
+            status: '심한 우울',
+            badgeText: '위험',
+            icon: AlertCircle
+        };
+    }
 }
 
 // PHQ-9 Survey Modal Component (Shows Completed only)
@@ -224,9 +225,9 @@ export const CreatorHealthView = ({
 
     const handleAddCheckup = () => {
         const effectiveName = isCreator ? creators[0].name : newCheckup.creatorName;
-        if (!effectiveName) return alert('크리에이터를 선택해주세요.');
-        if (!newCheckup.checkupName.trim()) return alert('검진 명을 입력해주세요.');
-        if (!uploadedFile) return alert('검진 결과 PDF 파일을 업로드해주세요.');
+        if (!effectiveName) return toast.error('크리에이터를 선택해주세요.');
+        if (!newCheckup.checkupName.trim()) return toast.error('검진 명을 입력해주세요.');
+        if (!uploadedFile) return toast.error('검진 결과 PDF 파일을 업로드해주세요.');
 
         let score = 90;
         if (newCheckup.result.includes('주의')) score = 70;
@@ -246,7 +247,7 @@ export const CreatorHealthView = ({
         onUpdateRecords([newRecord, ...otherRecords]);
         setIsCheckModalOpen(false);
         setUploadedFile(null);
-        alert('검진 결과가 성공적으로 등록되었습니다.');
+        toast.success('검진 결과가 성공적으로 등록되었습니다.');
     };
 
     // Helper Component for Stat Cards
@@ -267,8 +268,8 @@ export const CreatorHealthView = ({
             </div>
         </StatCardWrapper>
     );
-    
-        const [creatorHealthList, setCreatorHealth] = useState([]);
+
+    const [creatorHealthList, setCreatorHealth] = useState([]);
     const [creatorCountNormal, setCreatorCountNormal] = useState();
     const [creatorCountCaution, setCreatorCountCaution] = useState();
     const [creatorCountDanger, setCreatorCountDanger] = useState();
@@ -276,12 +277,12 @@ export const CreatorHealthView = ({
     const [creatorMentalList, setCreatorMental] = useState([]);
 
     const fetchCreatorHealth = async () => {
-        try{
-            const {data} = await getCreatorHealth();
+        try {
+            const { data } = await getCreatorHealth();
             console.log('조회결과 : ', data);
             setCreatorHealth(data.healthInfoList);
             setCreatorMental(data.mentalHealthInfoList);
-            
+
             const creatorSummanary = data.healthSummanaryCountList
             const normalAB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_AB')?.totalCount ?? 0;
             const normalB = creatorSummanary.find(item => item.checkupSummanary === 'NORMAL_B')?.totalCount ?? 0;
@@ -293,7 +294,7 @@ export const CreatorHealthView = ({
             setCreatorCountDanger(danger);
             setCreatorMentalCount(mentalWorn);
         } catch (err) {
-                console.error('Health 조회 실패', err);
+            console.error('Health 조회 실패', err);
         }
     }
 
@@ -392,7 +393,7 @@ export const CreatorHealthView = ({
                                     {red.creatorMentalScore !== undefined ? ` 총점 ${red.creatorMentalScore}점, ${mentalResult(red.creatorMentalScore).badgeText} 입니다.` : ''}
                                 </LogContent>
                             </LogItem>
-                        )) :(
+                        )) : (
                             <EmptyLogs>기록된 검사 내역이 없습니다.</EmptyLogs>
                         )}
                     </LogList>
@@ -440,9 +441,9 @@ export const CreatorHealthView = ({
                                     </FileMeta>
                                 </FileInfo>
                                 {selectedRecord.checkupFileUrl && (
-                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(selectedRecord.checkupFileUrl, "_blank")}>
-                                    <Download size={18} />
-                                </DownloadButton>
+                                    <DownloadButton title="결과지 다운로드" onClick={() => window.open(selectedRecord.checkupFileUrl, "_blank")}>
+                                        <Download size={18} />
+                                    </DownloadButton>
                                 )}
                             </FileAttachmentBox>
 

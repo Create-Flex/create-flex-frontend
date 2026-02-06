@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Scale, FileSpreadsheet, CheckCircle2, Clock, CheckSquare } from 'lucide-react';
 import { legalTaxService } from '../../api/legalTaxService';
 import { useLegalTaxStore } from '../../stores/useLegalTaxStore';
@@ -38,7 +39,7 @@ export const SupportManagement = () => {
                 }
 
                 const response = await legalTaxService.getAllRequests(typeParam, statusParam);
-                
+
                 // 백엔드 데이터를 프론트엔드 형식으로 변환
                 let mappedRequests = response.map(mapLegalTaxFromBackend);
 
@@ -64,17 +65,17 @@ export const SupportManagement = () => {
             if (newStatus === '완료') {
                 // 완료 처리 API 호출
                 await legalTaxService.completeRequest(id);
-                alert('상담이 완료 처리되었습니다.');
-                
+                toast.success('상담이 완료 처리되었습니다.');
+
                 // 스토어 업데이트
                 updateRequestStatus(id, '완료');
-                
+
                 // 목록 새로고침
                 setRefreshTrigger(prev => prev + 1);
             }
         } catch (error) {
             console.error('상태 변경 실패:', error);
-            alert('상태 변경에 실패했습니다. 다시 시도해주세요.');
+            toast.error('상태 변경에 실패했습니다. 다시 시도해주세요.');
         }
     };
 
@@ -90,43 +91,43 @@ export const SupportManagement = () => {
             {/* Filter Bar */}
             <FilterBar>
                 <FilterGroup>
-                    <TypeFilterButton 
-                        $type="all" 
-                        $active={filter === 'all'} 
+                    <TypeFilterButton
+                        $type="all"
+                        $active={filter === 'all'}
                         onClick={() => setFilter('all')}
                     >
                         전체
                     </TypeFilterButton>
-                    <TypeFilterButton 
-                        $type="legal" 
-                        $active={filter === 'legal'} 
+                    <TypeFilterButton
+                        $type="legal"
+                        $active={filter === 'legal'}
                         onClick={() => setFilter('legal')}
                     >
                         법률
                     </TypeFilterButton>
-                    <TypeFilterButton 
-                        $type="tax" 
-                        $active={filter === 'tax'} 
+                    <TypeFilterButton
+                        $type="tax"
+                        $active={filter === 'tax'}
                         onClick={() => setFilter('tax')}
                     >
                         세무
                     </TypeFilterButton>
                 </FilterGroup>
                 <FilterGroup>
-                    <StatusFilterButton 
-                        $active={statusFilter === 'all'} 
+                    <StatusFilterButton
+                        $active={statusFilter === 'all'}
                         onClick={() => setStatusFilter('all')}
                     >
                         전체보기
                     </StatusFilterButton>
-                    <StatusFilterButton 
-                        $active={statusFilter === 'active'} 
+                    <StatusFilterButton
+                        $active={statusFilter === 'active'}
                         onClick={() => setStatusFilter('active')}
                     >
                         대기중
                     </StatusFilterButton>
-                    <StatusFilterButton 
-                        $active={statusFilter === 'completed'} 
+                    <StatusFilterButton
+                        $active={statusFilter === 'completed'}
                         onClick={() => setStatusFilter('completed')}
                     >
                         완료됨

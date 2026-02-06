@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { CalendarIcon, Plus, X } from 'lucide-react';
 import { CreatorCalendar } from '../shared/Calendar';
 import { getCreatorColorStyles } from '../shared/utils';
@@ -54,12 +55,12 @@ export const CreatorSchedule = ({
 
     const handleSaveEvent = async () => {
         if (!newEventData.title) {
-            alert('일정 제목을 입력해주세요.');
+            toast.error('일정 제목을 입력해주세요.');
             return;
         }
 
         if (newEventData.type === 'joint' && newEventData.partnerCreators.length === 0) {
-            alert('합방할 크리에이터를 최소 1명 이상 선택해주세요.');
+            toast.error('합방할 크리에이터를 최소 1명 이상 선택해주세요.');
             return;
         }
 
@@ -76,10 +77,10 @@ export const CreatorSchedule = ({
             await scheduleService.createSchedule(payload);
             onUpdateEvents();
             setIsEventModalOpen(false);
-            alert('일정이 등록되었습니다.');
+            toast.success('일정이 등록되었습니다.');
         } catch (error) {
             console.error('일정 등록 실패:', error);
-            alert('일정 등록에 실패했습니다.');
+            toast.error('일정 등록에 실패했습니다.');
         }
     };
 
@@ -89,10 +90,10 @@ export const CreatorSchedule = ({
                 await scheduleService.deleteSchedule(eventId);
                 onUpdateEvents();
                 setSelectedEvent(null);
-                alert('일정이 삭제되었습니다.');
+                toast.success('일정이 삭제되었습니다.');
             } catch (error) {
                 console.error('일정 삭제 실패:', error);
-                alert('일정 삭제에 실패했습니다.');
+                toast.error('일정 삭제에 실패했습니다.');
             }
         }
     };

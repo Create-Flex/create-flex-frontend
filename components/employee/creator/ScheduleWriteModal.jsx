@@ -13,9 +13,9 @@ export const ScheduleWriteModal = ({
   isOpen,
   onClose,
   date,
-  initialCreatorId, // CalendarTab sends the currently viewed creator or null
-  myCreators,       // List of creators managed by the logged-in manager
-  onConfirm         // Callback to refresh calendar
+  initialCreatorId, 
+  myCreators,       
+  onConfirm         
 }) => {
   const { user } = useAuthStore();
   const [allCreators, setAllCreators] = useState([]);
@@ -23,7 +23,7 @@ export const ScheduleWriteModal = ({
     scheduleName: '',
     scheduleDate: date || new Date().toISOString().split('T')[0],
     scheduleDetail: '',
-    scheduleType: 'CONTENT', // Default to CONTENT or PROMOTION? User example used 'PROMOTION' and 'MERGE'
+    scheduleType: 'CONTENT', 
     creatorId: initialCreatorId || '',
     visitorIds: []
   });
@@ -85,38 +85,7 @@ export const ScheduleWriteModal = ({
         visitorIds: form.scheduleType === 'MERGE' ? form.visitorIds : [] // Only send visitors for MERGE
       };
 
-      // Using direct axios call or scheduleService? 
-      // The user specified the endpoint: POST http://localhost:8888/api/schedules/
-      // I should stick to the requested endpoint pattern.
-      // Assuming scheduleService (imported) might overlap, I will use direct axios for exact compliance 
-      // or better, check if scheduleService has this method. 
-      // If not, I'll use axios directly as requested.
-
-      // Checking previous context, `scheduleService` is likely available. 
-      // However, to be 100% safe with the specific payload request:
-      // "POST http://localhost:8888/api/schedules/"
-
-      // I'll use axios directly to ensure strict adherence to the requested payload structure.
-      // But since I don't have the base URL configured here, I should probably reuse the axios instance from api/axios.js if possible,
-      // or use the path relative to the proxy if set up. 
-      // Given the previous code uses `creatorService`, I'll assume `api/axios` is the standard way.
-      // But `api` import was seen in `creatorService.js` as `import api from './axios'`. 
-      // I'll import `api` from `../../../../api/axios` to use the configured base URL.
-
-      // Wait, I can't see `api/axios.js` content but `creatorService` uses `/creators`. 
-      // So calling `/api/schedules/` (note the /api prefix might be part of baseURL or not).
-      // Usually `/api` is part of the path.
-
-      // Let's assume `api.post('/schedules', ...)` is the way if baseURL includes `/api`,
-      // OR `api.post('/api/schedules', ...)` if not.
-      // Looking at `creatorService.js`: `api.get('/creators'...)`. usage suggests baseURL ends before `/creators`.
-      // So if `creatorService` calls `/creators`, then `api.post('/schedules')` should be correct.
-      // BUT the user said `POST http://localhost:8888/api/schedules/`.
-      // If `creatorService` uses `/creators`, it might map to `http://localhost:8888/api/creators`.
-      // I will use the imported `scheduleService` if it exists, or create a direct call using `api` instance.
-      // Let's stick to the `api` instance for consistency.
-
-      // Use scheduleService instead of direct axios call
+      
       const response = await scheduleService.createSchedule(payload);
 
       if (response) {

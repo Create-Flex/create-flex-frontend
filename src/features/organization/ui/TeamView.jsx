@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ProfileView } from '../../employee/ui/ProfileView';
-import * as S from './TeamView.styled';
+//경로 변경: 같은 폴더가 아닌 employee 기능 폴더에서 가져옴
+import { ProfileView } from '../../employee/ui/ProfileView'; 
+import * as S from './TeamView.styled'; // 스타일 파일은 같은 폴더에 있음
 import { Search, Users, ChevronLeft, ArrowRight, Monitor } from 'lucide-react';
 
+//Store 경로 변경 (features 구조 반영)
 import { useAuthStore } from '../../auth/model/useAuthStore';
 import { useEmployeeStore } from '../../employee/model/useEmployeeStore';
 import { useCreatorStore } from '../../creator/model/useCreatorStore';
+
+//API 서비스 경로 변경 (features 구조 반영)
 import { teamService } from '../api/teamService';
 
 export const TeamView = () => {
@@ -42,7 +46,7 @@ export const TeamView = () => {
         loadInitialData();
     }, [fetchEmployees, fetchCreators]);
 
-    // 내 팀 목록 불러오기 함수 분리
+    // 내 팀 목록 불러오기 함수
     const loadMyTeams = async () => {
         try {
             const response = await teamService.getMyTeams();
@@ -53,10 +57,9 @@ export const TeamView = () => {
                 id: team.teamId,
                 name: team.teamName,
                 description: team.teamDetail,
-                memberIds: team.teamMembers?.map(m => m.memberId) || []
+                members: team.teamMembers || [] // 팀원 상세 정보 리스트 보존
             }));
 
-            console.log('매핑된 팀 목록:', mappedTeams);
             setMyTeams(mappedTeams);
         } catch (error) {
             console.error('내 팀 목록 로드 실패:', error);
@@ -64,33 +67,41 @@ export const TeamView = () => {
         }
     };
 
-    // Helper to convert Employee to UserProfile for display
-    const mapEmployeeToProfile = (emp) => ({
+    // Helper: 직원 정보를 프로필 뷰 형식으로 변환 (개인정보 마스킹 적용)
+    const mapEmployeeToProfile = (emp, teamMemberInfo = null) => ({
         name: emp.name,
         engName: emp.engName,
         nickname: emp.nickname || emp.name,
-        email: emp.email,
-        personalEmail: emp.personalEmail || `${emp.id}@example.com`,
-        phone: emp.phone,
+        
+        //개인정보 비공개 처리
+        email: emp.email, // 사내 이메일은 표시
+        personalEmail: '비공개', 
+        phone: '비공개',
+        
         employeeId: emp.id,
         joinDate: emp.joinDate,
-        tenure: '계산 필요',
+        tenure: '계산 필요', // 필요 시 계산 로직 추가
         groupJoinDate: emp.joinDate,
         org: emp.dept,
         job: emp.role,
         rank: emp.rank || '직급 정보 없음',
-        avatarUrl: emp.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random`,
-        coverUrl: emp.coverUrl
+        
+        //팀 정보에 최신 이미지가 있다면 우선 사용
+        avatarUrl: teamMemberInfo?.profileImageUrl || emp.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random`,
+        coverUrl: teamMemberInfo?.profileBannerUrl || emp.coverUrl
     });
 
-    // Helper to convert Creator to UserProfile for display
-    const mapCreatorToProfile = (creator) => ({
+    // Helper: 크리에이터 정보를 프로필 뷰 형식으로 변환 (개인정보 마스킹 적용)
+    const mapCreatorToProfile = (creator, teamMemberInfo = null) => ({
         name: creator.name,
         engName: '',
         nickname: creator.name,
-        email: creator.contactInfo || '-',
-        personalEmail: `${creator.loginId || creator.name.toLowerCase()}@gmail.com`,
-        phone: creator.contactInfo || '-',
+        
+        //개인정보 비공개 처리
+        email: '비공개',
+        personalEmail: '비공개',
+        phone: '비공개',
+        
         employeeId: creator.id,
         joinDate: creator.managementStartDate || '-',
         tenure: '파트너',
@@ -98,11 +109,13 @@ export const TeamView = () => {
         org: creator.platform,
         job: creator.category || 'Creator',
         rank: 'Creator',
-        avatarUrl: creator.avatarUrl || '',
-        coverUrl: creator.coverUrl
+        
+        //팀 정보에 최신 이미지가 있다면 우선 사용
+        avatarUrl: teamMemberInfo?.profileImageUrl || creator.avatarUrl || '',
+        coverUrl: teamMemberInfo?.profileBannerUrl || creator.coverUrl
     });
 
-    // Level 3: Profile Detail
+    // Level 3: Profile Detail (상세 프로필 보기)
     if (selectedMember) {
         return (
             <ProfileView
@@ -115,26 +128,33 @@ export const TeamView = () => {
         );
     }
 
-    // Level 2: Team Members Detail
+    // Level 2: Team Members Detail (팀원 목록 보기)
     if (selectedTeam) {
-        const teamMemberIds = selectedTeam.memberIds;
+        // 팀 멤버 데이터와 스토어 데이터 병합
+        const teamMembersData = selectedTeam.members || [];
 
-        console.log('선택된 팀:', selectedTeam);
-        console.log('팀 멤버 IDs:', teamMemberIds);
-        console.log('전체 직원 목록:', employees);
-        console.log('전체 크리에이터 목록:', creators);
-
-        // Combine Employees and Creators
-        const teamMembers = teamMemberIds.map(id => {
-            const emp = employees.find(e => e.id == id);
+        const teamMembers = teamMembersData.map(teamMember => {
+            const memberId = teamMember.memberId;
+            
+            // 직원 검색
+            const emp = employees.find(e => e.id == memberId);
             if (emp) {
-                console.log(`직원 찾음: ${emp.name} (ID: ${id})`);
-                return { ...emp, type: 'employee' };
+                return { 
+                    ...emp, 
+                    type: 'employee',
+                    // 팀 데이터의 이미지/상태 우선 적용
+                    avatarUrl: teamMember.profileImageUrl || emp.avatarUrl,
+                    coverUrl: teamMember.profileBannerUrl || emp.coverUrl,
+                    workStatus: teamMember.workStatus || '미출근',
+                    task: teamMember.task || emp.role,
+                    // 클릭 시 전달할 원본 팀 데이터 저장
+                    _teamMemberInfo: teamMember
+                };
             }
 
-            const creator = creators.find(c => c.id == id);
+            // 크리에이터 검색
+            const creator = creators.find(c => c.id == memberId);
             if (creator) {
-                console.log(`크리에이터 찾음: ${creator.name} (ID: ${id})`);
                 return {
                     id: creator.id,
                     name: creator.name,
@@ -143,21 +163,19 @@ export const TeamView = () => {
                     role: creator.category || 'Creator',
                     rank: creator.platform,
                     dept: 'MCN',
-                    workStatus: creator.status || '대기중',
-                    email: creator.contactInfo || '-',
-                    phone: creator.contactInfo || '-',
-                    avatarUrl: creator.avatarUrl,
-                    coverUrl: creator.coverUrl,
-                    type: 'creator'
+                    workStatus: teamMember.workStatus || creator.status || '대기중',
+                    email: '비공개',
+                    phone: '비공개',
+                    avatarUrl: teamMember.profileImageUrl || creator.avatarUrl,
+                    coverUrl: teamMember.profileBannerUrl || creator.coverUrl,
+                    type: 'creator',
+                    _teamMemberInfo: teamMember
                 };
             }
-
-            console.warn(`멤버를 찾을 수 없음: ID ${id}`);
             return null;
         }).filter((item) => item !== null);
 
-        console.log('팀 멤버 목록:', teamMembers);
-
+        // 검색 필터링
         const filteredMembers = teamMembers.filter(member =>
             (member.name || '').includes(searchQuery) ||
             (member.role || '').includes(searchQuery) ||
@@ -167,10 +185,10 @@ export const TeamView = () => {
         const handleMemberClick = (member) => {
             if (member.type === 'creator') {
                 const originalCreator = creators.find(c => c.id === member.id);
-                if (originalCreator) setSelectedMember(mapCreatorToProfile(originalCreator));
+                if (originalCreator) setSelectedMember(mapCreatorToProfile(originalCreator, member._teamMemberInfo));
             } else {
                 const originalEmp = employees.find(e => e.id === member.id);
-                if (originalEmp) setSelectedMember(mapEmployeeToProfile(originalEmp));
+                if (originalEmp) setSelectedMember(mapEmployeeToProfile(originalEmp, member._teamMemberInfo));
             }
         };
 
@@ -183,12 +201,8 @@ export const TeamView = () => {
                                 <ChevronLeft size={16} />
                                 <span>팀 목록으로 돌아가기</span>
                             </S.BackButton>
-                            <S.Title>
-                                {selectedTeam.name}
-                            </S.Title>
-                            <S.SubTitle>
-                                {selectedTeam.description}
-                            </S.SubTitle>
+                            <S.Title>{selectedTeam.name}</S.Title>
+                            <S.SubTitle>{selectedTeam.description}</S.SubTitle>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -209,9 +223,6 @@ export const TeamView = () => {
                     {filteredMembers.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '3rem' }}>
                             <p>팀원이 없거나 검색 결과가 없습니다.</p>
-                            <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                                (전체 직원: {employees.length}명, 크리에이터: {creators.length}명)
-                            </p>
                         </div>
                     ) : (
                         <S.MemberGrid>
@@ -244,15 +255,10 @@ export const TeamView = () => {
                                             </S.MemberName>
                                             <S.MemberRole>{member.role}</S.MemberRole>
                                             <S.BadgeContainer>
-                                                <S.Badge>
-                                                    {member.nickname || member.name}
-                                                </S.Badge>
+                                                <S.Badge>{member.nickname || member.name}</S.Badge>
                                                 <S.StatusBadge $type={
-                                                    member.workStatus === '출근' || member.workStatus === '활동중'
-                                                        ? 'active'
-                                                        : member.workStatus === '대기중' || member.workStatus === '휴식중'
-                                                            ? 'waiting'
-                                                            : 'inactive'
+                                                    ['출근', '활동중', '근무중'].includes(member.workStatus) ? 'active' :
+                                                    ['대기중', '휴식중', '휴가'].includes(member.workStatus) ? 'waiting' : 'inactive'
                                                 }>
                                                     {member.workStatus}
                                                 </S.StatusBadge>
@@ -268,7 +274,7 @@ export const TeamView = () => {
         );
     }
 
-    // Level 1: Team List (Loading, Empty State, or List)
+    // Level 1: Team List (팀 목록 보기)
     if (isLoading) {
         return (
             <S.Container>
@@ -328,7 +334,7 @@ export const TeamView = () => {
                                 <S.CardFooter>
                                     <S.MemberCount>
                                         <Users size={16} color="#9ca3af" />
-                                        <S.CountText>{team.memberIds.length}명</S.CountText>
+                                        <S.CountText>{team.members.length}명</S.CountText>
                                     </S.MemberCount>
                                     <S.ViewAction>
                                         팀원 조회 <ArrowRight size={14} />

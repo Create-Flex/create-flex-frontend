@@ -33,7 +33,7 @@ import { getMyHealth, postMyHealth, putMyHealth } from '../../health/api/healthS
 import { authService } from '../../auth/api/authService';
 
 export const ProfileView = ({
-    profile, // Optional prop for viewing other profiles
+    profile, 
     readOnly = false,
     onBack,
     hideVacationWidget = false,
@@ -49,7 +49,7 @@ export const ProfileView = ({
     // Determine which profile to show
     const displayProfile = profile || userProfile;
 
-    // Local States - must be declared before any conditional returns
+    // Local States
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('정보');
     const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -63,7 +63,7 @@ export const ProfileView = ({
     // Edit Profile Modal State
     const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
-    // Health Upload State - Mock Data source maintained locally for view history display
+    // Health Upload State
     const [checkupHistory, setCheckupHistory] = useState([
         { id: 1, year: '2023', type: '일반 건강검진', date: '2023. 10. 15', result: '정상 (양호)' },
         { id: 2, year: '2022', type: '채용 건강검진', date: '2022. 01. 05', result: '정상 (경미)' },
@@ -98,7 +98,7 @@ export const ProfileView = ({
                         category: data.creator_category,
                         platform: data.creator_platform,
                         manager: data.manager_name,
-                        email: data.creator_main_contact // 연락처(이메일)
+                        email: data.creator_main_contact
                     });
                 } catch (error) {
                     console.error('크리에이터 정보 조회 실패:', error);
@@ -120,7 +120,6 @@ export const ProfileView = ({
                 setIsTaskLoading(true);
                 const response = await creatorService.getCreatorWorks(displayProfile.employeeId);
 
-                // 백엔드 데이터를 프론트엔드 형식으로 변환
                 const formattedTasks = (response || []).map(work => ({
                     id: work.creatorWorkId,
                     title: work.workName,
@@ -204,7 +203,6 @@ export const ProfileView = ({
     useEffect(() => {
         const fetchVacationRemainder = async () => {
             if (!displayProfile) return;
-            // 크리에이터는 연차 기능이 없으므로 API 호출 안함
             const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || displayProfile.role === 'CREATOR' || isCreatorProfile;
             if (!displayProfile.employeeId || isCreator) return;
             try {
@@ -237,8 +235,8 @@ export const ProfileView = ({
         const endDate = toLocalDateString(today);
 
         try {
-            const { data } = await getMyHealth(startDate, endDate); // API 호출
-            setHealthList(data.healthInfoList); // 상태에 저장
+            const { data } = await getMyHealth(startDate, endDate);
+            setHealthList(data.healthInfoList);
             setHealthCheck(data.haveHealthChecked);
         } catch (err) {
             console.error('Health 조회 실패', err);
@@ -247,24 +245,16 @@ export const ProfileView = ({
 
     useEffect(() => {
         fetchHealth();
-    }, []); // 빈 배열 → 컴포넌트 마운트 시 1회
+    }, []);
 
-    // Validation: Only allow updates if it's the current user's profile and not readOnly
     const canUpdate = !readOnly && isCurrentUser;
 
-    // 프로필 데이터가 없으면 렌더링 안함 (App.jsx에서 로딩 처리) - AFTER all hooks
     if (!displayProfile) {
         return null;
     }
 
-    // Derived Data
     const tabs = (readOnly || isCreatorProfile) ? ['정보'] : ['정보', '건강'];
-    // Filter vacation logs for displayed user
     const userVacationLogs = vacationLogs.filter(log => log.name === displayProfile.name);
-
-
-
-
 
     return (
         <Container>
@@ -392,10 +382,6 @@ export const ProfileView = ({
                 </SectionLayout>
             </ContentContainer>
 
-            {/* Modals - Only render if can update or if viewing details that might need modals? 
-                Actually image upload and password change are only for current user. 
-                Health Result might be viewable? But here it is for upload.
-            */}
             {canUpdate && (
                 <>
                     <ImageUploadModal
@@ -423,10 +409,6 @@ export const ProfileView = ({
                         onClose={() => setIsResultModalOpen(false)}
                         onUpload={async (data) => {
                             try {
-                                for (let [key, value] of data.entries()) {
-                                    console.log(key, value);
-                                }
-
                                 const response = await postMyHealth(data);
                                 const presignedUrl = response.data.presignedUrl;
                                 const file = data.get("file");
@@ -445,14 +427,12 @@ export const ProfileView = ({
                 </>
             )}
 
-            {/* 정보 수정 모달 */}
             <EditProfileModal
                 isOpen={isEditProfileModalOpen}
                 onClose={() => setIsEditProfileModalOpen(false)}
                 profile={displayProfile}
                 onSave={async (data) => {
                     const response = await authService.updateMyInfo(data);
-                    // 프로필 업데이트
                     const updatedProfile = {
                         ...displayProfile,
                         name: data.memberName,
@@ -466,7 +446,6 @@ export const ProfileView = ({
                 }}
             />
 
-            {/* 비밀번호 변경 모달 */}
             <ChangePasswordModal
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}

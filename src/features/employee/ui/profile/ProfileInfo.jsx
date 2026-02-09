@@ -17,14 +17,8 @@ export const ProfileInfo = ({
     onPasswordChangeClick,
     onEditProfileClick
 }) => {
-    const [isEditing, setIsEditing] = useState(false);
-
-    const handleChange = (field, value) => {
-        onUpdateProfile({
-            ...profile,
-            [field]: value
-        });
-    };
+    // readOnly가 true일 때(타인이 볼 때) 개인정보를 숨깁니다.
+    const hideSensitiveInfo = readOnly;
 
     return (
         <div>
@@ -36,39 +30,42 @@ export const ProfileInfo = ({
                     <>
                         <InfoRow>
                             <InfoIconWrapper><Users size={18} /></InfoIconWrapper>
-                            <InfoLabel $wide>구독자</InfoLabel>
+                            <InfoLabel $wide={true}>구독자</InfoLabel>
                             <InfoValue>
                                 <InfoTextBold>{profile.subscribers}</InfoTextBold>
                             </InfoValue>
                         </InfoRow>
                         <InfoRow>
                             <InfoIconWrapper><Grid size={18} /></InfoIconWrapper>
-                            <InfoLabel $wide>카테고리</InfoLabel>
+                            <InfoLabel $wide={true}>카테고리</InfoLabel>
                             <InfoValue>{profile.category}</InfoValue>
                         </InfoRow>
                         <InfoRow>
                             <InfoIconWrapper><Monitor size={18} /></InfoIconWrapper>
-                            <InfoLabel $wide>크리에이터 플랫폼</InfoLabel>
+                            <InfoLabel $wide={true}>크리에이터 플랫폼</InfoLabel>
                             <InfoValue>{profile.platform}</InfoValue>
                         </InfoRow>
                         <InfoRow>
                             <InfoIconWrapper><Link size={18} /></InfoIconWrapper>
-                            <InfoLabel $wide>매니저 이름</InfoLabel>
+                            <InfoLabel $wide={true}>매니저 이름</InfoLabel>
                             <InfoValue><InfoTextMedium>{profile.manager}</InfoTextMedium></InfoValue>
                         </InfoRow>
-                        <InfoRow>
-                            <InfoIconWrapper><AtSign size={18} /></InfoIconWrapper>
-                            <InfoLabel $wide>연락처</InfoLabel>
-                            <InfoValue>
-                                <SubLabel>이메일</SubLabel>
-                                <span>{profile.email}</span>
-                            </InfoValue>
-                        </InfoRow>
+                        
+                        {!hideSensitiveInfo && (
+                            <InfoRow>
+                                <InfoIconWrapper><AtSign size={18} /></InfoIconWrapper>
+                                <InfoLabel $wide={true}>연락처</InfoLabel>
+                                <InfoValue>
+                                    <SubLabel>이메일</SubLabel>
+                                    <span>{profile.email}</span>
+                                </InfoValue>
+                            </InfoRow>
+                        )}
                     </>
                 ) : (
                     <>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><Building size={16} /></InfoIconWrapper>
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><Building size={16} /></InfoIconWrapper>
                             <InfoLabel>조직</InfoLabel>
                             <InfoValue>
                                 <InfoText>
@@ -76,8 +73,8 @@ export const ProfileInfo = ({
                                 </InfoText>
                             </InfoValue>
                         </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><Briefcase size={16} /></InfoIconWrapper>
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><Briefcase size={16} /></InfoIconWrapper>
                             <InfoLabel>직무</InfoLabel>
                             <InfoValue>
                                 <InfoText>
@@ -85,25 +82,28 @@ export const ProfileInfo = ({
                                 </InfoText>
                             </InfoValue>
                         </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><AtSign size={16} /></InfoIconWrapper>
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><AtSign size={16} /></InfoIconWrapper>
                             <InfoLabel>닉네임</InfoLabel>
                             <InfoValue>
                                 <InfoText>{profile.nickname || '-'}</InfoText>
                             </InfoValue>
                         </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><UserCircle size={16} /></InfoIconWrapper>
-                            <InfoLabel>연락처</InfoLabel>
-                            <InfoValue>
-                                <ContactList>
-                                    <ContactItem>
-                                        <ContactLabel>이메일</ContactLabel>
-                                        <span>{profile.email}</span>
-                                    </ContactItem>
-                                </ContactList>
-                            </InfoValue>
-                        </InfoRow>
+                        
+                        {!hideSensitiveInfo && (
+                            <InfoRow $alignStart={true}>
+                                <InfoIconWrapper $marginTop={true}><UserCircle size={16} /></InfoIconWrapper>
+                                <InfoLabel>연락처</InfoLabel>
+                                <InfoValue>
+                                    <ContactList>
+                                        <ContactItem>
+                                            <ContactLabel>이메일</ContactLabel>
+                                            <span>{profile.email}</span>
+                                        </ContactItem>
+                                    </ContactList>
+                                </InfoValue>
+                            </InfoRow>
+                        )}
                     </>
                 )}
             </InfoContainer>
@@ -125,9 +125,9 @@ export const ProfileInfo = ({
                     </SubSectionHeader>
 
                     <InfoContainer>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><UserCircle size={18} /></InfoIconWrapper>
-                            <InfoLabel $paddingTop>이름</InfoLabel>
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><UserCircle size={18} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop={true}>이름</InfoLabel>
                             <InfoValue>
                                 <InfoAnimationWrapper>
                                     <SubLabel>본명</SubLabel> {profile.name}
@@ -135,23 +135,27 @@ export const ProfileInfo = ({
                                 </InfoAnimationWrapper>
                             </InfoValue>
                         </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><Mail size={16} /></InfoIconWrapper>
-                            <InfoLabel $paddingTop>연락처</InfoLabel>
-                            <InfoValue>
-                                <ContactInfoWrapper>
-                                    <ContactRow>
-                                        <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
-                                    </ContactRow>
-                                    <ContactRow>
-                                        <ContactLabel>휴대전화</ContactLabel> {profile.phone}
-                                    </ContactRow>
-                                </ContactInfoWrapper>
-                            </InfoValue>
-                        </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><Calendar size={16} /></InfoIconWrapper>
-                            <InfoLabel $paddingTop>입사 정보</InfoLabel>
+                        
+                        {!hideSensitiveInfo && (
+                            <InfoRow $alignStart={true}>
+                                <InfoIconWrapper $marginTop={true}><Mail size={16} /></InfoIconWrapper>
+                                <InfoLabel $paddingTop={true}>연락처</InfoLabel>
+                                <InfoValue>
+                                    <ContactInfoWrapper>
+                                        <ContactRow>
+                                            <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
+                                        </ContactRow>
+                                        <ContactRow>
+                                            <ContactLabel>휴대전화</ContactLabel> {profile.phone}
+                                        </ContactRow>
+                                    </ContactInfoWrapper>
+                                </InfoValue>
+                            </InfoRow>
+                        )}
+                        
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><Calendar size={16} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop={true}>입사 정보</InfoLabel>
                             <InfoValue>
                                 <JoinDateWrapper>
                                     <SubLabel>입사일</SubLabel> {profile.joinDate}
@@ -159,13 +163,16 @@ export const ProfileInfo = ({
                                 </JoinDateWrapper>
                             </InfoValue>
                         </InfoRow>
-                        <InfoRow $alignStart>
-                            <InfoIconWrapper $marginTop><Building size={16} /></InfoIconWrapper>
-                            <InfoLabel $paddingTop>주소</InfoLabel>
-                            <InfoValue>
-                                <InfoText>{profile.address || '-'}</InfoText>
-                            </InfoValue>
-                        </InfoRow>
+
+                        {!hideSensitiveInfo && (
+                            <InfoRow $alignStart={true}>
+                                <InfoIconWrapper $marginTop={true}><Building size={16} /></InfoIconWrapper>
+                                <InfoLabel $paddingTop={true}>주소</InfoLabel>
+                                <InfoValue>
+                                    <InfoText>{profile.address || '-'}</InfoText>
+                                </InfoValue>
+                            </InfoRow>
+                        )}
                     </InfoContainer>
                 </div>
             )}

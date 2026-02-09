@@ -461,7 +461,7 @@ export const Sidebar = ({ onLogout }) => {
                                     )}
                                 </S.NavItem>
                                 <S.NavItem onClick={() => navigate('/org-chart')} $isActive={location.pathname === '/org-chart'} $center={isCollapsed} title="회사 조직도">
-                                    <Briefcase size={16} />{!isCollapsed && <S.NavText>회사 조직도</S.NavText>}
+                                    <Briefcase size={16} />{!isCollapsed && <S.NavText>부서 관리</S.NavText>}
                                 </S.NavItem>
                             </S.NavContainer>
                         )}
@@ -587,6 +587,9 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
                                 <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
+                                <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
                     </>

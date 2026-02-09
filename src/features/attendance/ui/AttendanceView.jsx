@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, AlertCircle, Timer } from 'lucide-react';
+import { Clock, AlertCircle, Timer, Briefcase } from 'lucide-react';
 import { MyAttendance } from './components/MyAttendance';
 import { useAuthStore } from '../../auth/model/useAuthStore';
 import {
@@ -20,6 +20,7 @@ export const AttendanceView = () => {
     const [stats, setStats] = useState({
         lateCount: '-',
         overtimeMinutes: '-',
+        totalWorkMinutes: '-',
     });
 
     // Derived state (Safe access)
@@ -35,7 +36,8 @@ export const AttendanceView = () => {
                     setStats(prev => ({
                         ...prev,
                         lateCount: data.lateCount || 0,
-                        overtimeMinutes: data.totalOvertimeMinutes || 0
+                        overtimeMinutes: data.totalOvertimeMinutes || 0,
+                        totalWorkMinutes: data.totalWorkMinutes || 0
                     }));
                 }
             } catch (error) {
@@ -52,6 +54,13 @@ export const AttendanceView = () => {
     if (!userProfile) {
         return null;
     }
+
+    const getHoursMinutes = (minutes) => {
+        if (typeof minutes !== 'number') return null;
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return { h, m };
+    };
 
     return (
         <Container>
@@ -95,6 +104,30 @@ export const AttendanceView = () => {
                     </DashboardCard>
 
 
+
+                    <DashboardCard>
+                        <CardHeader>
+                            <CardTitle>이번달 총 근무 시간</CardTitle>
+                            <Briefcase size={18} color="#d1d5db" />
+                        </CardHeader>
+                        <CardValueWrapper>
+                            {(() => {
+                                const timeObj = getHoursMinutes(stats.totalWorkMinutes);
+                                return timeObj ? (
+                                    <>
+                                        <CardValue>{timeObj.h}</CardValue>
+                                        <CardUnit>시간</CardUnit>
+                                        <div style={{ width: '8px' }}></div>
+                                        <CardValue>{timeObj.m}</CardValue>
+                                        <CardUnit>분</CardUnit>
+                                    </>
+                                ) : (
+                                    <CardValue>-</CardValue>
+                                );
+                            })()}
+                        </CardValueWrapper>
+                        <CardDescription>이번 달 총 누적 근무 시간입니다.</CardDescription>
+                    </DashboardCard>
 
                 </CardsGrid>
 

@@ -55,7 +55,7 @@ export const StatValueWrapper = styled.div`
 `;
 
 export const StatValue = styled.span`
-  font-size: 1.875rem;
+  font-size: 2.25rem;
   font-weight: 700;
   color: #111827;
   line-height: 1.25;

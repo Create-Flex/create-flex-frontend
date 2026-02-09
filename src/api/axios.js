@@ -64,6 +64,10 @@ api.interceptors.response.use(
                     }
                     console.error('요청한 리소스를 찾을 수 없습니다.');
                     break;
+                case 409:
+                    // 충돌 에러 (중복 등) - 컴포넌트에서 직접 처리하도록 toast 표시 안함
+                    console.error('충돌 에러:', data?.message);
+                    break;
                 case 500:
                     if (window.location.pathname !== '/login') {
                         toast.error(data?.message || '서버 에러가 발생했습니다.');
@@ -110,6 +114,10 @@ fileApi.interceptors.response.use(
                         toast.error(data?.message || '요청한 리소스를 찾을 수 없습니다.');
                     }
                     console.error('요청한 리소스를 찾을 수 없습니다.');
+                    break;
+                case 409:
+                    // 충돌 에러 (중복 등) - 컴포넌트에서 직접 처리하도록 toast 표시 안함
+                    console.error('충돌 에러:', data?.message);
                     break;
                 case 500:
                     if (window.location.pathname !== '/login') {

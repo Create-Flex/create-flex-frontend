@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
     Search, CheckCircle2, XCircle, AlertCircle, Calendar, ArrowRight, ArrowUpDown,
-    ArrowUp, ArrowDown, Plane, Info, Stethoscope, Gift, X, ChevronDown
+    ArrowUp, ArrowDown, Plane, Info, Stethoscope, Gift, X, ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
     Container, SummaryGrid, SummaryCard, CardLabel, CardValueWrapper, CardValue, CardUnit,
@@ -13,7 +13,8 @@ import {
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalContent, DetailGrid, DetailItem, DetailLabel, DetailValueBox, DateBoxContent, DateLabelSmall,
     DetailCard, DetailCardTitle, DetailRow, DetailRowLabel, DetailRowValue, DetailText,
     RejectionInputContainer, RejectionTextarea, RejectionActions, RejectionBtn, ModalFooter, ActionButtons, ActionButton,
-    WorkationGrid, WorkationSection, WorkationLabel, RejectionLabel
+    WorkationGrid, WorkationSection, WorkationLabel, RejectionLabel,
+    PaginationContainer, PageButton
 } from './VacationManagement.styled';
 import { vacationService } from '../../api/vacationService';
 import { useVacationStore } from '../../model/useVacationStore';
@@ -57,6 +58,11 @@ export const VacationManagement = ({ employees = [] }) => {
     const [vacationLogs, setVacationLogs] = useState([]);
     const [stats, setStats] = useState({ vacationers: 0, pending: 0, sickLeave: 0, countAll: 0, countApproved: 0, countRejected: 0 });
     const [loading, setLoading] = useState(false);
+
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10;
 
     const handleSort = (key) => {
         if (sortConfig && sortConfig.key === key) {
@@ -163,12 +169,15 @@ export const VacationManagement = ({ employees = [] }) => {
         fetchStats();
     }, [vacationRefreshKey]);
 
-    // 휴가 목록 조회 (필터 적용)
+    // 휴가 목록 조회 (필터 적용 + 페이징)
     useEffect(() => {
         const fetchList = async () => {
             setLoading(true);
             try {
-                const filters = {};
+                const filters = {
+                    page: page,
+                    size: pageSize
+                };
 
                 // 미승인 탭일 때는 넓은 날짜 범위 사용 (모든 미승인 신청 표시)
                 if (activeTab === 'pending') {
@@ -182,7 +191,11 @@ export const VacationManagement = ({ employees = [] }) => {
                 if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
                 if (nameFilter) filters.name = nameFilter;
 
-                const listData = await vacationService.getAllVacations(filters);
+                const response = await vacationService.getAllVacations(filters);
+
+                // Page 응답 처리
+                const listData = response.content || [];
+                setTotalPages(response.totalPages || 0);
 
                 // 백엔드 DTO → 프론트엔드 포맷 매핑
                 const mappedData = listData.map(item => ({
@@ -207,7 +220,7 @@ export const VacationManagement = ({ employees = [] }) => {
         };
 
         fetchList();
-    }, [startDate, endDate, typeFilter, nameFilter, activeTab, vacationRefreshKey]);
+    }, [startDate, endDate, typeFilter, nameFilter, activeTab, page, vacationRefreshKey]);
 
     const filteredAndSorted = vacationLogs.filter(v => {
         if (v.status === '사용완료') return false;
@@ -264,6 +277,7 @@ export const VacationManagement = ({ employees = [] }) => {
     // 검색 실행 (버튼 클릭 또는 엔터)
     const handleSearch = () => {
         setNameFilter(searchQuery);
+        setPage(0);
     };
 
     // 엔터 키 처리
@@ -281,6 +295,7 @@ export const VacationManagement = ({ employees = [] }) => {
         setTypeFilter('All');
         setActiveTab('all');
         setSortConfig(null);
+        setPage(0);
     };
 
     return (
@@ -312,19 +327,19 @@ export const VacationManagement = ({ employees = [] }) => {
 
             {/* Tabs (세분화된 필터) */}
             <TabContainer>
-                <TabButton $active={activeTab === 'all'} onClick={() => setActiveTab('all')}>
+                <TabButton $active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setPage(0); }}>
                     전체 <TabCount $type="all">{countAll}</TabCount>
                     {activeTab === 'all' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'approved'} onClick={() => setActiveTab('approved')}>
+                <TabButton $active={activeTab === 'approved'} onClick={() => { setActiveTab('approved'); setPage(0); }}>
                     승인 <TabCount $type="approved">{countApproved}</TabCount>
                     {activeTab === 'approved' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'rejected'} onClick={() => setActiveTab('rejected')}>
+                <TabButton $active={activeTab === 'rejected'} onClick={() => { setActiveTab('rejected'); setPage(0); }}>
                     반려됨 <TabCount $type="rejected">{countRejected}</TabCount>
                     {activeTab === 'rejected' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'pending'} onClick={() => setActiveTab('pending')}>
+                <TabButton $active={activeTab === 'pending'} onClick={() => { setActiveTab('pending'); setPage(0); }}>
                     미승인 <TabCount $type="pending">{countPending}</TabCount>
                     {activeTab === 'pending' && <ActiveIndicator />}
                 </TabButton>
@@ -349,7 +364,7 @@ export const VacationManagement = ({ employees = [] }) => {
                     <SelectWrapper>
                         <TypeSelect
                             value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
+                            onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
                         >
                             <option value="All">유형 전체</option>
                             <option value="연차">연차</option>
@@ -367,7 +382,7 @@ export const VacationManagement = ({ employees = [] }) => {
                         <DateInput
                             type="date"
                             value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
                         />
                         <DateRangeArrow>
                             <ArrowRight size={12} />
@@ -375,7 +390,7 @@ export const VacationManagement = ({ employees = [] }) => {
                         <DateInput
                             type="date"
                             value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
+                            onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
                         />
                     </DateFilter>
                 </FilterGroup>
@@ -443,6 +458,49 @@ export const VacationManagement = ({ employees = [] }) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {/* Pagination Controls */}
+            {totalPages > 0 && (
+                <PaginationContainer>
+                    <PageButton
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft size={16} />
+                    </PageButton>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page < 2) {
+                            pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i + 1;
+                        }
+
+                        return (
+                            <PageButton
+                                key={pageNum}
+                                onClick={() => setPage(pageNum - 1)}
+                                $active={page === pageNum - 1}
+                            >
+                                {pageNum}
+                            </PageButton>
+                        );
+                    })}
+
+                    <PageButton
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page === totalPages - 1}
+                    >
+                        <ChevronRight size={16} />
+                    </PageButton>
+                </PaginationContainer>
+            )}
 
             {/* 휴가 신청 상세 모달 (관리자용) */}
             {selectedDetailLog && (

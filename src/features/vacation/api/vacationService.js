@@ -94,7 +94,7 @@ export const vacationService = {
 
   // ==================== HR/관리자용 API ====================
 
-  // HR 휴가 목록 조회 (전체 직원) - AdminVacationListResponseDTO
+  // HR 휴가 목록 조회 (전체 직원) - AdminVacationListResponseDTO (페이징 지원)
   getAllVacations: async (filters = {}) => {
     try {
       const params = {};
@@ -104,6 +104,8 @@ export const vacationService = {
       if (filters.type) params.type = VACATION_TYPE_MAP[filters.type] || filters.type;
       if (filters.status) params.status = filters.status;
       if (filters.name) params.name = filters.name;
+      if (filters.page !== undefined) params.page = filters.page;
+      if (filters.size !== undefined) params.size = filters.size;
 
       const response = await api.get('/admin/vacations', { params });
       return response.data;

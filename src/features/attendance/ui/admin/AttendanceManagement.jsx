@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAttendanceStore } from '../../model/useAttendanceStore';
 import { attendanceService } from '../../api/attendanceService';
-import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown } from 'lucide-react';
+import { Search, Clock, Calendar, ArrowRight, AlertCircle, Timer, UserCheck, UserX, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
     LoadingContainer, FilterContainer, SearchWrapper, SearchInput, SearchIconWrapper, SearchButton, SelectWrapper, StatusSelect, SelectIconWrapper, DateRangePicker, DateInput, ResetButton, DateRangeArrow,
     TableContainer, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell,
-    NameText, TimeRange, TimeText, NoDataText, Badge
+    NameText, TimeRange, TimeText, NoDataText, Badge,
+    PaginationContainer, PageButton, PageInfo
 } from './AttendanceManagement.styled';
 
 export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
@@ -42,6 +43,11 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const [attendanceList, setAttendanceList] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10;
+
     // Initial Data Fetch & Filter Updates
     useEffect(() => {
         const fetchData = async () => {
@@ -65,9 +71,15 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     startDate,
                     endDate,
                     status: STATUS_MAP[selectedStatus], // 상태 필터
-                    name: searchQuery || undefined // 이름 검색 필터
+                    name: searchQuery || undefined, // 이름 검색 필터
+                    page: page, // 페이지 번호
+                    size: pageSize // 페이지 크기
                 };
-                const listData = await attendanceService.getAllAttendance(listParams);
+                const listResponse = await attendanceService.getAllAttendance(listParams);
+
+                // Handle Page<Dto> response
+                const listData = listResponse.content || [];
+                setTotalPages(listResponse.totalPages || 0);
 
                 // Map Backend DTO to Component State (백엔드에서 상태/정렬 처리)
                 const mappedData = listData.map(item => {
@@ -95,7 +107,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         };
 
         fetchData();
-    }, [startDate, endDate, selectedStatus, searchQuery, attendanceRefreshKey]);
+    }, [startDate, endDate, selectedStatus, searchQuery, page, attendanceRefreshKey]);
 
     // 검색 버튼/엔터키 핸들러
     const handleSearch = () => {
@@ -185,7 +197,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     </DateRangePicker>
                 </FilterContainer>
                 <ResetButton
-                    onClick={() => { setStartDate(''); setEndDate(''); setSearchInput(''); setSearchQuery(''); setSelectedStatus('All'); }}
+                    onClick={() => { setStartDate(''); setEndDate(''); setSearchInput(''); setSearchQuery(''); setSelectedStatus('All'); setPage(0); }}
                 >
                     필터 초기화
                 </ResetButton>
@@ -254,7 +266,51 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                         )}
                     </TableBody>
                 </Table>
+
             </TableContainer>
-        </Container>
+
+            {/* Pagination Controls */}
+            {totalPages > 0 && (
+                <PaginationContainer>
+                    <PageButton
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft size={16} />
+                    </PageButton>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page < 2) {
+                            pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i + 1;
+                        }
+
+                        return (
+                            <PageButton
+                                key={pageNum}
+                                onClick={() => setPage(pageNum - 1)}
+                                $active={page === pageNum - 1}
+                            >
+                                {pageNum}
+                            </PageButton>
+                        );
+                    })}
+
+                    <PageButton
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page === totalPages - 1}
+                    >
+                        <ChevronRight size={16} />
+                    </PageButton>
+                </PaginationContainer>
+            )}
+        </Container >
     );
 };

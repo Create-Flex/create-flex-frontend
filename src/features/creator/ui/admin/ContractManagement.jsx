@@ -25,7 +25,7 @@ export const ContractManagement = () => {
         creator_name: '',
         contract_start: '',
         contract_end: '',
-        contract_file_url: ''
+        file: null
     });
 
     // 계약 목록 조회
@@ -68,18 +68,33 @@ export const ContractManagement = () => {
         try {
             setLoading(true);
 
-            // 계약 등록 (파일 URL은 선택사항)
-            const contractData = {
+            // FormData 생성
+            const formData = new FormData();
+
+            // 메타데이터를 JSON 객체로 구성
+            const requestData = {
                 contract_name: contractForm.contract_name,
                 creator_name: contractForm.creator_name,
                 contract_start: contractForm.contract_start,
-                contract_end: contractForm.contract_end,
-                contract_file_url: contractForm.contract_file_url || null
+                contract_end: contractForm.contract_end
             };
 
-            await contractService.createContract(contractData);
+            formData.append('request', new Blob([JSON.stringify(requestData)], {
+                type: 'application/json'
+            }));
 
-            toㅅast.success('계약서가 성공적으로 등록되었습니다.');
+            if (contractForm.file) {
+                formData.append('file', contractForm.file);
+            }
+
+            const response = await contractService.createContract(formData);
+
+            // S3에 실제 파일 업로드
+            if (response.presigned_url && contractForm.file) {
+                await contractService.uploadFileToS3(contractForm.file, response.presigned_url);
+            }
+
+            toast.success('계약서가 성공적으로 등록되었습니다.');
 
             // 폼 초기화 및 모달 닫기
             handleCloseModal();
@@ -103,12 +118,13 @@ export const ContractManagement = () => {
             creator_name: '',
             contract_start: '',
             contract_end: '',
-            contract_file_url: ''
+            file: null
         });
     };
 
     // 계약서 다운로드
-    const handleDownload = (contractFileUrl, contractName) => {
+    const handleDownload = (e, contractFileUrl) => {
+        e.stopPropagation();
         if (!contractFileUrl) {
             toast.error('다운로드할 파일이 없습니다.');
             return;
@@ -161,11 +177,11 @@ export const ContractManagement = () => {
                         {contracts.map(contract => (
                             <ContractCard key={contract.contract_id}>
                                 <CardLeft>
-                                    <IconBox>
+                                    <IconBox onClick={(e) => handleDownload(e, contract.contract_file_url)}>
                                         <FileText size={20} />
                                     </IconBox>
                                     <ContractInfo>
-                                        <ContractName>
+                                        <ContractName onClick={(e) => handleDownload(e, contract.contract_file_url)}>
                                             {contract.contract_name}
                                         </ContractName>
                                         <MetaInfo>
@@ -193,7 +209,7 @@ export const ContractManagement = () => {
                                 <ActionArea>
                                     <DownloadButton
                                         title="다운로드"
-                                        onClick={() => handleDownload(contract.contract_file_url, contract.contract_name)}
+                                        onClick={(e) => handleDownload(e, contract.contract_file_url)}
                                         disabled={!contract.contract_file_url}
                                         style={{
                                             opacity: contract.contract_file_url ? 1 : 0.3,
@@ -267,17 +283,16 @@ export const ContractManagement = () => {
                                 </InputGroup>
                             </GridContainer>
                             <InputGroup>
-                                <Label>계약서 파일 URL (선택)</Label>
+                                <Label>계약서 파일 업로드 (선택)</Label>
                                 <Input
-                                    placeholder="https://example.com/contract.pdf"
-                                    value={contractForm.contract_file_url}
+                                    type="file"
                                     onChange={e => setContractForm({
                                         ...contractForm,
-                                        contract_file_url: e.target.value
+                                        file: e.target.files[0]
                                     })}
                                 />
                                 <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.25rem' }}>
-                                    * S3 연동 전까지는 파일 URL을 직접 입력하세요
+                                    * 계약서 파일을 업로드해 주세요 (PDF, 이미지 등)
                                 </div>
                             </InputGroup>
                         </ModalBody>

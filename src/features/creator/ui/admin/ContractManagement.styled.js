@@ -90,6 +90,8 @@ export const IconBox = styled.div`
   transition: all 0.2s;
   border: 1px solid transparent;
   
+  cursor: pointer;
+  
   ${ContractCard}:hover & {
     background-color: white;
     color: black;
@@ -108,6 +110,12 @@ export const ContractName = styled.div`
   align-items: center;
   gap: 0.5rem; // gap-2
   margin-bottom: 0.25rem; // mb-1
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+    color: #2563eb; // blue-600
+  }
 `;
 
 export const MetaInfo = styled.div`
@@ -272,7 +280,7 @@ export const FooterButton = styled.button`
   font-weight: 500;
   
   ${props => props.$primary
-        ? css`background-color: black; color: white; &:hover { background-color: #1f2937; }` // bg-black hover:bg-gray-800
-        : css`color: #4b5563; &:hover { background-color: #e5e7eb; }` // text-gray-600 hover:bg-gray-200
-    }
+    ? css`background-color: black; color: white; &:hover { background-color: #1f2937; }` // bg-black hover:bg-gray-800
+    : css`color: #4b5563; &:hover { background-color: #e5e7eb; }` // text-gray-600 hover:bg-gray-200
+  }
 `;

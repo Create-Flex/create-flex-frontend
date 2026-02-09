@@ -92,6 +92,19 @@ export const vacationService = {
     }
   },
 
+  // 내 휴가 통계 조회 (승인 건수, 미승인 건수)
+  getMyVacationStats: async (memberId) => {
+    try {
+      const response = await api.get('/vacations/my/stats', {
+        params: { memberId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('내 휴가 통계 조회 에러:', error);
+      throw error;
+    }
+  },
+
   // ==================== HR/관리자용 API ====================
 
   // HR 휴가 목록 조회 (전체 직원) - AdminVacationListResponseDTO (페이징 지원)

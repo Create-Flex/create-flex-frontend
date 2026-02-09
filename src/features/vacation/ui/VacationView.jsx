@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plane } from 'lucide-react';
+import { Plane, CheckCircle2, Clock } from 'lucide-react';
 import { MyVacation } from './components/MyVacation';
 import { vacationService } from '../api/vacationService';
 import { useAuthStore } from '../../auth/model/useAuthStore';
@@ -24,25 +24,32 @@ export const VacationView = () => {
     const [vacationStats, setVacationStats] = useState({
         total: 15,
         used: 0,
-        remaining: 15
+        remaining: 15,
+        approved: 0,
+        pending: 0
     });
 
-    // 잔여 연차 조회 (휴가 신청/변경 시 자동 새로고침)
+    // 잔여 연차 + 휴가 통계 조회 (휴가 신청/변경 시 자동 새로고침)
     useEffect(() => {
-        const fetchRemainder = async () => {
+        const fetchStats = async () => {
             if (!memberId || isCreator) return;
             try {
-                const response = await vacationService.getMyVacationRemainder(memberId);
+                const [remainder, stats] = await Promise.all([
+                    vacationService.getMyVacationRemainder(memberId),
+                    vacationService.getMyVacationStats(memberId)
+                ]);
                 setVacationStats({
-                    total: response.totalVacation || 15,
-                    used: response.usedVacation || 0,
-                    remaining: response.vacationRemainder || 15
+                    total: remainder.totalVacation || 15,
+                    used: remainder.usedVacation || 0,
+                    remaining: remainder.vacationRemainder || 15,
+                    approved: stats.approvedCount || 0,
+                    pending: stats.pendingCount || 0
                 });
             } catch (error) {
-                console.error('잔여 연차 조회 실패:', error);
+                console.error('휴가 통계 조회 실패:', error);
             }
         };
-        fetchRemainder();
+        fetchStats();
     }, [memberId, vacationRefreshKey, isCreator]);
 
     // 프로필 데이터가 없으면 렌더링 안함
@@ -86,6 +93,30 @@ export const VacationView = () => {
                                     <ProgressBarFill $width={`${(vacationStats.used / vacationStats.total) * 100}%`} />
                                 </ProgressBarBg>
                             </VerticalStack>
+                        </DashboardCard>
+                    )}
+                    {!isCreator && (
+                        <DashboardCard>
+                            <CardHeader>
+                                <CardTitle>승인된 휴가</CardTitle>
+                                <CheckCircle2 size={18} color="#d1d5db" />
+                            </CardHeader>
+                            <CardValueWrapper>
+                                <CardValue>{vacationStats.approved}</CardValue>
+                                <CardUnit>건</CardUnit>
+                            </CardValueWrapper>
+                        </DashboardCard>
+                    )}
+                    {!isCreator && (
+                        <DashboardCard>
+                            <CardHeader>
+                                <CardTitle>미승인 휴가</CardTitle>
+                                <Clock size={18} color="#d1d5db" />
+                            </CardHeader>
+                            <CardValueWrapper>
+                                <CardValue>{vacationStats.pending}</CardValue>
+                                <CardUnit>건</CardUnit>
+                            </CardValueWrapper>
                         </DashboardCard>
                     )}
                 </CardsGrid>

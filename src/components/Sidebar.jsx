@@ -238,11 +238,14 @@ export const Sidebar = ({ onLogout }) => {
             // 관리자만 휴가 전체 목록 조회 API 호출 가능 (매니저는 403 오류 발생)
             if (!userIsAdmin) return;
             try {
-                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용
-                const listData = await vacationService.getAllVacations({
+                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용 (페이징 적용)
+                const response = await vacationService.getAllVacations({
                     startDate: '2020-01-01',
-                    endDate: '2030-12-31'
+                    endDate: '2030-12-31',
+                    size: 10000  // 충분히 큰 사이즈로 전체 조회
                 });
+                // Page 응답에서 content 추출
+                const listData = response.content || [];
                 const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;
                 setPendingApprovals(pendingCount);
             } catch (error) {

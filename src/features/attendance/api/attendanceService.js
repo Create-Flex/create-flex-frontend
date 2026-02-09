@@ -4,9 +4,9 @@ export const attendanceService = {
     // 내 근태 기록 조회
     getMyAttendance: async (params = {}) => {
         try {
-            const { startDate, endDate, status } = params;
+            const { startDate, endDate, status, page, size } = params;
             const response = await api.get('/attendance', {
-                params: { startDate, endDate, status }
+                params: { startDate, endDate, status, page, size }
             });
             return response.data;
         } catch (error) {
@@ -40,9 +40,9 @@ export const attendanceService = {
     // 전체 직원 근태 기록 조회 (관리자용)
     getAllAttendance: async (params = {}) => {
         try {
-            const { startDate, endDate, status, name } = params;
+            const { startDate, endDate, status, name, page, size } = params;
             const response = await api.get('/attendance/all', {
-                params: { startDate, endDate, status, name }
+                params: { startDate, endDate, status, name, page, size }
             });
             return response.data;
         } catch (error) {

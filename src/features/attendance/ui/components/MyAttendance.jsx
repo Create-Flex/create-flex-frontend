@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAttendanceStore } from '../../model/useAttendanceStore';
 import { attendanceService } from '../../api/attendanceService';
-import { Briefcase, Filter, ArrowRight } from 'lucide-react';
+import { Briefcase, Filter, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
     Container, TableContainer, FilterHeader, FilterGroup, DateRangePicker, FilterLabel, DateInput,
     SelectContainer, StatusSelect, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, NoDataCell,
-    StatusBadge, TypeIcon, StyledArrowRight, StyledFilterIcon, ResetButton
+    StatusBadge, TypeIcon, StyledArrowRight, StyledFilterIcon, ResetButton,
+    PaginationContainer, PageButton, PageInfo
 } from './MyAttendance.styled';
 
 const formatDate = (date) => {
@@ -63,6 +64,11 @@ export const MyAttendance = () => {
     const [workLogs, setWorkLogs] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10;
+
     useEffect(() => {
         const fetchMyAttendance = async () => {
             setLoading(true);
@@ -70,9 +76,15 @@ export const MyAttendance = () => {
                 const params = {
                     startDate,
                     endDate,
-                    status: REVERSE_STATUS_MAP[statusFilter] // Send Backend Enum
+                    status: REVERSE_STATUS_MAP[statusFilter], // Send Backend Enum
+                    page: page,
+                    size: pageSize
                 };
-                const data = await attendanceService.getMyAttendance(params);
+                const response = await attendanceService.getMyAttendance(params);
+
+                // Handle Page<Dto> response
+                const data = response.content || [];
+                setTotalPages(response.totalPages || 0);
 
                 // Transform API data to Component format
                 const formattedData = data.map(log => {
@@ -104,7 +116,7 @@ export const MyAttendance = () => {
 
         fetchMyAttendance();
         fetchMyAttendance();
-    }, [startDate, endDate, statusFilter, attendanceRefreshKey]);
+    }, [startDate, endDate, statusFilter, page, attendanceRefreshKey]);
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -202,6 +214,7 @@ export const MyAttendance = () => {
                         setStartDate(getISODate(oneMonthAgo));
                         setEndDate(getISODate(oneMonthLater));
                         setStatusFilter('All');
+                        setPage(0);
                     }}>
                         필터 초기화
                     </ResetButton>
@@ -237,7 +250,51 @@ export const MyAttendance = () => {
                         )}
                     </TableBody>
                 </Table>
+
             </TableContainer>
+
+            {/* Pagination Controls */}
+            {totalPages > 0 && (
+                <PaginationContainer>
+                    <PageButton
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft size={16} />
+                    </PageButton>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page < 2) {
+                            pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i + 1;
+                        }
+
+                        return (
+                            <PageButton
+                                key={pageNum}
+                                onClick={() => setPage(pageNum - 1)}
+                                $active={page === pageNum - 1}
+                            >
+                                {pageNum}
+                            </PageButton>
+                        );
+                    })}
+
+                    <PageButton
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page === totalPages - 1}
+                    >
+                        <ChevronRight size={16} />
+                    </PageButton>
+                </PaginationContainer>
+            )}
         </Container >
     );
 };

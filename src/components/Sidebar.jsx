@@ -138,7 +138,8 @@ export const Sidebar = ({ onLogout }) => {
             if (userIsCreator) return;
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
-                const logs = await attendanceService.getMyAttendance({ startDate: todayStr, endDate: todayStr });
+                const response = await attendanceService.getMyAttendance({ startDate: todayStr, endDate: todayStr });
+                const logs = response.content || [];
 
                 // Assuming logs is an array of attendance records
                 const myLog = logs.find(l => l.attendanceDate === todayStr);

@@ -9,6 +9,7 @@ import { ScheduleView } from '../features/calendar/ui/ScheduleView';
 import { OrgChartView } from '../features/organization/ui/OrgChartView';
 import { CreatorManagerView } from '../features/creator/ui/CreatorManagerView';
 import { AttendanceView } from '../features/attendance/ui/AttendanceView';
+import { VacationView } from '../features/vacation/ui/VacationView';
 import { HRDashboardView } from '../components/HRDashboardView';
 import { TeamView } from '../features/organization/ui/TeamView';
 
@@ -239,6 +240,7 @@ function App() {
                     <Route path="/mypage" element={<ProfileView />} />
                     <Route path="/schedule" element={<ScheduleView />} />
                     <Route path="/attendance" element={<AttendanceView />} />
+                    <Route path="/vacation" element={<VacationView />} />
 
                     {/* HR Dashboard Routes */}
                     <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />

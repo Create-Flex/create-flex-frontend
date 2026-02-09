@@ -1,27 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plane, AlertCircle, Timer } from 'lucide-react';
+import { Clock, AlertCircle, Timer } from 'lucide-react';
 import { MyAttendance } from './components/MyAttendance';
-import { MyVacation } from '../../vacation/ui/components/MyVacation';
-import { vacationService } from '../../vacation/api/vacationService';
 import { useAuthStore } from '../../auth/model/useAuthStore';
 import {
     Container, ContentWrapper, Header, Title, CardsGrid, DashboardCard, CardHeader, CardTitle,
-    CardValueWrapper, CardValue, CardUnit, CardDescription, ProgressBarContainer, ProgressLabel, ProgressValue,
-    ProgressBarBg, ProgressBarFill, TabsContainer, TabButton, VerticalStack, ContentSection
+    CardValueWrapper, CardValue, CardUnit, CardDescription, ContentSection
 } from './AttendanceView.styled';
 
 import { useUserStore } from '../../employee/model/useUserStore';
 import { useAttendanceStore } from '../model/useAttendanceStore';
-import { useVacationStore } from '../../vacation/model/useVacationStore';
 import { attendanceService } from '../api/attendanceService';
 
 export const AttendanceView = () => {
     const { user } = useAuthStore();
     const { userProfile } = useUserStore();
     const { attendanceLogs, refreshKey: attendanceRefreshKey } = useAttendanceStore();
-    const { refreshKey: vacationRefreshKey } = useVacationStore();
-
-    const [activeTab, setActiveTab] = useState('work');
 
     // Stats Data (State for API data, Init with Mock/Default)
     const [stats, setStats] = useState({
@@ -31,15 +24,7 @@ export const AttendanceView = () => {
 
     // Derived state (Safe access)
     const userName = userProfile?.name;
-    const memberId = user?.memberId || user?.id;
     const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || userProfile?.role === 'CREATOR';
-
-    // 잔여 연차 상태
-    const [vacationStats, setVacationStats] = useState({
-        total: 15,
-        used: 0,
-        remaining: 15
-    });
 
     // Fetch My Dashboard Stats
     React.useEffect(() => {
@@ -61,23 +46,7 @@ export const AttendanceView = () => {
     }, [attendanceRefreshKey]); // Refresh stats when attendance changes
 
 
-    // 잔여 연차 조회 (휴가 신청/변경 시 자동 새로고침)
-    useEffect(() => {
-        const fetchRemainder = async () => {
-            if (!memberId || isCreator) return;
-            try {
-                const response = await vacationService.getMyVacationRemainder(memberId);
-                setVacationStats({
-                    total: response.totalVacation || 15,
-                    used: response.usedVacation || 0,
-                    remaining: response.vacationRemainder || 15
-                });
-            } catch (error) {
-                console.error('잔여 연차 조회 실패:', error);
-            }
-        };
-        fetchRemainder();
-    }, [memberId, vacationRefreshKey, isCreator]);
+
 
     // 프로필 데이터가 없으면 렌더링 안함 - AFTER all hooks
     if (!userProfile) {
@@ -91,9 +60,9 @@ export const AttendanceView = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Clock color="#1f2937" size={32} />
                         <div>
-                            <Title>나의 근태/휴가</Title>
+                            <Title>나의 근태</Title>
                             <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                                나의 근태 현황과 휴가 사용 내역을 조회하고 관리합니다.
+                                나의 근태 현황을 조회하고 관리합니다.
                             </p>
                         </div>
                     </div>
@@ -127,51 +96,10 @@ export const AttendanceView = () => {
 
 
 
-                    {!isCreator && (
-                        <DashboardCard>
-                            <CardHeader>
-                                <CardTitle>잔여 연차</CardTitle>
-                                <Plane size={18} color="#d1d5db" />
-                            </CardHeader>
-                            <CardValueWrapper>
-                                <CardValue>{vacationStats.remaining}</CardValue>
-                                <CardUnit $bottom>일</CardUnit>
-                            </CardValueWrapper>
-                            <VerticalStack>
-                                <ProgressBarContainer>
-                                    <ProgressLabel>사용 연차 {vacationStats.used} / {vacationStats.total}</ProgressLabel>
-                                    <ProgressValue>{Math.round((vacationStats.used / vacationStats.total) * 100)}%</ProgressValue>
-                                </ProgressBarContainer>
-                                <ProgressBarBg>
-                                    <ProgressBarFill $width={`${(vacationStats.used / vacationStats.total) * 100}%`} />
-                                </ProgressBarBg>
-                            </VerticalStack>
-                        </DashboardCard>
-                    )}
-
                 </CardsGrid>
 
                 <ContentSection>
-                    <TabsContainer>
-                        <TabButton
-                            $active={activeTab === 'work'}
-                            onClick={() => setActiveTab('work')}
-                        >
-                            <Clock size={16} /> 일별 근무 내역
-                        </TabButton>
-                        {!isCreator && (
-                            <TabButton
-                                $active={activeTab === 'vacation'}
-                                onClick={() => setActiveTab('vacation')}
-                            >
-                                <Plane size={16} /> 휴가 사용 내역
-                            </TabButton>
-                        )}
-                    </TabsContainer>
-
-                    {activeTab === 'work' && <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />}
-
-                    {activeTab === 'vacation' && <MyVacation />}
+                    <MyAttendance attendanceLogs={attendanceLogs} userName={userName} />
                 </ContentSection>
             </ContentWrapper >
         </Container >

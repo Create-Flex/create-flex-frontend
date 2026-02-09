@@ -7,12 +7,13 @@ import {
     ModalBody, ModalFooter, PrimaryButton, SecondaryButton,
     FormGroup, Input, TextArea, Select
 } from '../../../../../shared/ui/Modal.styled';
+import { legalTaxService } from '../../../../support/api/legalTaxService';
 
 export const AdCampaignModal = ({
     isOpen,
     onClose,
-    creators,
     onSuccess,
+    onConfirm,
 }) => {
     const [form, setForm] = useState({
         brandName: '',
@@ -23,6 +24,35 @@ export const AdCampaignModal = ({
         targetDate: new Date().toISOString().split('T')[0],
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [myCreators, setMyCreators] = useState([]);
+    const [isLoadingCreators, setIsLoadingCreators] = useState(false);
+
+    // 모달이 열릴 때 내가 담당하는 크리에이터 목록 가져오기
+    React.useEffect(() => {
+        if (isOpen) {
+            fetchMyCreators();
+        }
+    }, [isOpen]);
+
+    const fetchMyCreators = async () => {
+        setIsLoadingCreators(true);
+        try {
+            const creators = await legalTaxService.getMyCreators();
+
+            // 백엔드 응답 형식에 맞게 매핑
+            const mappedCreators = creators.map(creator => ({
+                id: creator.member_id || creator.memberId,
+                name: creator.member_name || creator.memberName || creator.name
+            }));
+
+            setMyCreators(mappedCreators);
+        } catch (error) {
+            console.error('담당 크리에이터 목록 조회 실패:', error);
+            toast.error('크리에이터 목록을 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoadingCreators(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!form.brandName || !form.campaignTitle || !form.budget || !form.creatorId) {
@@ -61,6 +91,10 @@ export const AdCampaignModal = ({
             onClose();
 
             // 부모에게 성공 알림 (목록 새로고침용)
+            if (onConfirm) {
+                onConfirm(form);
+            }
+
             if (onSuccess) {
                 onSuccess();
             }
@@ -115,10 +149,12 @@ export const AdCampaignModal = ({
                                 <Select
                                     value={form.creatorId}
                                     onChange={e => setForm({ ...form, creatorId: e.target.value })}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isLoadingCreators}
                                 >
-                                    <option value="">담당 크리에이터 선택</option>
-                                    {creators.map(c => (
+                                    <option value="">
+                                        {isLoadingCreators ? '로딩 중...' : '담당 크리에이터 선택'}
+                                    </option>
+                                    {myCreators.map(c => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
                                 </Select>

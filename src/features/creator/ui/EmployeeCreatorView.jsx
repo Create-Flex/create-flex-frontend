@@ -307,7 +307,6 @@ export const EmployeeCreatorView = ({
             <AdCampaignModal
                 isOpen={isAdModalOpen}
                 onClose={() => setIsAdModalOpen(false)}
-                creators={creators}
                 onConfirm={(data) => {
                     handleAddAd(data);
                     setIsAdModalOpen(false);

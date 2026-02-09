@@ -5,6 +5,7 @@ import * as S from './App.styled';
 import { Login } from '../features/auth/ui/Login';
 import { Sidebar } from '../components/Sidebar';
 import { ProfileView } from '../features/employee/ui/ProfileView';
+import { HealthPrivate } from '../features/health/ui/HealthPrivate';
 import { ScheduleView } from '../features/calendar/ui/ScheduleView';
 import { OrgChartView } from '../features/organization/ui/OrgChartView';
 import { CreatorManagerView } from '../features/creator/ui/CreatorManagerView';
@@ -237,6 +238,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/mypage" replace />} />
                     <Route path="/login" element={<Navigate to="/mypage" replace />} />
                     <Route path="/mypage" element={<ProfileView />} />
+                    <Route path="/health" element={<HealthPrivate />}/>
                     <Route path="/schedule" element={<ScheduleView />} />
                     <Route path="/attendance" element={<AttendanceView />} />
 

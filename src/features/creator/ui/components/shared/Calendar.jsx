@@ -73,9 +73,10 @@ export const CreatorCalendar = ({
                                 }}
                                 $creatorId={creator?.id}
                                 $isManager={evt.isManagerCreated}
+                                $type={evt.type}
                             >
                                 <EventContent>
-                                    <EventDot $creatorId={creator?.id} />
+                                    <EventDot $creatorId={creator?.id} $type={evt.type} />
                                     <EventText>
                                         {creator?.name} -
                                         {evt.type === 'meeting' ? ' [미팅]' :
@@ -117,6 +118,10 @@ export const CreatorCalendar = ({
 
                 {/* Creator Legend */}
                 <Legend>
+                    <LegendItem>
+                        <LegendDot $type="promotion" />
+                        광고
+                    </LegendItem>
                     {legendList.map((c, index) => {
                         const uniqueKey = (c.id && c.id !== 'undefined' && c.id !== 'null') ? c.id : `legend-${index}`;
                         return (

@@ -122,6 +122,9 @@ export const LegendDot = styled.div`
   height: 0.5rem;
   border-radius: 9999px;
   background-color: ${props => {
+    if (props.$type === 'promotion') {
+      return '#3b82f6';
+    }
     const idStr = String(props.$id || '0');
     return generatePastelColor(idStr, false).dot;
   }};
@@ -229,6 +232,14 @@ export const EventItem = styled.div`
   }
 
   ${props => {
+    if (props.$type === 'promotion') {
+      return css`
+        background-color: #ebf5ff;
+        color: #1e40af;
+        border-color: #bfdbfe;
+      `;
+    }
+
     const idStr = String(props.$creatorId || '0');
     const isManager = props.$isManager || false;
     const theme = generatePastelColor(idStr, isManager);
@@ -263,6 +274,9 @@ export const EventDot = styled.div`
   border-radius: 9999px;
   flex-shrink: 0;
   background-color: ${props => {
+    if (props.$type === 'promotion') {
+      return '#3b82f6';
+    }
     const idStr = String(props.$creatorId || '0');
     return generatePastelColor(idStr, false).dot;
   }};

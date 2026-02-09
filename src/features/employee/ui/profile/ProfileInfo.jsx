@@ -51,7 +51,6 @@ export const ProfileInfo = ({
                             <InfoValue><InfoTextMedium>{profile.manager}</InfoTextMedium></InfoValue>
                         </InfoRow>
                         
-                        {/* [수정] 본인이 아닐 경우 연락처 아예 숨김 */}
                         {!hideSensitiveInfo && (
                             <InfoRow>
                                 <InfoIconWrapper><AtSign size={18} /></InfoIconWrapper>
@@ -91,7 +90,6 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
                         
-                        {/* [수정] 본인이 아닐 경우 회사 연락처도 숨김 */}
                         {!hideSensitiveInfo && (
                             <InfoRow $alignStart={true}>
                                 <InfoIconWrapper $marginTop={true}><UserCircle size={16} /></InfoIconWrapper>
@@ -138,7 +136,6 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
                         
-                        {/* [수정] 본인이 아닐 경우 개인 연락처(폰,개인메일) 숨김 */}
                         {!hideSensitiveInfo && (
                             <InfoRow $alignStart={true}>
                                 <InfoIconWrapper $marginTop={true}><Mail size={16} /></InfoIconWrapper>
@@ -167,7 +164,6 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
 
-                        {/* [수정] 본인이 아닐 경우 주소 숨김 */}
                         {!hideSensitiveInfo && (
                             <InfoRow $alignStart={true}>
                                 <InfoIconWrapper $marginTop={true}><Building size={16} /></InfoIconWrapper>

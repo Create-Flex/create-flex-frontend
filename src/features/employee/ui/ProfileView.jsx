@@ -37,7 +37,7 @@ export const ProfileView = ({
     readOnly = false,
     onBack,
     hideVacationWidget = false,
-    hideTasks = false // [수정] 여기에 쉼표(,)를 추가하여 오류를 해결했습니다.
+    hideTasks = false
 }) => {
     // Hooks from stores
     const { user } = useAuthStore();

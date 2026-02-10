@@ -12,7 +12,7 @@ import {
     InfoWrapper, AvatarImg, AvatarCreating, NameText, SubText,
     ChannelWrapper, ChannelName, SubscriberCount,
     ContactText, NoDataText, ManagerName, ConnectedBadge, StatusBadge,
-    PaginationContainer, PageButton, PageNavButton
+    PaginationContainer, PageButton
 } from './CreatorList.styled';
 
 export const CreatorList = ({
@@ -224,12 +224,12 @@ export const CreatorList = ({
 
             {totalPages > 0 && (
                 <PaginationContainer>
-                    <PageNavButton
+                    <PageButton
                         disabled={page === 0}
                         onClick={() => setPage(page - 1)}
                     >
-                        <ChevronLeft size={16} /> 이전
-                    </PageNavButton>
+                        <ChevronLeft size={16} />
+                    </PageButton>
 
                     {[...Array(totalPages)].map((_, i) => (
                         <PageButton
@@ -241,12 +241,12 @@ export const CreatorList = ({
                         </PageButton>
                     ))}
 
-                    <PageNavButton
+                    <PageButton
                         disabled={page === totalPages - 1}
                         onClick={() => setPage(page + 1)}
                     >
-                        다음 <ChevronRight size={16} />
-                    </PageNavButton>
+                        <ChevronRight size={16} />
+                    </PageButton>
                 </PaginationContainer>
             )}
         </Container>

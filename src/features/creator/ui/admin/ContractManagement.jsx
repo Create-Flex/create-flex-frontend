@@ -190,7 +190,7 @@ export const ContractManagement = () => {
                             />
                         </SearchWrapper>
                         <SearchButton onClick={handleSearch}>
-                            <Search size={14} /> 검색
+                            검색
                         </SearchButton>
                         <Divider />
                         <CountText>총 {contracts.length}건</CountText>

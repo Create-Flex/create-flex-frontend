@@ -306,42 +306,37 @@ export const StatusBadge = styled.span`
 
 // Pagination
 export const PaginationContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem 0;
 `;
 
 export const PageButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: 1px solid ${props => props.$active ? '#00C471' : '#e5e7eb'};
-  background-color: ${props => props.$active ? '#00C471' : 'white'};
-  color: ${props => props.$active ? 'white' : '#4b5563'};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    background-color: ${props => props.$active ? '#111827' : 'white'};
+    color: ${props => props.$active ? 'white' : '#374151'};
+    cursor: pointer;
+    transition: all 0.2s;
 
-  &:hover:not(:disabled) {
-    background-color: ${props => props.$active ? '#00b065' : '#f9fafb'};
-    border-color: ${props => props.$active ? '#00b065' : '#d1d5db'};
-  }
+    &:hover:not(:disabled) {
+        background-color: ${props => props.$active ? '#1f2937' : '#f9fafb'};
+        border-color: ${props => props.$active ? '#d1d5db' : '#d1d5db'};
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-    color: #9ca3af;
-  }
-`;
-
-export const PageNavButton = styled(PageButton)`
-  width: auto;
-  padding: 0 0.75rem;
-  gap: 0.25rem;
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 `;

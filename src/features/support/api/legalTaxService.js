@@ -22,9 +22,9 @@ export const legalTaxService = {
   },
 
   // 전체 상담 신청 목록 조회 (관리자 전용)
-  getAllRequests: async (type = null, status = null) => {
+  getAllRequests: async (type = null, status = null, page = 0, size = 8) => {
     try {
-      const params = {};
+      const params = { page, size };
       if (type) params.type = type.toUpperCase();
       if (status) params.status = status.toUpperCase();
 
@@ -36,6 +36,7 @@ export const legalTaxService = {
       });
 
       console.log('전체 상담 목록 응답:', response.data);
+      // Spring Page 객체 전체 반환 (content, totalPages, totalElements 등 포함)
       return response.data;
     } catch (error) {
       console.error('전체 상담 목록 조회 에러:', error);
@@ -44,9 +45,9 @@ export const legalTaxService = {
   },
 
   // 내 담당 크리에이터의 상담 신청 목록 조회 (매니저 전용)
-  getMyRequests: async (type = null, status = null) => {
+  getMyRequests: async (type = null, status = null, page = 0, size = 8) => {
     try {
-      const params = {};
+      const params = { page, size };
       if (type) params.type = type.toUpperCase();
       if (status) params.status = status.toUpperCase();
 
@@ -58,6 +59,7 @@ export const legalTaxService = {
       });
 
       console.log('내 담당 상담 목록 응답:', response.data);
+      // Spring Page 객체 전체 반환 (content, totalPages, totalElements 등 포함)
       return response.data;
     } catch (error) {
       console.error('내 담당 상담 목록 조회 에러:', error);

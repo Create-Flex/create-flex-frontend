@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Scale, FileSpreadsheet, Clock, CheckCircle2 } from 'lucide-react';
+import { Scale, FileSpreadsheet, Clock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { legalTaxService } from '../../../support/api/legalTaxService';
 import { useLegalTaxStore } from '../../../support/model/useLegalTaxStore';
 import { mapLegalTaxFromBackend } from '../../../../shared/utils/legalTaxMapper';
@@ -7,23 +7,29 @@ import {
     Container, SupportCard, CardHeader, IconBox, CardTitleGroup, CardTitle, CardDesc, CardContent,
     SupportList, ListLabel, List, ListItem, ActionButton,
     HistorySection, HistoryHeader, HistoryTitle, HistoryDesc,
-    TableContainer, Table, Thead, Th, Tbody, Tr, Td, TypeBadge, StatusBadge, EmptyRow, EmptyCell
+    TableContainer, Table, Thead, Th, Tbody, Tr, Td, TypeBadge, StatusBadge, EmptyRow, EmptyCell,
+    PaginationContainer, PageButton
 } from './SupportTab.styled';
 
-export const SupportTab = ({ onOpenSupportModal }) => {
+export const SupportTab = ({ onOpenSupportModal, refreshTrigger: parentRefreshTrigger }) => {
     const { requests, setRequests, isLoading, setLoading, setError } = useLegalTaxStore();
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     // 매니저용: 내 담당 크리에이터의 법률/세무 요청 조회
     useEffect(() => {
         const fetchMyRequests = async () => {
             setLoading(true);
             try {
-                const response = await legalTaxService.getMyRequests();
+                const response = await legalTaxService.getMyRequests(null, null, currentPage, 8);
 
                 // 백엔드 데이터를 프론트엔드 형식으로 변환
-                const mappedRequests = response.map(mapLegalTaxFromBackend);
+                // response는 Spring Page 객체 (content, totalPages 등 포함)
+                const content = response.content || [];
+                const mappedRequests = content.map(mapLegalTaxFromBackend);
                 setRequests(mappedRequests);
+                setTotalPages(response.totalPages || 0);
             } catch (error) {
                 console.error('내 담당 법률/세무 요청 조회 실패:', error);
                 setError(error.message);
@@ -33,17 +39,20 @@ export const SupportTab = ({ onOpenSupportModal }) => {
         };
 
         fetchMyRequests();
-    }, [refreshTrigger, setRequests, setLoading, setError]);
+    }, [refreshTrigger, parentRefreshTrigger, currentPage, setRequests, setLoading, setError]);
 
     // 신청 후 목록 새로고침
     const handleRequestCreated = () => {
         setRefreshTrigger(prev => prev + 1);
     };
 
-    // 최신순 정렬
-    const sortedRequests = [...requests].sort((a, b) =>
-        new Date(b.requestDate) - new Date(a.requestDate)
-    );
+    // 페이지 변경 핸들러
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    // 최신순 정렬 (이미 백엔드에서 정렬되어 오므로 제거 가능)
+    const sortedRequests = requests;
 
     return (
         <Container>
@@ -162,6 +171,49 @@ export const SupportTab = ({ onOpenSupportModal }) => {
                         </Tbody>
                     </Table>
                 </TableContainer>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <PaginationContainer>
+                        <PageButton
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 0}
+                        >
+                            <ChevronLeft size={16} />
+                        </PageButton>
+
+                        {/* Page Numbers - Sliding window of 5 */}
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                                pageNum = i + 1;
+                            } else if (currentPage < 2) {
+                                pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                            } else {
+                                pageNum = currentPage - 2 + i + 1;
+                            }
+
+                            return (
+                                <PageButton
+                                    key={pageNum}
+                                    onClick={() => handlePageChange(pageNum - 1)}
+                                    $active={currentPage === pageNum - 1}
+                                >
+                                    {pageNum}
+                                </PageButton>
+                            );
+                        })}
+
+                        <PageButton
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages - 1}
+                        >
+                            <ChevronRight size={16} />
+                        </PageButton>
+                    </PaginationContainer>
+                )}
             </HistorySection>
         </Container>
     );

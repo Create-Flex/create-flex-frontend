@@ -78,10 +78,13 @@ export const CreatorCalendar = ({
                                 <EventContent>
                                     <EventDot $creatorId={creator?.id} $type={evt.type} />
                                     <EventText>
-                                        {creator?.name} -
-                                        {evt.type === 'meeting' ? ' [미팅]' :
-                                            evt.type === 'live' ? ' [라이브]' :
-                                                evt.type === 'joint' && !evt.title.includes('[합방]') ? ' [합방]' : ''} {evt.title}
+                                        {evt.type === 'meeting' ? '[미팅] ' :
+                                            evt.type === 'live' ? '[라이브] ' :
+                                                evt.type === 'promotion' ? '[광고] ' :
+                                                    evt.type === 'merge' || (evt.type === 'joint' && !evt.title.includes('[합방]')) ? '[합방] ' :
+                                                        evt.type === 'content' ? '[콘텐츠] ' :
+                                                            evt.type === 'other' ? '[기타] ' : ''}
+                                        {creator?.name} {evt.title}
                                     </EventText>
                                 </EventContent>
                             </EventItem>

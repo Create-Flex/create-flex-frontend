@@ -12,6 +12,7 @@ import { SupportRequestModal } from './employee/modals/SupportRequestModal';
 import { AdCampaignModal } from './employee/modals/AdCampaignModal';
 import { EventModal } from './employee/modals/EventModal';
 import { EventDetailModal } from './employee/modals/EventDetailModal';
+import { scheduleService } from '../../calendar/api/scheduleService';
 
 import { CalendarTab } from './employee/CalendarTab';
 import { CreatorListTab } from './employee/CreatorListTab';
@@ -60,13 +61,24 @@ export const EmployeeCreatorView = ({
     const myCreatorsMap = myCreators.reduce((acc, c) => ({ ...acc, [c.id]: c }), {});
     const allMyEvents = events.filter(e => myCreatorsMap[e.creatorId]);
 
-    const handleEventClick = (event) => setSelectedEvent(event);
+    const [editAction, setEditAction] = useState(null);
 
-    const handleDeleteEvent = (eventId) => {
+    const handleEventClick = (event, onEdit) => {
+        setSelectedEvent(event);
+        setEditAction(() => onEdit);
+    };
+
+    const handleDeleteEvent = async (eventId) => {
         if (window.confirm('이 일정을 삭제하시겠습니까?')) {
-            onUpdateEvents(events.filter(e => e.id !== eventId));
-            setSelectedEvent(null);
-            showToastMessage('일정이 삭제되었습니다.');
+            try {
+                await scheduleService.deleteSchedule(eventId);
+                onUpdateEvents(events.filter(e => e.id !== eventId));
+                setSelectedEvent(null);
+                showToastMessage('일정이 삭제되었습니다.');
+            } catch (error) {
+                console.error('일정 삭제 실패:', error);
+                showToastMessage('일정 삭제에 실패했습니다.', 'error');
+            }
         }
     };
 
@@ -316,8 +328,14 @@ export const EmployeeCreatorView = ({
             {/* Event Detail Modal */}
             <EventDetailModal
                 event={selectedEvent}
-                onClose={() => setSelectedEvent(null)}
+                onClose={() => { setSelectedEvent(null); setEditAction(null); }}
                 onDelete={handleDeleteEvent}
+                onEdit={() => {
+                    if (editAction) {
+                        editAction(selectedEvent); // Call the callback from CalendarTab
+                        setSelectedEvent(null); // Close detail modal
+                    }
+                }}
                 creators={creators}
             />
 

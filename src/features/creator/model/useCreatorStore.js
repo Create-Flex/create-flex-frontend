@@ -52,9 +52,12 @@ export const useCreatorStore = create((set, get) => ({
         creatorId: String(event.creatorId),
         title: event.scheduleName,
         date: event.scheduleDate,
-        type: event.scheduleType.toLowerCase(), // CONTENT, LIVE 등 -> content, live
+        type: event.scheduleType === 'PROMOTION' ? 'promotion' : event.scheduleType.toLowerCase(), // PROMOTION -> promotion
         content: event.scheduleDetail,
-        partnerCreators: event.visitorIds ? event.visitorIds.map(v => String(v)) : []
+        partnerCreators: event.visitorIds ? event.visitorIds.map(v => String(v)) : [],
+        writerName: event.memberName, // 작성자 이름
+        visitorNames: event.visitorNames || [], // 방문자(참여자) 이름 목록
+        isManagerCreated: event.memberRole === 'MANAGER' // 매니저가 생성한 일정 여부
       }));
       set({ creatorEvents: mappedEvents, isLoading: false });
     } catch (error) {

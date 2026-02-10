@@ -15,7 +15,7 @@ import { HRDashboardView } from '../components/HRDashboardView';
 import { TeamView } from '../features/organization/ui/TeamView';
 import { AiChatPanel } from '../features/ai/ui/AiChatPanel';
 
-import { PhqSurveyModal } from '../features/creator/ui/components/shared/Health';
+import { PhqSurveyModal } from '../features/health/ui/Health';
 import { VacationModal } from '../features/vacation/ui/components/VacationModal';
 
 import { useAuthStore } from '../features/auth/model/useAuthStore';

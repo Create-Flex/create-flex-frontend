@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import {Container,ContentContainer,SectionLayout, MainContent} from '../style/HealthPrivate.styled';
+import {Container,ContentContainer,SectionLayout, MainContent, InnerContainer, HeaderSection, Description, Title} from '../style/HealthPrivate.styled';
 
 import { useAuthStore } from '../../auth/model/useAuthStore';
 import { getMyHealth, postMyHealth, putMyHealth } from '../../health/api/healthService';
 import { HealthSection } from './HealthSection';
 import { HealthResultModal } from '../modal/HealthResultModal';
+import {Activity} from 'lucide-react';
 
 export const HealthPrivate = ({
     readOnly = false,
 }) => {
-    const { user } = useAuthStore();
     const [memberName, setMemberName] = useState('');
     const [healthList, setHealthList] = useState([]);
     const [healthCheck, setHealthCheck] = useState();
@@ -41,6 +41,8 @@ export const HealthPrivate = ({
         }
     };
 
+    const healthIcon = 
+
     useEffect(() => {
         fetchHealth();
     }, []);
@@ -49,6 +51,17 @@ export const HealthPrivate = ({
 
     return(
         <Container>
+            <InnerContainer>
+                <HeaderSection>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Activity size={32} />
+                        <div className="mb-6">
+                            <Title>건강 관리</Title>
+                            <Description>지금까지 제출된 건강상태를 기록하고 관리합니다.</Description>
+                        </div>
+                    </div>
+                </HeaderSection>
+            </InnerContainer>
             <ContentContainer>
                 <SectionLayout>
                     <MainContent>

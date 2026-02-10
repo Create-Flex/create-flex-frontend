@@ -122,7 +122,7 @@ export const HealthSection = ({
                                 </HistoryDateRow>
                             </HistoryItemContent>
                             {value.checkupFileUrl && (
-                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(value.checkupFileUrl, "_blank")}>
+                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(`${value.checkupFileUrl}`, "_blank")}>
                                     <Download size={18} />
                                 </DownloadButton>
                             )}

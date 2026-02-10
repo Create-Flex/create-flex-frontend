@@ -9,7 +9,7 @@ import {
     InfoValue, AttachmentCard, FileIconWrapper, FileName, FileSize, DownloadBtn, Disclaimer, ModalFooter, FooterBtn,
     AttachmentSection, AttachmentHeader, AttachmentLabel, FileContent, ButtonGroup, SearchButton
 } from '../style/HealthManagement.styled';
-import { getManageHealth, getManageSearch } from '../api/healthService';
+import { getManageHealth, getManageSearch, deleteManageHealth, deleteManageS3 } from '../api/healthService';
 import {summaryLabelMap} from '../constants/healthSummaryLabel';
 
 export const HealthManagement = ({ healthRecords: initialRecords }) => {
@@ -80,18 +80,17 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
     }
 
     // CRUD 핸들러
-    const handleDelete = (id, e) => {
+    const handleDelete = async (healthId, e) => {
         e.stopPropagation();
         if (window.confirm('정말로 이 건강 검진 기록을 삭제하시겠습니까?')) {
-            setRecords(records.filter(r => r.id !== id));
-            if (selectedRecord?.id === id) setSelectedRecord(null);
-        }
-    };
+            console.log("삭제 요청 기록 : ", healthId);
+            const response = await deleteManageHealth(healthId);
+            const presignedUrl = response.data.presignedUrl
+            await deleteManageS3(presignedUrl);
 
-    const handleEditStart = () => {
-        if (!selectedRecord) return;
-        setEditForm({ ...selectedRecord });
-        setIsEditing(true);
+            fetchManageHealth();
+            setSelectedRecord(null);
+        }
     };
 
     const handleSaveEdit = () => {
@@ -218,7 +217,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                     <TableBody>
                         {healthManageList.length > 0 ? healthManageList.map((rec) => (
                             <TableRow
-                                key={`${rec.healthId}-${rec.checkupDate}`}
+                                key={`${rec.healthID}`}
                                 onClick={() => { setSelectedRecord(rec); setIsEditing(false); }}
                             >
                                 <TableCell $bold $color="#111827">
@@ -237,7 +236,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                     <ActionButtonsData>
                                         <ActionIconBtn
                                             $danger
-                                            onClick={(e) => handleDelete(rec.id, e)}
+                                            onClick={(e) => handleDelete(rec.healthID, e)}
                                             title="기록 삭제"
                                         >
                                             <Trash2 size={14} />
@@ -346,14 +345,14 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                                     <FileSize>2.4 MB</FileSize>
                                                 </div>
                                             </FileContent>
-                                            <DownloadBtn title="결과지 다운로드" onClick={() => window.open(selectedRecord.checkupFileUrl, "_blank")}>
+                                            <DownloadBtn title="결과지 다운로드" onClick={() => window.open(`${selectedRecord.checkupFileUrl}`, "_blank")}>
                                                 <Download size={18} />
                                             </DownloadBtn>
                                         </AttachmentCard>
                                     </AttachmentSection>
 
                                     <Disclaimer>
-                                        * 관리자는 모든 건강 정보를 확인하고 수정할 권한이 있습니다.
+                                        * 관리자는 모든 건강 정보를 확인하고 삭제할 권한이 있습니다.
                                     </Disclaimer>
                                 </>
                             )}
@@ -367,11 +366,11 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                 </>
                             ) : (
                                 <>
-                                    <FooterBtn $danger onClick={(e) => handleDelete(selectedRecord.id, e)}>
+                                    <FooterBtn $danger onClick={(e) => handleDelete(selectedRecord.healthID, e)}>
                                         <Trash2 size={14} /> 삭제
                                     </FooterBtn>
                                     <ButtonGroup>
-                                        <FooterBtn $outline onClick={handleEditStart}>수정하기</FooterBtn>
+                                        {/*<FooterBtn $outline onClick={handleEditStart}>수정하기</FooterBtn>*/}
                                         <FooterBtn $primary onClick={() => setSelectedRecord(null)}>확인</FooterBtn>
                                     </ButtonGroup>
                                 </>

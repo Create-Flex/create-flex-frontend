@@ -1,4 +1,6 @@
 import api from '../../../api/axios';
+import axios from 'axios';
+import { API_CONFIG } from '../../../api/config';
 
 export const authService = {
   // 로그인
@@ -8,7 +10,7 @@ export const authService = {
         memberAccount: loginData.memberAccount,
         password: loginData.password
       });
-      return response.data; // { accesstoken: "..." }
+      return response.data; // { accessToken: "...", refreshToken: "..." }
     } catch (error) {
       console.error('로그인 API 에러:', error);
       throw error;
@@ -22,6 +24,19 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('로그아웃 API 에러:', error);
+      throw error;
+    }
+  },
+
+  // 토큰 갱신
+  reissue: async (refreshToken) => {
+    try {
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/reissue`, {
+        refreshToken: refreshToken
+      });
+      return response.data; // { accessToken: "...", refreshToken: "..." }
+    } catch (error) {
+      console.error('토큰 갱신 에러:', error);
       throw error;
     }
   },

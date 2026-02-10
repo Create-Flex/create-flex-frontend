@@ -35,6 +35,22 @@ const TYPE_MAP = {
     'WORKATION': '워케이션'
 };
 
+// 날짜를 ISO 형식 문자열로 변환
+const getISODate = (date) => date.toISOString().split('T')[0];
+
+// 기본 날짜 범위 계산 (오늘 기준 앞뒤 3개월)
+const getDefaultDateRange = () => {
+    const today = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(today.getMonth() + 3);
+    return {
+        start: getISODate(threeMonthsAgo),
+        end: getISODate(threeMonthsLater)
+    };
+};
+
 export const VacationManagement = ({ employees = [] }) => {
     const { refreshKey: vacationRefreshKey, triggerRefresh } = useVacationStore();
 
@@ -46,9 +62,10 @@ export const VacationManagement = ({ employees = [] }) => {
     const [activeTab, setActiveTab] = useState('all');
     const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-    // Date Filter State
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    // Date Filter State (기본값: 오늘 기준 앞뒤 3개월)
+    const defaultRange = getDefaultDateRange();
+    const [startDate, setStartDate] = useState(defaultRange.start);
+    const [endDate, setEndDate] = useState(defaultRange.end);
     const [typeFilter, setTypeFilter] = useState('All');
 
     // Sorting State
@@ -258,6 +275,9 @@ export const VacationManagement = ({ employees = [] }) => {
             if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         }
+        if (activeTab === 'pending') {
+            return (b.requestDate || '').localeCompare(a.requestDate || '');
+        }
         return b.startDate.localeCompare(a.startDate);
     });
 
@@ -302,10 +322,11 @@ export const VacationManagement = ({ employees = [] }) => {
     };
 
     const resetFilters = () => {
+        const defaultRange = getDefaultDateRange();
         setSearchQuery('');
         setNameFilter('');
-        setStartDate('');
-        setEndDate('');
+        setStartDate(defaultRange.start);
+        setEndDate(defaultRange.end);
         setTypeFilter('All');
         setActiveTab('all');
         setSortConfig(null);

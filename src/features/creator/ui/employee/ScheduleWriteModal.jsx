@@ -14,9 +14,10 @@ export const ScheduleWriteModal = ({
   isOpen,
   onClose,
   date,
-  initialCreatorId, // CalendarTab sends the currently viewed creator or null
-  myCreators,       // List of creators managed by the logged-in manager
-  onConfirm         // Callback to refresh calendar
+  initialCreatorId,
+  myCreators,
+  onConfirm,
+  editEvent
 }) => {
   const { user } = useAuthStore();
   const [allCreators, setAllCreators] = useState([]);
@@ -32,29 +33,53 @@ export const ScheduleWriteModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setForm(prev => ({
-        ...prev,
-        scheduleDate: date || prev.scheduleDate,
-        creatorId: initialCreatorId || prev.creatorId
-      }));
+      if (editEvent) {
+        // Edit Mode: Populate form with existing data
+        setForm({
+          scheduleName: editEvent.title,
+          scheduleDate: editEvent.date,
+          scheduleDetail: editEvent.content,
+          scheduleType: editEvent.type === 'promotion' || editEvent.type === 'ad' ? 'PROMOTION' :
+            editEvent.type === 'joint' || editEvent.type === 'merge' ? 'MERGE' :
+              editEvent.type === 'meeting' ? 'MEETING' :
+                editEvent.type === 'live' ? 'LIVE' :
+                  editEvent.type === 'content' ? 'CONTENT' : 'OTHER',
+          creatorId: editEvent.creatorId,
+          visitorIds: editEvent.partnerCreators || []
+        });
+      } else {
+        // Create Mode: Reset form or use defaults
+        setForm(prev => ({
+          ...prev,
+          scheduleName: '',
+          scheduleDetail: '',
+          scheduleType: 'CONTENT',
+          visitorIds: [],
+          scheduleDate: date || prev.scheduleDate,
+          creatorId: initialCreatorId || prev.creatorId
+        }));
+      }
       fetchAllCreators();
     }
-  }, [isOpen, date, initialCreatorId]);
+  }, [isOpen, date, initialCreatorId, editEvent]);
 
   const fetchAllCreators = async () => {
     try {
       // Fetch all creators for the visitor selection list (for MERGE type)
-      const creators = await creatorService.getAllCreators();
+      const data = await creatorService.getAllCreators();
+      // list가 있으면 list, content가 있으면 content, 아니면 데이터 자체가 배열인지 확인, 그도 아니면 빈 배열
+      const creators = data.list || data.content || (Array.isArray(data) ? data : []);
       setAllCreators(creators);
     } catch (error) {
       console.error('전체 크리에이터 조회 실패:', error);
     }
   };
 
-  const potentialPartners = allCreators.filter(c =>
-    String(c.creator_id) !== String(form.creatorId) && // Exclude self
-    (c.member_name || '').includes(partnerSearchQuery)
-  );
+  const potentialPartners = allCreators.filter(c => {
+    const cId = String(c.creator_id || c.creatorId || c.id || c.member_id || c.memberId || c.member_no);
+    const cName = c.member_name || c.memberName || c.creator_name || c.creatorName || c.member_name || c.name || '';
+    return cId !== String(form.creatorId) && cName.includes(partnerSearchQuery);
+  });
 
   const togglePartnerCreator = (creatorId) => {
     setForm(prev => {
@@ -86,58 +111,34 @@ export const ScheduleWriteModal = ({
         visitorIds: form.scheduleType === 'MERGE' ? form.visitorIds : [] // Only send visitors for MERGE
       };
 
-      // Using direct axios call or scheduleService? 
-      // The user specified the endpoint: POST http://localhost:8888/api/schedules/
-      // I should stick to the requested endpoint pattern.
-      // Assuming scheduleService (imported) might overlap, I will use direct axios for exact compliance 
-      // or better, check if scheduleService has this method. 
-      // If not, I'll use axios directly as requested.
 
-      // Checking previous context, `scheduleService` is likely available. 
-      // However, to be 100% safe with the specific payload request:
-      // "POST http://localhost:8888/api/schedules/"
-
-      // I'll use axios directly to ensure strict adherence to the requested payload structure.
-      // But since I don't have the base URL configured here, I should probably reuse the axios instance from api/axios.js if possible,
-      // or use the path relative to the proxy if set up. 
-      // Given the previous code uses `creatorService`, I'll assume `api/axios` is the standard way.
-      // But `api` import was seen in `creatorService.js` as `import api from './axios'`. 
-      // I'll import `api` from `../../../../api/axios` to use the configured base URL.
-
-      // Wait, I can't see `api/axios.js` content but `creatorService` uses `/creators`. 
-      // So calling `/api/schedules/` (note the /api prefix might be part of baseURL or not).
-      // Usually `/api` is part of the path.
-
-      // Let's assume `api.post('/schedules', ...)` is the way if baseURL includes `/api`,
-      // OR `api.post('/api/schedules', ...)` if not.
-      // Looking at `creatorService.js`: `api.get('/creators'...)`. usage suggests baseURL ends before `/creators`.
-      // So if `creatorService` calls `/creators`, then `api.post('/schedules')` should be correct.
-      // BUT the user said `POST http://localhost:8888/api/schedules/`.
-      // If `creatorService` uses `/creators`, it might map to `http://localhost:8888/api/creators`.
-      // I will use the imported `scheduleService` if it exists, or create a direct call using `api` instance.
-      // Let's stick to the `api` instance for consistency.
-
-      // Use scheduleService instead of direct axios call
-      const response = await scheduleService.createSchedule(payload);
+      let response;
+      if (editEvent) {
+        response = await scheduleService.updateSchedule(editEvent.id, payload);
+      } else {
+        response = await scheduleService.createSchedule(payload);
+      }
 
       if (response) {
-        toast.success('일정이 성공적으로 등록되었습니다.');
+        toast.success(editEvent ? '일정이 수정되었습니다.' : '일정이 성공적으로 등록되었습니다.');
         onConfirm(); // Refresh parent
         onClose();   // Close modal
 
         // Reset form
-        setForm({
-          scheduleName: '',
-          scheduleDate: new Date().toISOString().split('T')[0],
-          scheduleDetail: '',
-          scheduleType: 'CONTENT',
-          creatorId: '',
-          visitorIds: []
-        });
+        if (!editEvent) {
+          setForm({
+            scheduleName: '',
+            scheduleDate: new Date().toISOString().split('T')[0],
+            scheduleDetail: '',
+            scheduleType: 'CONTENT',
+            creatorId: '',
+            visitorIds: []
+          });
+        }
       }
     } catch (error) {
-      console.error('일정 등록 실패:', error);
-      toast.error('일정 등록에 실패했습니다.');
+      console.error('일정 저장 실패:', error);
+      toast.error('일정 저장에 실패했습니다.');
     }
   };
 
@@ -149,13 +150,14 @@ export const ScheduleWriteModal = ({
         <ModalHeader>
           <ModalTitle>
             <CalendarIcon size={20} style={{ color: '#2563eb' }} />
-            일정 등록
+            {editEvent ? '일정 수정' : '일정 등록'}
           </ModalTitle>
           <CloseButton onClick={onClose}>
             <X size={20} />
           </CloseButton>
         </ModalHeader>
         <ModalBody>
+          {/* ... (body content remains same) ... */}
           <div className="space-y-6">
             <FormGroup>
               <Label>일정 제목</Label>
@@ -230,6 +232,7 @@ export const ScheduleWriteModal = ({
                     const creatorId = Number(rawId);
                     const isSelected = form.visitorIds.includes(creatorId);
                     const avatarUrl = creator.profile_image || creator.profileImage || '';
+                    const creatorName = creator.member_name || creator.memberName || creator.creator_name || creator.creatorName || creator.name || '이름 없음';
                     return (
                       <div
                         key={creatorId}
@@ -246,7 +249,7 @@ export const ScheduleWriteModal = ({
                             {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
                           </div>
                           <span style={{ fontSize: '0.875rem', fontWeight: isSelected ? 700 : 400, color: isSelected ? '#581c87' : '#4b5563' }}>
-                            {creator.member_name || creator.creatorName || creator.name}
+                            {creatorName}
                           </span>
                         </div>
                         {isSelected && <CheckCircle2 size={16} color="#9333ea" />}
@@ -273,7 +276,7 @@ export const ScheduleWriteModal = ({
         <ModalFooter>
           <SecondaryButton onClick={onClose}>취소</SecondaryButton>
           <PrimaryButton onClick={handleSubmit}>
-            등록 완료
+            {editEvent ? '수정 완료' : '등록 완료'}
           </PrimaryButton>
         </ModalFooter>
       </ModalContent>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarIcon, X, User } from 'lucide-react';
+import { CalendarIcon, X, User, Tag, FileText, DollarSign, Briefcase } from 'lucide-react';
 import { getCreatorColorStyles } from '../../components/shared/utils';
 import {
     ModalOverlay, CloseButton,
@@ -14,7 +14,7 @@ const fadeIn = keyframes`
 
 const DetailContainer = styled.div`
     width: 100%;
-    max-width: 28rem; /* slightly wider */
+    max-width: 32rem; /* Wider for better layout */
     background: white;
     border-radius: 1rem;
     overflow: hidden;
@@ -24,12 +24,12 @@ const DetailContainer = styled.div`
 `;
 
 const ColorBar = styled.div`
-    height: 0.5rem;
+    height: 0.75rem;
     width: 100%;
 `;
 
 const ContentWrapper = styled.div`
-    padding: 1.5rem;
+    padding: 2rem;
 `;
 
 const Header = styled.div`
@@ -39,69 +39,95 @@ const Header = styled.div`
     margin-bottom: 1.5rem;
 `;
 
-const Title = styled.h3`
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #111827;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
+const TitleSection = styled.div`
+    flex: 1;
+    margin-right: 1rem;
 `;
 
-const DateText = styled.p`
-    font-size: 0.875rem;
-    color: #6b7280;
+const Title = styled.h3`
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+`;
+
+const MetaRow = styled.div`
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    margin-top: 0.25rem;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+`;
+
+const Badge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: ${props => props.$bgColor || '#eff6ff'};
+    color: ${props => props.$color || '#3b82f6'};
 `;
 
 const DetailSection = styled.div`
-    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f3f4f6;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
+`;
+
+const SectionTitle = styled.h4`
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 `;
 
 const DetailRow = styled.div`
     display: flex;
-    align-items: flex-start;
     gap: 1rem;
+    margin-bottom: 0.5rem;
 `;
 
-const DetailLabel = styled.div`
-    width: 5rem;
+const Label = styled.div`
+    width: 4rem;
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #4b5563;
+    color: #6b7280;
     flex-shrink: 0;
-    padding-top: 0.25rem;
+    padding-top: 0.125rem;
 `;
 
-const DetailValue = styled.div`
+const Value = styled.div`
     flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #111827;
+    line-height: 1.5;
 `;
 
 const CreatorChip = styled.div`
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+    gap: 0.625rem;
+    padding: 0.375rem 0.75rem 0.375rem 0.375rem;
     border-radius: 9999px;
-    background-color: #f3f4f6;
+    background-color: #f9fafb;
     border: 1px solid #e5e7eb;
     font-size: 0.875rem;
+    font-weight: 500;
     color: #374151;
 `;
 
 const CreatorAvatar = styled.div`
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
     border-radius: 9999px;
     background-color: #e5e7eb;
     overflow: hidden;
@@ -109,35 +135,37 @@ const CreatorAvatar = styled.div`
     align-items: center;
     justify-content: center;
     color: #9ca3af;
-`;
-
-const AvatarImg = styled.img`
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 `;
 
 const ContentBox = styled.div`
-    padding: 1rem;
-    background-color: rgba(249, 250, 251, 0.5);
+    background-color: #f9fafb;
     border-radius: 0.75rem;
-    border: 1px solid #f3f4f6;
+    padding: 1rem;
     font-size: 0.875rem;
     color: #4b5563;
-    line-height: 1.625;
+    line-height: 1.6;
     white-space: pre-wrap;
-    margin-bottom: 1.5rem;
+    border: 1px solid #f3f4f6;
 `;
 
 const ButtonGroup = styled.div`
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    justify-content: flex-end;
 `;
 
 export const EventDetailModal = ({
     event,
     onClose,
     onDelete,
+    onEdit,
     creators = []
 }) => {
     if (!event) return null;
@@ -156,7 +184,7 @@ export const EventDetailModal = ({
             'bg-cyan-500': '#06b6d4',
             'bg-gray-500': '#6b7280'
         };
-        return colors[className] || '#3b82f6'; // Default blue
+        return colors[className] || '#3b82f6';
     };
 
     const colorStyles = getCreatorColorStyles(event.creatorId);
@@ -176,76 +204,139 @@ export const EventDetailModal = ({
 
     const isJoint = event.type === 'joint' || partnerCreators.length > 0;
 
+    // Event Type Badge Logic
+    const getEventTypeInfo = (type, title) => {
+        if (title.startsWith('[광고]')) return { label: '광고 캠페인', color: '#059669', bg: '#ecfdf5', icon: <DollarSign size={12} /> };
+        switch (type) {
+            case 'content': return { label: '콘텐츠', color: '#2563eb', bg: '#eff6ff', icon: <FileText size={12} /> };
+            case 'promotion': return { label: '광고 캠페인', color: '#059669', bg: '#ecfdf5', icon: <DollarSign size={12} /> };
+            case 'live': return { label: '라이브', color: '#db2777', bg: '#fdf2f8', icon: <Tag size={12} /> };
+            case 'meeting': return { label: '미팅', color: '#d97706', bg: '#fffbeb', icon: <Briefcase size={12} /> };
+            case 'joint':
+            case 'merge': return { label: '합방', color: '#7c3aed', bg: '#f5f3ff', icon: <User size={12} /> };
+            default: return { label: '기타', color: '#4b5563', bg: '#f3f4f6', icon: <Tag size={12} /> };
+        }
+    };
+
+    const typeInfo = getEventTypeInfo(event.type, event.title);
+
+    // Content Parsing for Ads
+    const parseContent = (content) => {
+        if (!content) return { description: '' };
+
+        const lines = content.split('\n');
+        const parsed = { description: [] };
+
+        lines.forEach(line => {
+            if (line.startsWith('광고주:')) parsed.advertiser = line.replace('광고주:', '').trim();
+            else if (line.startsWith('예산:')) parsed.budget = line.replace('예산:', '').trim();
+            else if (line.startsWith('내용:')) parsed.description.push(line.replace('내용:', '').trim());
+            else if (line.startsWith('주최:')) return; // handled by logic
+            else parsed.description.push(line);
+        });
+
+        parsed.description = parsed.description.join('\n');
+        return parsed;
+    };
+
+    const parsedContent = parseContent(event.content);
+
     return (
         <ModalOverlay onClick={onClose}>
             <DetailContainer onClick={e => e.stopPropagation()}>
                 <ColorBar style={{ backgroundColor: barColor }} />
                 <ContentWrapper>
                     <Header>
-                        <div style={{ overflow: 'hidden' }}>
-                            <Title title={event.title}>{event.title}</Title>
-                            <DateText>
-                                <CalendarIcon size={14} /> {event.date}
-                            </DateText>
-                        </div>
+                        <TitleSection>
+                            <MetaRow style={{ marginBottom: '0.5rem' }}>
+                                <Badge $bgColor={typeInfo.bg} $color={typeInfo.color}>
+                                    {typeInfo.icon}
+                                    <span style={{ marginLeft: '4px' }}>{typeInfo.label}</span>
+                                </Badge>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <CalendarIcon size={14} />
+                                    {event.date}
+                                </span>
+                            </MetaRow>
+                            <Title>{event.title}</Title>
+                        </TitleSection>
                         <CloseButton onClick={onClose}>
                             <X size={20} />
                         </CloseButton>
                     </Header>
 
-                    {isJoint && (
-                        <DetailSection>
-                            <DetailRow>
-                                <DetailLabel>주최</DetailLabel>
-                                <DetailValue>
-                                    {hostCreator ? (
-                                        <CreatorChip>
-                                            <CreatorAvatar>
-                                                {hostCreator.avatarUrl ? <AvatarImg src={hostCreator.avatarUrl} /> : <User size={12} />}
-                                            </CreatorAvatar>
-                                            {hostCreator.name}
-                                        </CreatorChip>
-                                    ) : (
-                                        <span className="text-sm text-gray-500">알 수 없음</span>
-                                    )}
-                                </DetailValue>
-                            </DetailRow>
-                            <DetailRow>
-                                <DetailLabel>참여</DetailLabel>
-                                <DetailValue>
-                                    {partnerCreators.length > 0 ? partnerCreators.map(p => (
-                                        <CreatorChip key={p.id}>
-                                            <CreatorAvatar>
-                                                {p.avatarUrl ? <AvatarImg src={p.avatarUrl} /> : <User size={12} />}
-                                            </CreatorAvatar>
-                                            {p.name}
-                                        </CreatorChip>
-                                    )) : (
-                                        <span className="text-sm text-gray-500">-</span>
-                                    )}
-                                </DetailValue>
-                            </DetailRow>
-                        </DetailSection>
-                    )}
+                    {/* Creator Info Section */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* 작성자 표시 */}
+                        {event.writerName && (
+                            <CreatorChip>
+                                <CreatorAvatar>
+                                    <User size={14} />
+                                </CreatorAvatar>
+                                <span>{event.writerName}</span>
+                                <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 'normal' }}>작성자</span>
+                            </CreatorChip>
+                        )}
 
-                    <ContentBox>
-                        {(() => {
-                            const content = event.content || '';
-                            if (content.startsWith('주최:') && content.includes('\n내용: ')) {
-                                return content.split('\n내용: ')[1] || content;
-                            }
-                            return content;
-                        })()}
-                    </ContentBox>
+                        {/* 합방 참여자 표시 (visitorNames가 있을 때만) */}
+                        {event.visitorNames && event.visitorNames.length > 0 && event.visitorNames.map((name, index) => (
+                            <CreatorChip key={index}>
+                                <CreatorAvatar>
+                                    <User size={14} color="#6b7280" />
+                                </CreatorAvatar>
+                                <span>{name}</span>
+                                <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 'normal' }}>참여</span>
+                            </CreatorChip>
+                        ))}
+                    </div>
+
+                    {/* Detailed Info Section */}
+                    <DetailSection>
+                        {(parsedContent.advertiser || parsedContent.budget) && (
+                            <div>
+                                <SectionTitle><DollarSign size={16} /> 캠페인 정보</SectionTitle>
+                                {parsedContent.advertiser && (
+                                    <DetailRow>
+                                        <Label>광고주</Label>
+                                        <Value>{parsedContent.advertiser}</Value>
+                                    </DetailRow>
+                                )}
+                                {parsedContent.budget && (
+                                    <DetailRow>
+                                        <Label>예산</Label>
+                                        <Value style={{ color: '#059669', fontWeight: '600' }}>{parsedContent.budget}</Value>
+                                    </DetailRow>
+                                )}
+                            </div>
+                        )}
+
+                        <div>
+                            <SectionTitle><FileText size={16} /> 상세 내용</SectionTitle>
+                            <ContentBox>
+                                {parsedContent.description || '상세 내용이 없습니다.'}
+                            </ContentBox>
+                        </div>
+                    </DetailSection>
+
                     <ButtonGroup>
-                        {onDelete && (
-                            <DangerButton onClick={() => onDelete(event.id)} style={{ flex: 1 }}>
-                                삭제
+                        {/* 매니저가 생성한 일정만 삭제 가능 */}
+                        {onDelete && event.isManagerCreated && (
+                            <DangerButton onClick={() => onDelete(event.id)}>
+                                삭제하기
                             </DangerButton>
                         )}
-                        <SecondaryButton onClick={onClose} style={{ flex: onDelete ? 2 : 1, backgroundColor: 'black', color: 'white', border: 'none' }}>
-                            확인
-                        </SecondaryButton>
+                        {/* 매니저가 생성한 일정만 수정 가능 */}
+                        {onEdit && event.isManagerCreated && (
+                            <SecondaryButton onClick={() => onEdit(event)} style={{ backgroundColor: '#2563eb', color: 'white', border: 'none' }}>
+                                수정하기
+                            </SecondaryButton>
+                        )}
+                        {/* 수정 권한이 없거나, 단순히 닫기용 */}
+                        {(!onEdit || !event.isManagerCreated) && (
+                            <SecondaryButton onClick={onClose} style={{ backgroundColor: '#111827', color: 'white', border: 'none' }}>
+                                확인
+                            </SecondaryButton>
+                        )}
                     </ButtonGroup>
                 </ContentWrapper>
             </DetailContainer>

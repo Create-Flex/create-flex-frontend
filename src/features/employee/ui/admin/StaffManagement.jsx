@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Search, Plus, Edit3, Lock, Home, Mail, Users, Clock, UserPlus, X, AlertCircle, UserCheck, Calendar, ChevronDown } from 'lucide-react';
+import { Search, Plus, Edit3, Lock, Home, Mail, Users, Clock, UserPlus, X, AlertCircle, UserCheck, Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { staffService } from '../../api/staffService';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
@@ -9,7 +9,8 @@ import {
     AvatarWrapper, AvatarImage, UserInfo, NameText, IdText, DeptText, SecondaryText, StatusBadge, StatusDot, StatusLabel, EditButton,
     ModalOverlay, ModalContainer, ModalHeader, ModalTitle, CloseButton, ModalBody, ModalFooter,
     FormGrid, FormGroup, Label, InputWrapper, FormInput, SelectWrapper, SelectIconWrapper, FormSelect,
-    PrimaryButton, SecondaryButton, ResignationButton, ResignationTextarea, SearchButton
+    PrimaryButton, SecondaryButton, ResignationButton, ResignationTextarea, SearchButton,
+    PaginationContainer, PageButton
 } from './StaffManagement.styled';
 
 const STATUS_DISPLAY_MAP = {
@@ -31,6 +32,11 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     const [loading, setLoading] = useState(false);
     const [departmentList, setDepartmentList] = useState([]); // API에서 가져온 부서 목록
 
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10;
+
     const [modalType, setModalType] = useState('none');
     const [editingStaffId, setEditingStaffId] = useState(null);
     const [resignationReason, setResignationReason] = useState('');
@@ -47,12 +53,24 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
         memberStatus: 'WORKING'
     });
 
-    const fetchEmployees = async (name = '') => {
+    const fetchEmployees = async (name = '', pageNum = 0) => {
         setLoading(true);
         try {
-            const response = await staffService.getEmployees(name);
+            const params = {
+                name: name || undefined,
+                page: pageNum,
+                size: pageSize
+            };
+            // API 요청: 이름, 페이지(0-based), 사이즈 전달
+            const response = await staffService.getEmployees({ name, page: pageNum, size: pageSize });
+
             setEmployeeList(response.data.list || []);
             setSummary(response.data.summary || null);
+
+            // PageInfo handling
+            if (response.data.pageInfo) {
+                setTotalPages(response.data.pageInfo.totalPages || 0);
+            }
         } catch (error) {
             console.error('Failed to fetch employees:', error);
             toast.error('데이터를 불러오지 못했습니다.');
@@ -73,12 +91,13 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     };
 
     useEffect(() => {
-        fetchEmployees();
+        fetchEmployees(searchInput, page);
         fetchDepartments(); // 부서 목록도 함께 조회
-    }, []);
+    }, [page]); // Add page dependency
 
     const handleSearch = () => {
-        fetchEmployees(searchInput);
+        setPage(0); // Reset to first page on search
+        fetchEmployees(searchInput, 0);
     };
 
     const handleKeyDown = (e) => {
@@ -307,6 +326,49 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                     </Table>
                 )}
             </TableContainer>
+
+            {/* Pagination Controls */}
+            {totalPages > 0 && (
+                <PaginationContainer>
+                    <PageButton
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        <ChevronLeft size={16} />
+                    </PageButton>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page < 2) {
+                            pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i + 1;
+                        }
+
+                        return (
+                            <PageButton
+                                key={pageNum}
+                                onClick={() => setPage(pageNum - 1)}
+                                $active={page === pageNum - 1}
+                            >
+                                {pageNum}
+                            </PageButton>
+                        );
+                    })}
+
+                    <PageButton
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page === totalPages - 1}
+                    >
+                        <ChevronRight size={16} />
+                    </PageButton>
+                </PaginationContainer>
+            )}
 
             {(modalType === 'reg' || modalType === 'edit') && (
                 <ModalOverlay onClick={() => setModalType('none')}>

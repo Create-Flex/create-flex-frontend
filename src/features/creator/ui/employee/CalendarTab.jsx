@@ -95,7 +95,8 @@ export const CalendarTab = ({
                     partnerNames: schedule.visitorNames || [],
                     // 매니저가 등록한 일정인지 크리에이터가 등록한 일정인지 구분
                     creatorName: schedule.creatorName || null,
-                    isManagerCreated: schedule.creatorId !== null
+                    isManagerCreated: schedule.creatorId !== null,
+                    writerName: schedule.memberName // 작성자 이름 매핑 추가
                 };
             });
 
@@ -118,15 +119,24 @@ export const CalendarTab = ({
 
     // 모달 상태
     const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState(null); // 수정 중인 일정
 
     // 일정 추가 버튼 클릭 핸들러
     const handleAddEventClick = () => {
+        setEditingEvent(null); // 추가 모드
+        setIsWriteModalOpen(true);
+    };
+
+    // 일정 수정 핸들러 (EventDetailModal에서 호출)
+    const handleEditEvent = (event) => {
+        setEditingEvent(event);
         setIsWriteModalOpen(true);
     };
 
     // 일정 등록 성공 후 처리
     const handleScheduleCreate = () => {
         fetchCreatorSchedules();
+        setEditingEvent(null);
     };
 
     if (isLoading) {
@@ -167,8 +177,8 @@ export const CalendarTab = ({
                         creatorsMap={creatorsMap}
                         currentDate={currentDate}
                         onDateChange={setCurrentDate}
-                        onAddEvent={() => setIsWriteModalOpen(true)}
-                        onEventClick={onEventClick}
+                        onAddEvent={() => { setEditingEvent(null); setIsWriteModalOpen(true); }}
+                        onEventClick={(evt) => onEventClick(evt, handleEditEvent)} // Pass handleEditEvent callback
                         legendCreators={myCreators}
                     />
                 </BlurLayer>
@@ -190,14 +200,15 @@ export const CalendarTab = ({
                 )}
             </CalendarWrapper>
 
-            {/* 일정 등록 모달 */}
+            {/* 일정 등록/수정 모달 */}
             <ScheduleWriteModal
                 isOpen={isWriteModalOpen}
                 onClose={() => setIsWriteModalOpen(false)}
                 date={currentDate.toISOString().split('T')[0]}
-                initialCreatorId={myCreators.length > 0 ? myCreators[0].id : ''}
+                initialCreatorId={editingEvent ? editingEvent.creatorId : (myCreators.length > 0 ? myCreators[0].id : '')}
                 myCreators={myCreators}
                 onConfirm={handleScheduleCreate}
+                editEvent={editingEvent} // Pass editing event
             />
         </Container>
     );

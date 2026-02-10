@@ -2,9 +2,10 @@ import api from '../../../api/axios';
 
 export const creatorService = {
   // 크리에이터 목록 조회 (전체 또는 이름 검색)
-  getAllCreators: async (name = null) => {
+  getAllCreators: async (name = null, page = 0, size = 10) => {
     try {
-      const params = name ? { name } : {};
+      const params = { page, size };
+      if (name) params.name = name;
       const response = await api.get('/creators', {
         params,
         headers: {

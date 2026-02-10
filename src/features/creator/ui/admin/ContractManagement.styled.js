@@ -36,18 +36,101 @@ export const SubTitle = styled.p`
   color: #6b7280; // text-gray-500
 `;
 
-export const AddButton = styled.button`
-  font-size: 0.875rem; // text-sm
-  background-color: black;
-  color: white;
-  padding: 0.5rem 1rem; // px-4 py-2
-  border-radius: 0.5rem; // rounded-lg
+export const ControlBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+export const SearchGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+export const SearchWrapper = styled.div`
+  position: relative;
+`;
+
+export const SearchIconWrapper = styled.div`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+`;
+
+export const SearchInput = styled.input`
+  padding-left: 2.25rem;
+  padding-right: 1rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  width: 16rem;
+  background-color: rgba(249, 250, 251, 0.5);
+  
+  &:focus {
+    outline: none;
+    border-color: #9ca3af;
+  }
+`;
+
+export const Divider = styled.div`
+  height: 1rem;
+  width: 1px;
+  background-color: #d1d5db;
+  margin: 0 0.5rem;
+`;
+
+export const CountText = styled.span`
+  font-size: 0.75rem;
+  color: #6b7280;
   font-weight: 500;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); // shadow-sm
+`;
+
+export const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #111827;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  height: 2.25rem;
+
+  &:hover {
+    background-color: #374151;
+  }
+
+  svg {
+    margin-right: 0.25rem;
+  }
+`;
+
+export const AddButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #00C471;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: background-color 0.2s;
   
   &:hover {
-    background-color: #1f2937; // hover:bg-gray-800
+    background-color: #00b065;
   }
 `;
 

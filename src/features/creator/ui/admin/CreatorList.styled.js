@@ -67,6 +67,28 @@ export const CountText = styled.span`
   font-weight: 500;
 `;
 
+export const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #111827; // dark gray/black
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  height: 2.25rem;
+
+  &:hover {
+    background-color: #374151;
+  }
+
+  svg {
+    margin-right: 0.25rem;
+  }
+`;
+
 export const AddButton = styled.button`
   display: flex;
   align-items: center;
@@ -272,12 +294,54 @@ export const StatusBadge = styled.span`
   font-weight: 700;
   
   ${props => {
-        switch (props.$status) {
-            case '활동중': return css`color: #00C471;`;
-            case '대기중': return css`color: #6b7280;`;
-            case '종료': return css`color: #ef4444;`;
-            case '휴식중': return css`color: #ca8a04;`; // yellow-600
-            default: return css`color: #6b7280;`;
-        }
-    }}
+    switch (props.$status) {
+      case '활동중': return css`color: #00C471;`;
+      case '대기중': return css`color: #6b7280;`;
+      case '종료': return css`color: #ef4444;`;
+      case '휴식중': return css`color: #ca8a04;`; // yellow-600
+      default: return css`color: #6b7280;`;
+    }
+  }}
+`;
+
+// Pagination
+export const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-bottom: 1rem;
+`;
+
+export const PageButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid ${props => props.$active ? '#00C471' : '#e5e7eb'};
+  background-color: ${props => props.$active ? '#00C471' : 'white'};
+  color: ${props => props.$active ? 'white' : '#4b5563'};
+
+  &:hover:not(:disabled) {
+    background-color: ${props => props.$active ? '#00b065' : '#f9fafb'};
+    border-color: ${props => props.$active ? '#00b065' : '#d1d5db'};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    color: #9ca3af;
+  }
+`;
+
+export const PageNavButton = styled(PageButton)`
+  width: auto;
+  padding: 0 0.75rem;
+  gap: 0.25rem;
 `;

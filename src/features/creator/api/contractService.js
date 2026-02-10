@@ -3,9 +3,11 @@ import axios from 'axios';
 
 // 계약 관련 API 서비스
 const contractService = {
-    // 전체 계약 목록 조회
-    getAllContracts: async () => {
-        const response = await api.get('/contracts');
+    // 전체 계약 목록 조회 (또는 이름 검색)
+    getAllContracts: async (name = null) => {
+        const params = {};
+        if (name) params.name = name;
+        const response = await api.get('/contracts', { params });
         return response.data;
     },
 

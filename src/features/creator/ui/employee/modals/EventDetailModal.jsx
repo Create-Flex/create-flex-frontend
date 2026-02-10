@@ -319,18 +319,20 @@ export const EventDetailModal = ({
                     </DetailSection>
 
                     <ButtonGroup>
-                        {onDelete && (
+                        {/* 매니저가 생성한 일정만 삭제 가능 */}
+                        {onDelete && event.isManagerCreated && (
                             <DangerButton onClick={() => onDelete(event.id)}>
                                 삭제하기
                             </DangerButton>
                         )}
-                        {onEdit && (
+                        {/* 매니저가 생성한 일정만 수정 가능 */}
+                        {onEdit && event.isManagerCreated && (
                             <SecondaryButton onClick={() => onEdit(event)} style={{ backgroundColor: '#2563eb', color: 'white', border: 'none' }}>
                                 수정하기
                             </SecondaryButton>
                         )}
-                        {/* 확인 버튼 (수정 권한 없을 때만 보이거나, 그냥 닫기용) */}
-                        {!onEdit && (
+                        {/* 수정 권한이 없거나, 단순히 닫기용 */}
+                        {(!onEdit || !event.isManagerCreated) && (
                             <SecondaryButton onClick={onClose} style={{ backgroundColor: '#111827', color: 'white', border: 'none' }}>
                                 확인
                             </SecondaryButton>

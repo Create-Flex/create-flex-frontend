@@ -14,10 +14,10 @@ export const ScheduleWriteModal = ({
   isOpen,
   onClose,
   date,
-  initialCreatorId, // CalendarTab sends the currently viewed creator or null
-  myCreators,       // List of creators managed by the logged-in manager
-  onConfirm,        // Callback to refresh calendar
-  editEvent         // Event to edit (null if creating new)
+  initialCreatorId,
+  myCreators,
+  onConfirm,
+  editEvent
 }) => {
   const { user } = useAuthStore();
   const [allCreators, setAllCreators] = useState([]);
@@ -33,14 +33,35 @@ export const ScheduleWriteModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setForm(prev => ({
-        ...prev,
-        scheduleDate: date || prev.scheduleDate,
-        creatorId: initialCreatorId || prev.creatorId
-      }));
+      if (editEvent) {
+        // Edit Mode: Populate form with existing data
+        setForm({
+          scheduleName: editEvent.title,
+          scheduleDate: editEvent.date,
+          scheduleDetail: editEvent.content,
+          scheduleType: editEvent.type === 'promotion' || editEvent.type === 'ad' ? 'PROMOTION' :
+            editEvent.type === 'joint' || editEvent.type === 'merge' ? 'MERGE' :
+              editEvent.type === 'meeting' ? 'MEETING' :
+                editEvent.type === 'live' ? 'LIVE' :
+                  editEvent.type === 'content' ? 'CONTENT' : 'OTHER',
+          creatorId: editEvent.creatorId,
+          visitorIds: editEvent.partnerCreators || []
+        });
+      } else {
+        // Create Mode: Reset form or use defaults
+        setForm(prev => ({
+          ...prev,
+          scheduleName: '',
+          scheduleDetail: '',
+          scheduleType: 'CONTENT',
+          visitorIds: [],
+          scheduleDate: date || prev.scheduleDate,
+          creatorId: initialCreatorId || prev.creatorId
+        }));
+      }
       fetchAllCreators();
     }
-  }, [isOpen, date, initialCreatorId]);
+  }, [isOpen, date, initialCreatorId, editEvent]);
 
   const fetchAllCreators = async () => {
     try {
@@ -91,26 +112,33 @@ export const ScheduleWriteModal = ({
       };
 
 
-      const response = await scheduleService.createSchedule(payload);
+      let response;
+      if (editEvent) {
+        response = await scheduleService.updateSchedule(editEvent.id, payload);
+      } else {
+        response = await scheduleService.createSchedule(payload);
+      }
 
       if (response) {
-        toast.success('일정이 성공적으로 등록되었습니다.');
+        toast.success(editEvent ? '일정이 수정되었습니다.' : '일정이 성공적으로 등록되었습니다.');
         onConfirm(); // Refresh parent
         onClose();   // Close modal
 
         // Reset form
-        setForm({
-          scheduleName: '',
-          scheduleDate: new Date().toISOString().split('T')[0],
-          scheduleDetail: '',
-          scheduleType: 'CONTENT',
-          creatorId: '',
-          visitorIds: []
-        });
+        if (!editEvent) {
+          setForm({
+            scheduleName: '',
+            scheduleDate: new Date().toISOString().split('T')[0],
+            scheduleDetail: '',
+            scheduleType: 'CONTENT',
+            creatorId: '',
+            visitorIds: []
+          });
+        }
       }
     } catch (error) {
-      console.error('일정 등록 실패:', error);
-      toast.error('일정 등록에 실패했습니다.');
+      console.error('일정 저장 실패:', error);
+      toast.error('일정 저장에 실패했습니다.');
     }
   };
 
@@ -147,7 +175,6 @@ export const ScheduleWriteModal = ({
                 <Select
                   value={form.creatorId}
                   onChange={e => setForm({ ...form, creatorId: e.target.value })}
-                  disabled={!!editEvent} // Disable creator change in edit mode? Usually safer.
                 >
                   <option value="">선택하세요</option>
                   {myCreators.map(c => (

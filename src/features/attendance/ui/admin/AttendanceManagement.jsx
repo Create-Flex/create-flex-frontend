@@ -124,15 +124,54 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const filteredLogs = attendanceList;
 
 
-    const StatCard = ({ label, value, icon: Icon, subLabel }) => (
+    const formatTimeStats = (val, isDuration) => {
+        if (!val || val === '-') return null;
+
+        let h, m;
+
+        // Case 1: "09:30" format (HH:MM)
+        if (typeof val === 'string' && val.includes(':')) {
+            const parts = val.split(':');
+            h = parts[0];
+            m = parts[1];
+        }
+        // Case 2: "9h 22m" format
+        else if (typeof val === 'string' && val.includes('h')) {
+            const parts = val.split('h');
+            h = parts[0].trim();
+            m = parts[1].replace('m', '').trim();
+        }
+
+        if (h !== undefined && m !== undefined) {
+            const hUnit = isDuration ? '시간' : '시';
+            const mUnit = '분';
+            return (
+                <>
+                    <StatValue>{h}</StatValue>
+                    <StatUnit>{hUnit}</StatUnit>
+                    <div style={{ width: '8px' }}></div>
+                    <StatValue>{m}</StatValue>
+                    <StatUnit>{mUnit}</StatUnit>
+                </>
+            );
+        }
+
+        return null;
+    };
+
+    const StatCard = ({ label, value, icon: Icon, subLabel, customValue }) => (
         <StatCardContainer>
             <StatHeader>
                 <StatLabel>{label}</StatLabel>
                 <Icon size={18} color="#1f2937" />
             </StatHeader>
             <StatValueWrapper>
-                <StatValue>{value}</StatValue>
-                {typeof value === 'number' && <StatUnit>명</StatUnit>}
+                {customValue ? customValue : (
+                    <>
+                        <StatValue>{value}</StatValue>
+                        {typeof value === 'number' && <StatUnit>명</StatUnit>}
+                    </>
+                )}
             </StatValueWrapper>
             {subLabel && <StatSubLabel>{subLabel}</StatSubLabel>}
         </StatCardContainer>
@@ -142,9 +181,9 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
         <Container>
             {/* 3x2 Grid Stats Dashboard */}
             <StatsGrid>
-                <StatCard label="이번달 평균 출근" value={stats.avgIn} icon={Clock} subLabel="이번 달 전 직원의 평균 출근 기록입니다." />
-                <StatCard label="이번달 평균 퇴근" value={stats.avgOut} icon={Timer} subLabel="이번 달 전 직원의 평균 퇴근 기록입니다." />
-                <StatCard label="일평균 근무시간" value={stats.avgWork} icon={Timer} subLabel="휴게 시간을 제외한 실 근무 시간입니다." />
+                <StatCard label="이번달 평균 출근" value={stats.avgIn} customValue={formatTimeStats(stats.avgIn, false)} icon={Clock} subLabel="이번 달 전 직원의 평균 출근 기록입니다." />
+                <StatCard label="이번달 평균 퇴근" value={stats.avgOut} customValue={formatTimeStats(stats.avgOut, false)} icon={Timer} subLabel="이번 달 전 직원의 평균 퇴근 기록입니다." />
+                <StatCard label="일평균 근무시간" value={stats.avgWork} customValue={formatTimeStats(stats.avgWork, true)} icon={Timer} subLabel="휴게 시간을 제외한 실 근무 시간입니다." />
                 <StatCard label="오늘 정상출근" value={stats.todayNormal} icon={UserCheck} subLabel="현재까지 정상 출근한 인원입니다." />
                 <StatCard label="오늘 지각" value={stats.todayLate} icon={AlertCircle} subLabel="정규 시간 이후 출근한 인원입니다." />
                 <StatCard label="오늘 결근" value={stats.todayAbsent} icon={UserX} subLabel="현재까지 출근 기록이 없는 인원입니다." />

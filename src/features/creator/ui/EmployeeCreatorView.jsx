@@ -41,6 +41,8 @@ export const EmployeeCreatorView = ({
     const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
     const [adProposals, setAdProposals] = useState(INITIAL_AD_PROPOSALS);
     const [adFilter, setAdFilter] = useState('all');
+    const [adsRefreshTrigger, setAdsRefreshTrigger] = useState(0);
+    const [supportRefreshTrigger, setSupportRefreshTrigger] = useState(0);
 
     const [toast, setToast] = useState({
         show: false,
@@ -154,7 +156,7 @@ export const EmployeeCreatorView = ({
             targetDate: data.targetDate,
         };
         setAdProposals([newAd, ...adProposals]);
-        showToastMessage('새로운 캠페인이 등록되었습니다.');
+        setAdsRefreshTrigger(prev => prev + 1);
     };
 
     const handleSupportRequest = (data) => {
@@ -171,7 +173,7 @@ export const EmployeeCreatorView = ({
                 status: '접수',
             });
         }
-        showToastMessage(`${data.type === 'legal' ? '법률' : '세무'} 상담 신청이 완료되었습니다.`);
+        setSupportRefreshTrigger(prev => prev + 1);
     };
 
     const myAdProposals = adProposals.filter(ad => myCreators.map(c => c.id).includes(ad.creatorId));
@@ -254,6 +256,7 @@ export const EmployeeCreatorView = ({
                                 onAdDecision={handleAdDecision}
                                 setIsAdModalOpen={setIsAdModalOpen}
                                 creators={creators}
+                                refreshTrigger={adsRefreshTrigger}
                             />
                         )}
 
@@ -271,6 +274,7 @@ export const EmployeeCreatorView = ({
                             <SupportTab
                                 onOpenSupportModal={(type) => setSupportModal({ open: true, type })}
                                 supportRequests={supportRequests}
+                                refreshTrigger={supportRefreshTrigger}
                             />
                         )}
                     </ContentWrapper>

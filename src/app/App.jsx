@@ -10,8 +10,10 @@ import { ScheduleView } from '../features/calendar/ui/ScheduleView';
 import { OrgChartView } from '../features/organization/ui/OrgChartView';
 import { CreatorManagerView } from '../features/creator/ui/CreatorManagerView';
 import { AttendanceView } from '../features/attendance/ui/AttendanceView';
+import { VacationView } from '../features/vacation/ui/VacationView';
 import { HRDashboardView } from '../components/HRDashboardView';
 import { TeamView } from '../features/organization/ui/TeamView';
+import { AiChatPanel } from '../features/ai/ui/AiChatPanel';
 
 import { PhqSurveyModal } from '../features/creator/ui/components/shared/Health';
 import { VacationModal } from '../features/vacation/ui/components/VacationModal';
@@ -241,6 +243,7 @@ function App() {
                     <Route path="/health" element={<HealthPrivate />}/>
                     <Route path="/schedule" element={<ScheduleView />} />
                     <Route path="/attendance" element={<AttendanceView />} />
+                    <Route path="/vacation" element={<VacationView />} />
 
                     {/* HR Dashboard Routes */}
                     <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />
@@ -283,6 +286,10 @@ function App() {
                         onSubmit={handlePhqSubmit}
                     />
                 )}
+
+                {/* AI 챗봇 */}
+                <AiChatPanel />
+
                 <Toaster
                     position="bottom-center"
                     toastOptions={{

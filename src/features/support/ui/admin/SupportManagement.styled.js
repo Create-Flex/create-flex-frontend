@@ -30,23 +30,23 @@ export const TypeFilterButton = styled.button`
   transition: all 0.2s;
   
   ${props => {
-        switch (props.$type) {
-            case 'all':
-                return props.$active
-                    ? css`background-color: black; color: white; border-color: black;`
-                    : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
-            case 'legal':
-                return props.$active
-                    ? css`background-color: #2563eb; color: white; border-color: #2563eb;`
-                    : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
-            case 'tax':
-                return props.$active
-                    ? css`background-color: #16a34a; color: white; border-color: #16a34a;`
-                    : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
-            default:
-                return css``;
-        }
-    }}
+    switch (props.$type) {
+      case 'all':
+        return props.$active
+          ? css`background-color: black; color: white; border-color: black;`
+          : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
+      case 'legal':
+        return props.$active
+          ? css`background-color: #2563eb; color: white; border-color: #2563eb;`
+          : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
+      case 'tax':
+        return props.$active
+          ? css`background-color: #16a34a; color: white; border-color: #16a34a;`
+          : css`background-color: white; color: #6b7280; border-color: #e5e7eb;`;
+      default:
+        return css``;
+    }
+  }}
 `;
 
 export const StatusFilterButton = styled.button`
@@ -83,9 +83,9 @@ export const IconBox = styled.div`
   flex-shrink: 0;
   
   ${props => props.$type === 'legal'
-        ? css`background-color: #eff6ff; color: #2563eb;` // bg-blue-50 text-blue-600
-        : css`background-color: #f0fdf4; color: #16a34a;` // bg-green-50 text-green-600
-    }
+    ? css`background-color: #eff6ff; color: #2563eb;` // bg-blue-50 text-blue-600
+    : css`background-color: #f0fdf4; color: #16a34a;` // bg-green-50 text-green-600
+  }
 `;
 
 export const ContentWrapper = styled.div`
@@ -114,9 +114,9 @@ export const TypeBadge = styled.span`
   text-transform: uppercase;
   
   ${props => props.$type === 'legal'
-        ? css`background-color: #dbeafe; color: #1d4ed8;` // bg-blue-100 text-blue-700
-        : css`background-color: #dcfce7; color: #15803d;` // bg-green-100 text-green-700
-    }
+    ? css`background-color: #dbeafe; color: #1d4ed8;` // bg-blue-100 text-blue-700
+    : css`background-color: #dcfce7; color: #15803d;` // bg-green-100 text-green-700
+  }
 `;
 
 export const DateText = styled.span`
@@ -147,17 +147,17 @@ export const StatusBadge = styled.span`
   gap: 0.25rem; // gap-1
   
   ${props => {
-        switch (props.$status) {
-            case '접수':
-                return css`background-color: #f3f4f6; color: #4b5563;`; // bg-gray-100 text-gray-600
-            case '진행중':
-                return css`background-color: #fef9c3; color: #a16207;`; // bg-yellow-100 text-yellow-700
-            case '완료':
-                return css`background-color: #dcfce7; color: #15803d;`; // bg-green-100 text-green-700
-            default:
-                return css``;
-        }
-    }}
+    switch (props.$status) {
+      case '접수':
+        return css`background-color: #f3f4f6; color: #4b5563;`; // bg-gray-100 text-gray-600
+      case '진행중':
+        return css`background-color: #fef9c3; color: #a16207;`; // bg-yellow-100 text-yellow-700
+      case '완료':
+        return css`background-color: #dcfce7; color: #15803d;`; // bg-green-100 text-green-700
+      default:
+        return css``;
+    }
+  }}
 `;
 
 export const Title = styled.h3`
@@ -193,17 +193,17 @@ export const ActionButton = styled.button`
   gap: 0.25rem; // gap-1
   
   ${props => props.$primary
-        ? css`
+    ? css`
         background-color: black; 
         color: white; 
         &:hover { background-color: #1f2937; }
       `
-        : css`
+    : css`
         border: 1px solid #d1d5db; 
         color: #374151; 
         &:hover { background-color: #f9fafb; }
       `
-    }
+  }
 `;
 
 export const EmptyState = styled.div`
@@ -213,4 +213,40 @@ export const EmptyState = styled.div`
   background-color: #f9fafb; // bg-gray-50
   border-radius: 0.75rem; // rounded-xl
   border: 1px dashed #e5e7eb; // border-gray-200
+`;
+
+export const PaginationContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem 0;
+`;
+
+export const PageButton = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    background-color: ${props => props.$active ? '#111827' : 'white'};
+    color: ${props => props.$active ? 'white' : '#374151'};
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background-color: ${props => props.$active ? '#1f2937' : '#f9fafb'};
+        border-color: #d1d5db;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 `;

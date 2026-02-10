@@ -4,7 +4,7 @@ import * as S from './Sidebar.styled';
 import {
     Settings, PanelLeftClose, PanelLeftOpen, LayoutGrid, Calendar,
     Clock, Users, UserCircle, Briefcase,
-    LogOut, Activity, Palmtree, BarChart4, ClipboardList, Scale, FileText, Megaphone, Network,
+    LogOut, Activity, Palmtree, BarChart4, ClipboardList, Scale, FileText, Megaphone, Network, Plane,
     ChevronDown, ChevronRight
 } from 'lucide-react';
 
@@ -238,11 +238,14 @@ export const Sidebar = ({ onLogout }) => {
             // 관리자만 휴가 전체 목록 조회 API 호출 가능 (매니저는 403 오류 발생)
             if (!userIsAdmin) return;
             try {
-                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용
-                const listData = await vacationService.getAllVacations({
+                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용 (페이징 적용)
+                const response = await vacationService.getAllVacations({
                     startDate: '2020-01-01',
-                    endDate: '2030-12-31'
+                    endDate: '2030-12-31',
+                    size: 10000  // 충분히 큰 사이즈로 전체 조회
                 });
+                // Page 응답에서 content 추출
+                const listData = response.content || [];
                 const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;
                 setPendingApprovals(pendingCount);
             } catch (error) {
@@ -425,8 +428,11 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
-                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태">
+                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/vacation')} $isActive={location.pathname === '/vacation'} $center={isCollapsed} title="나의 휴가">
+                                <Plane size={16} />{!isCollapsed && <S.NavText>나의 휴가</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
 
@@ -515,8 +521,11 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
-                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태">
+                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/vacation')} $isActive={location.pathname === '/vacation'} $center={isCollapsed} title="나의 휴가">
+                                <Plane size={16} />{!isCollapsed && <S.NavText>나의 휴가</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
 
@@ -588,8 +597,11 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태/휴가">
-                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태/휴가</S.NavText>}
+                            <S.NavItem onClick={() => navigate('/attendance')} $isActive={location.pathname === '/attendance'} $center={isCollapsed} title="나의 근태">
+                                <Clock size={16} />{!isCollapsed && <S.NavText>나의 근태</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/vacation')} $isActive={location.pathname === '/vacation'} $center={isCollapsed} title="나의 휴가">
+                                <Plane size={16} />{!isCollapsed && <S.NavText>나의 휴가</S.NavText>}
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
                                 <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}

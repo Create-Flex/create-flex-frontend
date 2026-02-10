@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Search, Plus, User, MoreHorizontal, Edit3, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Search, Plus, User, MoreHorizontal, Edit3, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { renderPlatformIcon } from '../components/shared/utils';
 import { creatorService } from '../../api/creatorService';
 import { useCreatorStore } from '../../model/useCreatorStore';
 import { mapCreatorFromBackend } from '../../../../shared/utils/creatorMapper';
 import {
-    Container, ControlBar, SearchGroup, SearchWrapper, SearchIconWrapper, SearchInput, Divider, CountText, AddButton,
+    Container, ControlBar, SearchGroup, SearchWrapper, SearchIconWrapper, SearchInput, Divider, CountText, AddButton, SearchButton,
     TableWrapper, Table, TableHead, TableHeader, TableBody, TableRow, TableCell,
     DropdownMenu, MenuButton, ActionButton,
     InfoWrapper, AvatarImg, AvatarCreating, NameText, SubText,
     ChannelWrapper, ChannelName, SubscriberCount,
-    ContactText, NoDataText, ManagerName, ConnectedBadge, StatusBadge
+    ContactText, NoDataText, ManagerName, ConnectedBadge, StatusBadge,
+    PaginationContainer, PageButton
 } from './CreatorList.styled';
 
 export const CreatorList = ({
@@ -22,21 +23,28 @@ export const CreatorList = ({
     const [activeMenuId, setActiveMenuId] = useState(null);
     const menuRef = useRef(null);
 
+    // 페이징 상태
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+
     const { creators, setCreators, removeCreator, setLoading, isLoading } = useCreatorStore();
 
     // 크리에이터 목록 조회
-    const fetchCreators = async (name = null) => {
+    const fetchCreators = async (name = searchQuery, pageNum = page) => {
         setLoading(true);
         try {
-            const response = await creatorService.getAllCreators(name);
+            const response = await creatorService.getAllCreators(name, pageNum, size);
             console.log('받아온 크리에이터 데이터:', response);
 
-            const mappedCreators = Array.isArray(response)
-                ? response.map(mapCreatorFromBackend)
-                : [];
+            // response가 Page 객체인 경우 (content, totalPages, totalElements 등 포함)
+            const creatorsData = response.content || [];
+            const mappedCreators = creatorsData.map(mapCreatorFromBackend);
 
-            console.log('변환된 크리에이터 데이터:', mappedCreators);
             setCreators(mappedCreators);
+            setTotalPages(response.totalPages || 0);
+            setTotalElements(response.totalElements || 0);
         } catch (error) {
             console.error('크리에이터 목록 조회 실패:', error);
             setCreators([]);
@@ -47,21 +55,21 @@ export const CreatorList = ({
 
     // 컴포넌트 마운트 시 목록 조회
     useEffect(() => {
-        fetchCreators();
-    }, []);
+        fetchCreators(searchQuery, page);
+    }, [page]);
 
-    // 검색어 변경 시 디바운싱
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery.trim()) {
-                fetchCreators(searchQuery.trim());
-            } else {
-                fetchCreators();
-            }
-        }, 300);
+    // 검색 실행 함수
+    const handleSearch = () => {
+        setPage(0);
+        fetchCreators(searchQuery.trim(), 0);
+    };
 
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+    // 엔터키 처리
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     // 크리에이터 삭제
     const handleDeleteCreator = async (creatorId) => {
@@ -108,10 +116,14 @@ export const CreatorList = ({
                             placeholder="크리에이터 검색..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
                         />
                     </SearchWrapper>
+                    <SearchButton onClick={handleSearch}>
+                        <Search size={14} /> 검색
+                    </SearchButton>
                     <Divider />
-                    <CountText>총 {creators.length}명</CountText>
+                    <CountText>총 {totalElements}명</CountText>
                 </SearchGroup>
                 <AddButton onClick={onOpenAddModal}>
                     <Plus size={16} /> 등록
@@ -130,7 +142,7 @@ export const CreatorList = ({
                         </tr>
                     </TableHead>
                     <TableBody>
-                        {filteredCreators.map(creator => (
+                        {creators.map(creator => (
                             <TableRow
                                 key={creator.id}
                                 onClick={() => onOpenEditModal(creator)}
@@ -209,6 +221,34 @@ export const CreatorList = ({
                     </TableBody>
                 </Table>
             </TableWrapper>
+
+            {totalPages > 0 && (
+                <PaginationContainer>
+                    <PageButton
+                        disabled={page === 0}
+                        onClick={() => setPage(page - 1)}
+                    >
+                        <ChevronLeft size={16} />
+                    </PageButton>
+
+                    {[...Array(totalPages)].map((_, i) => (
+                        <PageButton
+                            key={i}
+                            $active={page === i}
+                            onClick={() => setPage(i)}
+                        >
+                            {i + 1}
+                        </PageButton>
+                    ))}
+
+                    <PageButton
+                        disabled={page === totalPages - 1}
+                        onClick={() => setPage(page + 1)}
+                    >
+                        <ChevronRight size={16} />
+                    </PageButton>
+                </PaginationContainer>
+            )}
         </Container>
     );
 };

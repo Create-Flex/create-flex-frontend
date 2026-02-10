@@ -50,13 +50,13 @@ export const MyVacation = () => {
     const { refreshKey } = useVacationStore();
 
     const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
-    const oneMonthLater = new Date();
-    oneMonthLater.setMonth(today.getMonth() + 1);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(today.getMonth() + 3);
 
-    const [startDate, setStartDate] = useState(getISODate(oneMonthAgo));
-    const [endDate, setEndDate] = useState(getISODate(oneMonthLater));
+    const [startDate, setStartDate] = useState(getISODate(threeMonthsAgo));
+    const [endDate, setEndDate] = useState(getISODate(threeMonthsLater));
     const [vacationTypeFilter, setVacationTypeFilter] = useState('All');
 
     // API 데이터 상태
@@ -159,13 +159,13 @@ export const MyVacation = () => {
     // 필터 초기화
     const resetFilters = () => {
         const today = new Date();
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(today.getMonth() - 1);
-        const oneMonthLater = new Date();
-        oneMonthLater.setMonth(today.getMonth() + 1);
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(today.getMonth() - 3);
+        const threeMonthsLater = new Date();
+        threeMonthsLater.setMonth(today.getMonth() + 3);
 
-        setStartDate(getISODate(oneMonthAgo));
-        setEndDate(getISODate(oneMonthLater));
+        setStartDate(getISODate(threeMonthsAgo));
+        setEndDate(getISODate(threeMonthsLater));
         setVacationTypeFilter('All');
     };
 

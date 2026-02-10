@@ -35,6 +35,22 @@ const TYPE_MAP = {
     'WORKATION': '워케이션'
 };
 
+// 날짜를 ISO 형식 문자열로 변환
+const getISODate = (date) => date.toISOString().split('T')[0];
+
+// 기본 날짜 범위 계산 (오늘 기준 앞뒤 3개월)
+const getDefaultDateRange = () => {
+    const today = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(today.getMonth() + 3);
+    return {
+        start: getISODate(threeMonthsAgo),
+        end: getISODate(threeMonthsLater)
+    };
+};
+
 export const VacationManagement = ({ employees = [] }) => {
     const { refreshKey: vacationRefreshKey, triggerRefresh } = useVacationStore();
 
@@ -46,9 +62,10 @@ export const VacationManagement = ({ employees = [] }) => {
     const [activeTab, setActiveTab] = useState('all');
     const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-    // Date Filter State
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    // Date Filter State (기본값: 오늘 기준 앞뒤 3개월)
+    const defaultRange = getDefaultDateRange();
+    const [startDate, setStartDate] = useState(defaultRange.start);
+    const [endDate, setEndDate] = useState(defaultRange.end);
     const [typeFilter, setTypeFilter] = useState('All');
 
     // Sorting State
@@ -87,8 +104,8 @@ export const VacationManagement = ({ employees = [] }) => {
     const handleRowClick = async (vac) => {
         setIsDetailLoading(true);
         try {
-            // 사용자용 상세 조회 API 사용
-            const detail = await vacationService.getVacationDetail(vac.id);
+            // 관리자용 상세 조회 API 사용 (유형별 상세 정보 포함)
+            const detail = await vacationService.getVacationDetailAdmin(vac.id);
 
             // 백엔드 응답을 프론트엔드 형식으로 변환
             const mappedDetail = {
@@ -130,13 +147,17 @@ export const VacationManagement = ({ employees = [] }) => {
                 const now = new Date();
                 const currentMonth = now.toISOString().slice(0, 7);
 
-                // 전체 미승인 건수 및 탭 카운트를 위해 넓은 날짜 범위 사용
-                const allData = await vacationService.getAllVacations({
+                // 전체 미승인 건수 및 탭 카운트를 위해 넓은 날짜 범위 사용 (페이징 없이 전체 조회)
+                const response = await vacationService.getAllVacations({
                     startDate: '2020-01-01',
-                    endDate: '2030-12-31'
+                    endDate: '2030-12-31',
+                    size: 10000  // 충분히 큰 사이즈로 전체 조회
                 });
 
-                const mappedAll = (allData || []).map(item => ({
+                // Page 응답에서 content 추출
+                const allData = response.content || [];
+
+                const mappedAll = allData.map(item => ({
                     type: TYPE_MAP[item.vacationType] || item.vacationType,
                     startDate: item.vacationStart,
                     endDate: item.vacationEnd,
@@ -179,10 +200,20 @@ export const VacationManagement = ({ employees = [] }) => {
                     size: pageSize
                 };
 
-                // 미승인 탭일 때는 넓은 날짜 범위 사용 (모든 미승인 신청 표시)
+                // 탭별 상태 필터 및 날짜 범위 설정
                 if (activeTab === 'pending') {
+                    // 미승인 탭: 넓은 날짜 범위 + status 필터 (신청일 정렬 적용)
                     filters.startDate = '2020-01-01';
                     filters.endDate = '2030-12-31';
+                    filters.status = 'APPROVE_NEED';
+                } else if (activeTab === 'approved') {
+                    filters.status = 'APPROVED';
+                    if (startDate) filters.startDate = startDate;
+                    if (endDate) filters.endDate = endDate;
+                } else if (activeTab === 'rejected') {
+                    filters.status = 'REJECTED';
+                    if (startDate) filters.startDate = startDate;
+                    if (endDate) filters.endDate = endDate;
                 } else {
                     if (startDate) filters.startDate = startDate;
                     if (endDate) filters.endDate = endDate;
@@ -244,6 +275,9 @@ export const VacationManagement = ({ employees = [] }) => {
             if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         }
+        if (activeTab === 'pending') {
+            return (b.requestDate || '').localeCompare(a.requestDate || '');
+        }
         return b.startDate.localeCompare(a.startDate);
     });
 
@@ -288,10 +322,11 @@ export const VacationManagement = ({ employees = [] }) => {
     };
 
     const resetFilters = () => {
+        const defaultRange = getDefaultDateRange();
         setSearchQuery('');
         setNameFilter('');
-        setStartDate('');
-        setEndDate('');
+        setStartDate(defaultRange.start);
+        setEndDate(defaultRange.end);
         setTypeFilter('All');
         setActiveTab('all');
         setSortConfig(null);

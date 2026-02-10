@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { FileText, Download, X } from 'lucide-react';
+import { FileText, Download, X, Search } from 'lucide-react';
 import contractService from '../../api/contractService';
 import { renderPlatformIcon } from '../components/shared/utils';
 import { creatorService } from '../../api/creatorService';
@@ -8,6 +8,7 @@ import { useCreatorStore } from '../../model/useCreatorStore';
 import { mapCreatorFromBackend } from '../../../../shared/utils/creatorMapper';
 import {
     Container, ContentArea, Header, Title, SubTitle, AddButton,
+    ControlBar, SearchGroup, SearchWrapper, SearchIconWrapper, SearchInput, Divider, CountText, SearchButton,
     ContractList, ContractCard, CardLeft, IconBox,
     ContractInfo, ContractName, MetaInfo, MetaText, Dot,
     ActionArea, DownloadButton,
@@ -25,24 +26,37 @@ export const ContractManagement = () => {
         creator_name: '',
         contract_start: '',
         contract_end: '',
-        contract_file_url: ''
+        file: null
     });
+    const [searchQuery, setSearchQuery] = useState('');
 
     // 계약 목록 조회
     useEffect(() => {
         fetchContracts();
     }, []);
 
-    const fetchContracts = async () => {
+    const fetchContracts = async (name = searchQuery) => {
         try {
             setLoading(true);
-            const data = await contractService.getAllContracts();
+            const data = await contractService.getAllContracts(name);
             setContracts(data);
         } catch (error) {
             console.error('계약 목록 조회 실패:', error);
             toast.error('계약 목록을 불러오는데 실패했습니다.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 검색 실행 함수
+    const handleSearch = () => {
+        fetchContracts(searchQuery.trim());
+    };
+
+    // 엔터키 처리
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
         }
     };
 
@@ -68,18 +82,33 @@ export const ContractManagement = () => {
         try {
             setLoading(true);
 
-            // 계약 등록 (파일 URL은 선택사항)
-            const contractData = {
+            // FormData 생성
+            const formData = new FormData();
+
+            // 메타데이터를 JSON 객체로 구성
+            const requestData = {
                 contract_name: contractForm.contract_name,
                 creator_name: contractForm.creator_name,
                 contract_start: contractForm.contract_start,
-                contract_end: contractForm.contract_end,
-                contract_file_url: contractForm.contract_file_url || null
+                contract_end: contractForm.contract_end
             };
 
-            await contractService.createContract(contractData);
+            formData.append('request', new Blob([JSON.stringify(requestData)], {
+                type: 'application/json'
+            }));
 
-            toㅅast.success('계약서가 성공적으로 등록되었습니다.');
+            if (contractForm.file) {
+                formData.append('file', contractForm.file);
+            }
+
+            const response = await contractService.createContract(formData);
+
+            // S3에 실제 파일 업로드
+            if (response.presigned_url && contractForm.file) {
+                await contractService.uploadFileToS3(contractForm.file, response.presigned_url);
+            }
+
+            toast.success('계약서가 성공적으로 등록되었습니다.');
 
             // 폼 초기화 및 모달 닫기
             handleCloseModal();
@@ -103,12 +132,13 @@ export const ContractManagement = () => {
             creator_name: '',
             contract_start: '',
             contract_end: '',
-            contract_file_url: ''
+            file: null
         });
     };
 
     // 계약서 다운로드
-    const handleDownload = (contractFileUrl, contractName) => {
+    const handleDownload = (e, contractFileUrl) => {
+        e.stopPropagation();
         if (!contractFileUrl) {
             toast.error('다운로드할 파일이 없습니다.');
             return;
@@ -143,10 +173,32 @@ export const ContractManagement = () => {
                         <Title>계약 문서 현황</Title>
                         <SubTitle>전속 계약 및 광고 계약 문서를 통합 관리합니다.</SubTitle>
                     </div>
+                </Header>
+
+                <ControlBar>
+                    <SearchGroup>
+                        <SearchWrapper>
+                            <SearchIconWrapper>
+                                <Search size={14} />
+                            </SearchIconWrapper>
+                            <SearchInput
+                                type="text"
+                                placeholder="크리에이터 검색..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                            />
+                        </SearchWrapper>
+                        <SearchButton onClick={handleSearch}>
+                            검색
+                        </SearchButton>
+                        <Divider />
+                        <CountText>총 {contracts.length}건</CountText>
+                    </SearchGroup>
                     <AddButton onClick={() => setIsContractModalOpen(true)}>
                         + 새 계약서 작성
                     </AddButton>
-                </Header>
+                </ControlBar>
 
                 {loading && contracts.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: '#999' }}>
@@ -161,11 +213,11 @@ export const ContractManagement = () => {
                         {contracts.map(contract => (
                             <ContractCard key={contract.contract_id}>
                                 <CardLeft>
-                                    <IconBox>
+                                    <IconBox onClick={(e) => handleDownload(e, contract.contract_file_url)}>
                                         <FileText size={20} />
                                     </IconBox>
                                     <ContractInfo>
-                                        <ContractName>
+                                        <ContractName onClick={(e) => handleDownload(e, contract.contract_file_url)}>
                                             {contract.contract_name}
                                         </ContractName>
                                         <MetaInfo>
@@ -193,7 +245,7 @@ export const ContractManagement = () => {
                                 <ActionArea>
                                     <DownloadButton
                                         title="다운로드"
-                                        onClick={() => handleDownload(contract.contract_file_url, contract.contract_name)}
+                                        onClick={(e) => handleDownload(e, contract.contract_file_url)}
                                         disabled={!contract.contract_file_url}
                                         style={{
                                             opacity: contract.contract_file_url ? 1 : 0.3,
@@ -267,17 +319,16 @@ export const ContractManagement = () => {
                                 </InputGroup>
                             </GridContainer>
                             <InputGroup>
-                                <Label>계약서 파일 URL (선택)</Label>
+                                <Label>계약서 파일 업로드 (선택)</Label>
                                 <Input
-                                    placeholder="https://example.com/contract.pdf"
-                                    value={contractForm.contract_file_url}
+                                    type="file"
                                     onChange={e => setContractForm({
                                         ...contractForm,
-                                        contract_file_url: e.target.value
+                                        file: e.target.files[0]
                                     })}
                                 />
                                 <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.25rem' }}>
-                                    * S3 연동 전까지는 파일 URL을 직접 입력하세요
+                                    * 계약서 파일을 업로드해 주세요 (PDF, 이미지 등)
                                 </div>
                             </InputGroup>
                         </ModalBody>

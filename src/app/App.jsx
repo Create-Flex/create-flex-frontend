@@ -12,6 +12,7 @@ import { AttendanceView } from '../features/attendance/ui/AttendanceView';
 import { VacationView } from '../features/vacation/ui/VacationView';
 import { HRDashboardView } from '../components/HRDashboardView';
 import { TeamView } from '../features/organization/ui/TeamView';
+import { AiChatPanel } from '../features/ai/ui/AiChatPanel';
 
 import { PhqSurveyModal } from '../features/creator/ui/components/shared/Health';
 import { VacationModal } from '../features/vacation/ui/components/VacationModal';
@@ -283,6 +284,10 @@ function App() {
                         onSubmit={handlePhqSubmit}
                     />
                 )}
+
+                {/* AI 챗봇 */}
+                <AiChatPanel />
+
                 <Toaster
                     position="bottom-center"
                     toastOptions={{

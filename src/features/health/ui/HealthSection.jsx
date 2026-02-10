@@ -6,8 +6,8 @@ import {
     HistorySectionHeader, SectionTitleWithIcon, FilterBar, FilterLabel, DateInput, ResetButton, SearchButton,
     HistoryList, HistoryItem, HistoryItemContent, HistoryTitleRow, HistoryYearType, HistoryStatus,
     HistoryDateRow, DownloadButton, EmptyState, EmptyIcon, EmptyText
-} from './HealthSection.styled';
-import { getMyHealth } from '../../../health/api/healthService';
+} from '../style/HealthSection.styled';
+import { getMyHealth } from '../api/healthService';
 
 export const HealthSection = ({
     profile,
@@ -122,7 +122,7 @@ export const HealthSection = ({
                                 </HistoryDateRow>
                             </HistoryItemContent>
                             {value.checkupFileUrl && (
-                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(value.checkupFileUrl, "_blank")}>
+                                <DownloadButton title="결과지 다운로드" onClick={() => window.open(`${value.checkupFileUrl}`, "_blank")}>
                                     <Download size={18} />
                                 </DownloadButton>
                             )}

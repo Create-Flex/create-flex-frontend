@@ -422,6 +422,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
                             </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/health')} $isActive={location.pathname === '/health'} $center={isCollapsed} title="건강 관리">
+                                <Activity size={16} />{!isCollapsed && <S.NavText>나의 건강</S.NavText>}
+                            </S.NavItem>
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
@@ -515,6 +518,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
                             </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/health')} $isActive={location.pathname === '/health'} $center={isCollapsed} title="건강 관리">
+                                <Activity size={16} />{!isCollapsed && <S.NavText>나의 건강</S.NavText>}
+                            </S.NavItem>
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}
                             </S.NavItem>
@@ -590,6 +596,9 @@ export const Sidebar = ({ onLogout }) => {
                         <S.NavContainer>
                             <S.NavItem onClick={() => navigate('/mypage')} $isActive={location.pathname === '/mypage'} $center={isCollapsed} title="마이페이지">
                                 <LayoutGrid size={16} />{!isCollapsed && <S.NavText>마이페이지</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/health')} $isActive={location.pathname === '/health'} $center={isCollapsed} title="건강 관리">
+                                <Activity size={16} />{!isCollapsed && <S.NavText>나의 건강</S.NavText>}
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/schedule')} $isActive={location.pathname === '/schedule'} $center={isCollapsed} title="나의 일정">
                                 <Calendar size={16} />{!isCollapsed && <S.NavText>나의 일정</S.NavText>}

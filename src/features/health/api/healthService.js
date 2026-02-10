@@ -35,3 +35,11 @@ export const getManageSearch = (name, startDate, endDate) => {
         params: { name, startDate, endDate }
     })
 }
+
+export const deleteManageHealth = (healthId) => {
+    return api.delete(`/health/manage/delete/${healthId}`)
+}
+
+export const deleteManageS3 = (presignedUrl) => {
+    return axios.delete(presignedUrl);
+}

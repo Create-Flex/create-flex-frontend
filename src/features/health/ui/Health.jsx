@@ -12,11 +12,11 @@ import {
     UploadArea, UploadIconWrapper, UploadText, UploadSubText, SurveyActionButton,
     UploadGuideBox, GuideIcon, GuideContent, GuideTitle, GuideText,
     FormStackSpaced, Label, Select, ActionButton
-} from './Health.styled';
+} from '../style/Health.styled';
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton as ModalCloseBtn, ModalBody
-} from '../../../../../shared/ui/Modal.styled';
-import { getCreatorHealth, saveCreatorMental, putMyHealth, postMyHealth } from '../../../../health/api/healthService';
+} from '../style/Modal.styled';
+import { getCreatorHealth, saveCreatorMental, putMyHealth, postMyHealth } from '../api/healthService';
 
 const mentalResult = (score) => {
     if (score <= 4) {
@@ -59,7 +59,7 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
         "피곤하고 기운이 없었다.",
         "내가 잘못 했거나, 실패했다는 생각이 들었다.",
         "신문을 읽거나 TV를 보는 것과 같은 일상적인 일에도 집중 할 수가 없었다.",
-        "차라리 죽는 것이 더 낮겠다고 생각했다."
+        "차라리 죽는 것이 더 낫겠다고 생각했다."
     ];
     const options = ["없음", "2-6일", "7-12일", "거의 매일"];
     const [answers, setAnswers] = useState(new Array(9).fill(0));

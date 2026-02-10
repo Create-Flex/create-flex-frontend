@@ -278,7 +278,7 @@ export const ActionButtonsData = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem; // gap-2
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s;
 `;
 

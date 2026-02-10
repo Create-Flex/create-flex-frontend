@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StaffManagement } from '../features/employee/ui/admin/StaffManagement';
 import { AttendanceManagement } from '../features/attendance/ui/admin/AttendanceManagement';
-import { HealthManagement } from '../features/health/ui/admin/HealthManagement';
+import { HealthManagement } from '../features/health/ui/HealthManagement';
 import { VacationManagement } from '../features/vacation/ui/admin/VacationManagement';
 import { TeamManagement } from '../features/organization/ui/admin/TeamManagement';
 import { SupportManagement } from '../features/support/ui/admin/SupportManagement';

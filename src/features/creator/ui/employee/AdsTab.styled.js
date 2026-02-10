@@ -313,6 +313,42 @@ export const StatusBadge = styled.div`
   `}
 `;
 
+export const PaginationContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+`;
+
+export const PageButton = styled.button`
+    padding: 0.5rem 0.75rem;
+    border: 1px solid ${props => props.$active ? '#2563eb' : '#e5e7eb'};
+    background-color: ${props => props.disabled ? '#f3f4f6' : props.$active ? '#eff6ff' : 'white'};
+    color: ${props => props.disabled ? '#9ca3af' : props.$active ? '#2563eb' : '#374151'};
+    border-radius: 0.375rem;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+    font-size: 0.875rem;
+    font-weight: 500;
+    min-width: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background-color: ${props => props.$active ? '#eff6ff' : '#f9fafb'};
+        border-color: ${props => props.$active ? '#2563eb' : '#d1d5db'};
+    }
+`;
+
+export const PageInfo = styled.span`
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+`;
+
 export const EmptyState = styled.div`
   display: flex;
   flex-direction: column;

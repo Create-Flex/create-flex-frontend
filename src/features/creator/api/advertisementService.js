@@ -24,18 +24,14 @@ export const advertisementService = {
   },
 
   // 내 담당 크리에이터의 광고 캠페인 목록 조회
-  getMyAdvertisements: async (filter = 'all') => {
+  getMyAdvertisements: async (filter = 'all', page = 0, size = 8) => {
     try {
       const response = await api.get('/advertisements', {
-        params: { filter },
+        params: { filter, page, size },
         headers: {
           'Accept': 'application/json; charset=UTF-8'
         }
       });
-
-      // 응답 데이터 로깅
-      console.log('광고 목록 응답:', response.data);
-
       return response.data;
     } catch (error) {
       console.error('광고 캠페인 목록 조회 에러:', error);

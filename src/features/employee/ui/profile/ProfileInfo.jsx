@@ -108,7 +108,7 @@ export const ProfileInfo = ({
                 )}
             </InfoContainer>
 
-            {!isCreator && (
+            {!isCreator && !hideSensitiveInfo && (
                 <div>
                     <SubSectionHeader>
                         <SectionTitle style={{ marginBottom: 0, marginTop: '0.25rem' }}>개인정보</SectionTitle>
@@ -136,22 +136,21 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
                         
-                        {!hideSensitiveInfo && (
-                            <InfoRow $alignStart={true}>
-                                <InfoIconWrapper $marginTop={true}><Mail size={16} /></InfoIconWrapper>
-                                <InfoLabel $paddingTop={true}>연락처</InfoLabel>
-                                <InfoValue>
-                                    <ContactInfoWrapper>
-                                        <ContactRow>
-                                            <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
-                                        </ContactRow>
-                                        <ContactRow>
-                                            <ContactLabel>휴대전화</ContactLabel> {profile.phone}
-                                        </ContactRow>
-                                    </ContactInfoWrapper>
-                                </InfoValue>
-                            </InfoRow>
-                        )}
+                        {/* 이 내부의 hideSensitiveInfo 체크는 이미 부모에서 체크하므로 생략하거나 유지해도 무방합니다 */}
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><Mail size={16} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop={true}>연락처</InfoLabel>
+                            <InfoValue>
+                                <ContactInfoWrapper>
+                                    <ContactRow>
+                                        <ContactLabel>개인 이메일</ContactLabel> {profile.personalEmail}
+                                    </ContactRow>
+                                    <ContactRow>
+                                        <ContactLabel>휴대전화</ContactLabel> {profile.phone}
+                                    </ContactRow>
+                                </ContactInfoWrapper>
+                            </InfoValue>
+                        </InfoRow>
                         
                         <InfoRow $alignStart={true}>
                             <InfoIconWrapper $marginTop={true}><Calendar size={16} /></InfoIconWrapper>
@@ -164,15 +163,13 @@ export const ProfileInfo = ({
                             </InfoValue>
                         </InfoRow>
 
-                        {!hideSensitiveInfo && (
-                            <InfoRow $alignStart={true}>
-                                <InfoIconWrapper $marginTop={true}><Building size={16} /></InfoIconWrapper>
-                                <InfoLabel $paddingTop={true}>주소</InfoLabel>
-                                <InfoValue>
-                                    <InfoText>{profile.address || '-'}</InfoText>
-                                </InfoValue>
-                            </InfoRow>
-                        )}
+                        <InfoRow $alignStart={true}>
+                            <InfoIconWrapper $marginTop={true}><Building size={16} /></InfoIconWrapper>
+                            <InfoLabel $paddingTop={true}>주소</InfoLabel>
+                            <InfoValue>
+                                <InfoText>{profile.address || '-'}</InfoText>
+                            </InfoValue>
+                        </InfoRow>
                     </InfoContainer>
                 </div>
             )}

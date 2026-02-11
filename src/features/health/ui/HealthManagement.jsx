@@ -10,7 +10,7 @@ import {
     AttachmentSection, AttachmentHeader, AttachmentLabel, FileContent, ButtonGroup, SearchButton
 } from '../style/HealthManagement.styled';
 import { getManageHealth, getManageSearch, deleteManageHealth, deleteManageS3 } from '../api/healthService';
-import {summaryLabelMap} from '../constants/healthSummaryLabel';
+import { summaryLabelMap } from '../constants/healthSummaryLabel';
 
 export const HealthManagement = ({ healthRecords: initialRecords }) => {
     // CRUD 기능을 위해 로컬 상태로 관리 (App.tsx를 수정할 수 없는 제약 사항 때문)

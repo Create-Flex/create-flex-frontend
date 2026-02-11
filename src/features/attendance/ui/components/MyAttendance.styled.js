@@ -209,27 +209,34 @@ export const PaginationContainer = styled.div`
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
 `;
 
 export const PageButton = styled.button`
-  padding: 0.5rem 0.75rem;
-  border: 1px solid ${props => props.$active ? '#2563eb' : '#e5e7eb'};
-  background-color: ${props => props.disabled ? '#f3f4f6' : props.$active ? '#eff6ff' : 'white'};
-  color: ${props => props.disabled ? '#9ca3af' : props.$active ? '#2563eb' : '#374151'};
-  border-radius: 0.375rem;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  min-width: 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: ${props => props.$active ? '#111827' : 'white'};
+  color: ${props => props.$active ? 'white' : '#374151'};
+  cursor: pointer;
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    background-color: ${props => props.$active ? '#eff6ff' : '#f9fafb'};
-    border-color: ${props => props.$active ? '#2563eb' : '#d1d5db'};
+    background-color: ${props => props.$active ? '#1f2937' : '#f9fafb'};
+    border-color: #d1d5db;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 

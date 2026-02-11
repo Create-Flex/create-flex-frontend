@@ -41,8 +41,6 @@ export const HealthPrivate = ({
         }
     };
 
-    const healthIcon = 
-
     useEffect(() => {
         fetchHealth();
     }, []);

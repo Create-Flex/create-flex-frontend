@@ -1,4 +1,5 @@
-import api from '../../../api/axios';
+import api, { fileApi } from '../../../api/axios';
+import axios from 'axios';
 
 export const memberService = {
   // 매니저 목록 조회
@@ -37,3 +38,23 @@ export const mapManagerFromBackend = (backendManager) => {
     role: 'MANAGER'
   };
 };
+
+//프로필 파일 업로드
+export const postMyProfile = (formData) => {
+  return fileApi.post("/members/upload", formData);
+};
+
+export const putMyProfile = async (file, presignedUrl) => {
+  return axios.put(presignedUrl, file, {
+    headers: { 'Content-Type' : file.type}
+  });
+};
+
+//프로필 파일 삭제
+export const deleteMyProfile = () =>{
+  return api.delete('/members/delete');
+};
+
+export const deleteMyProfileS3 = (presignedUrl) => {
+  return axios.delete(presignedUrl);
+}

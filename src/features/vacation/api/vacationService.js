@@ -51,7 +51,7 @@ export const vacationService = {
     }
   },
 
-  // 내 휴가 목록 조회
+  // 내 휴가 목록 조회 (페이징 지원)
   getMyVacations: async (memberId, filters = {}) => {
     try {
       const params = { memberId };
@@ -59,6 +59,8 @@ export const vacationService = {
       if (filters.startDate) params.startDate = filters.startDate;
       if (filters.endDate) params.endDate = filters.endDate;
       if (filters.type) params.type = VACATION_TYPE_MAP[filters.type] || filters.type;
+      if (filters.page !== undefined) params.page = filters.page;
+      if (filters.size !== undefined) params.size = filters.size;
 
       const response = await api.get('/vacations/my', { params });
       return response.data;

@@ -169,18 +169,23 @@ export const SearchIconWrapper = styled.div`
 `;
 
 export const SearchButton = styled.button`
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: white;
-  background-color: #111827;
+  background-color: black;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #374151;
+    background-color: #1f2937;
   }
 `;
 

@@ -6,7 +6,7 @@ import { useUIStore } from '../../../../shared/model/useUIStore';
 import { useVacationStore } from '../../model/useVacationStore';
 import {
     Plane, ArrowRight, Filter, Plus, Timer, CheckCircle2, XCircle,
-    AlertCircle, Gift, Info, X, Stethoscope
+    AlertCircle, Gift, Info, X, Stethoscope, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
     Container, TableContainer, ControlBar, FilterGroup, DateRangePicker, FilterLabel, DateInput,
@@ -15,7 +15,8 @@ import {
     ModalBody, ModalFooter, InfoLabel, InfoValue, DetailGrid, DetailInfoBox, DetailHeader, DetailRow,
     PrimaryButton,
     DetailDateRow, DetailDateItem, DateLabel, ReasonBox, RejectionBox, RejectionText,
-    SelectIcon, TruncatedContent, CenterContent, MonoText
+    SelectIcon, TruncatedContent, CenterContent, MonoText,
+    PaginationContainer, PageButton, PageInfo
 } from './MyVacation.styled';
 
 const getISODate = (date) => date.toISOString().split('T')[0];
@@ -63,6 +64,16 @@ export const MyVacation = () => {
     const [vacationList, setVacationList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // 페이지네이션 상태
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageInfo, setPageInfo] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalElements: 0,
+        size: 10
+    });
+    const PAGE_SIZE = 10;
+
     // 모달 상태
     const [selectedDetailLog, setSelectedDetailLog] = useState(null);
     const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -107,12 +118,14 @@ export const MyVacation = () => {
     };
 
     // 휴가 목록 조회
-    const fetchVacationList = async () => {
+    const fetchVacationList = async (page = currentPage) => {
         setIsLoading(true);
         try {
             const filters = {
                 startDate,
-                endDate
+                endDate,
+                page,
+                size: PAGE_SIZE
             };
 
             // 필터가 All이 아닌 경우 타입 필터 추가
@@ -122,8 +135,17 @@ export const MyVacation = () => {
 
             const response = await vacationService.getMyVacations(memberId, filters);
 
+            // 페이징 응답 구조 처리: { list: [...], pageInfo: {...} }
+            const list = response?.list || [];
+            const pageData = response?.pageInfo || {
+                currentPage: 1,
+                totalPages: 1,
+                totalElements: 0,
+                size: PAGE_SIZE
+            };
+
             // 백엔드 응답을 프론트엔드 형식으로 변환
-            const mappedList = (response || []).map(item => {
+            const mappedList = list.map(item => {
                 // vacationPeriod에서 시작일/종료일 파싱
                 const [start, end] = item.vacationPeriod.includes('~')
                     ? item.vacationPeriod.split(' ~ ')
@@ -141,6 +163,7 @@ export const MyVacation = () => {
             });
 
             setVacationList(mappedList);
+            setPageInfo(pageData);
         } catch (error) {
             console.error('휴가 목록 조회 실패:', error);
             setVacationList([]);
@@ -149,10 +172,19 @@ export const MyVacation = () => {
         }
     };
 
-    // 초기 로딩 및 필터 변경 시 데이터 조회
+    // 페이지 변경 핸들러
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= pageInfo.totalPages) {
+            setCurrentPage(newPage);
+            fetchVacationList(newPage);
+        }
+    };
+
+    // 초기 로딩 및 필터 변경 시 데이터 조회 (필터 변경 시 1페이지로 리셋)
     useEffect(() => {
         if (memberId) {
-            fetchVacationList();
+            setCurrentPage(1);
+            fetchVacationList(1);
         }
     }, [memberId, startDate, endDate, vacationTypeFilter, refreshKey]);
 
@@ -167,6 +199,7 @@ export const MyVacation = () => {
         setStartDate(getISODate(threeMonthsAgo));
         setEndDate(getISODate(threeMonthsLater));
         setVacationTypeFilter('All');
+        setCurrentPage(1);
     };
 
     return (
@@ -213,51 +246,93 @@ export const MyVacation = () => {
                         로딩 중...
                     </div>
                 ) : (
-                    <Table>
-                        <TableHead>
-                            <tr>
-                                <TableHeaderCell>휴가 기간</TableHeaderCell>
-                                <TableHeaderCell>유형</TableHeaderCell>
-                                <TableHeaderCell>사용 일수</TableHeaderCell>
-                                <TableHeaderCell>신청 사유</TableHeaderCell>
-                                <TableHeaderCell $align="center">승인 상태</TableHeaderCell>
-                            </tr>
-                        </TableHead>
-                        <TableBody>
-                            {vacationList.length > 0 ? (
-                                vacationList.map((log) => (
-                                    <TableRow key={log.id} onClick={() => fetchVacationDetail(log.id)}>
-                                        <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
-                                        <TableCell>
-                                            <TypeBadge $type={log.type}>{log.type}</TypeBadge>
-                                        </TableCell>
-                                        <TableCell $bold $color="#1f2937">{log.days}일</TableCell>
-                                        <TableCell $color="#6b7280">
-                                            <TruncatedContent>{log.reason || '-'}</TruncatedContent>
-                                        </TableCell>
-                                        <TableCell>
-                                            <CenterContent>
-                                                <StatusBadge $status={log.status}>
-                                                    {log.status === '대기중' && <Timer size={12} />}
-                                                    {log.status === '승인됨' && <CheckCircle2 size={12} />}
-                                                    {log.status === '반려됨' && <XCircle size={12} />}
-                                                    {log.status === '대기중' ? '승인대기중' : log.status}
-                                                </StatusBadge>
-                                            </CenterContent>
+                    <>
+                        <Table>
+                            <TableHead>
+                                <tr>
+                                    <TableHeaderCell>휴가 기간</TableHeaderCell>
+                                    <TableHeaderCell>유형</TableHeaderCell>
+                                    <TableHeaderCell>사용 일수</TableHeaderCell>
+                                    <TableHeaderCell>신청 사유</TableHeaderCell>
+                                    <TableHeaderCell $align="center">승인 상태</TableHeaderCell>
+                                </tr>
+                            </TableHead>
+                            <TableBody>
+                                {vacationList.length > 0 ? (
+                                    vacationList.map((log) => (
+                                        <TableRow key={log.id} onClick={() => fetchVacationDetail(log.id)}>
+                                            <TableCell $bold $color="#111827">{log.startDate} ~ {log.endDate}</TableCell>
+                                            <TableCell>
+                                                <TypeBadge $type={log.type}>{log.type}</TypeBadge>
+                                            </TableCell>
+                                            <TableCell $bold $color="#1f2937">{log.days}일</TableCell>
+                                            <TableCell $color="#6b7280">
+                                                <TruncatedContent>{log.reason || '-'}</TruncatedContent>
+                                            </TableCell>
+                                            <TableCell>
+                                                <CenterContent>
+                                                    <StatusBadge $status={log.status}>
+                                                        {log.status === '대기중' && <Timer size={12} />}
+                                                        {log.status === '승인됨' && <CheckCircle2 size={12} />}
+                                                        {log.status === '반려됨' && <XCircle size={12} />}
+                                                        {log.status === '대기중' ? '승인대기중' : log.status}
+                                                    </StatusBadge>
+                                                </CenterContent>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                            조회된 휴가 내역이 없습니다.
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
-                                        조회된 휴가 내역이 없습니다.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                )}
+                            </TableBody>
+                        </Table>
+
+                    </>
                 )}
             </TableContainer>
+
+            {/* 페이지네이션 - 테이블 외부 하단 */}
+            <PaginationContainer>
+                <PageButton
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    <ChevronLeft size={16} />
+                </PageButton>
+
+                {Array.from({ length: Math.max(1, pageInfo.totalPages) }, (_, i) => i + 1)
+                    .filter(page => {
+                        // 현재 페이지 주변 2개씩만 표시
+                        return page === 1 ||
+                               page === pageInfo.totalPages ||
+                               Math.abs(page - currentPage) <= 2;
+                    })
+                    .map((page, index, arr) => (
+                        <React.Fragment key={page}>
+                            {index > 0 && arr[index - 1] !== page - 1 && (
+                                <PageInfo>...</PageInfo>
+                            )}
+                            <PageButton
+                                $active={page === currentPage}
+                                onClick={() => handlePageChange(page)}
+                            >
+                                {page}
+                            </PageButton>
+                        </React.Fragment>
+                    ))
+                }
+
+                <PageButton
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= pageInfo.totalPages}
+                >
+                    <ChevronRight size={16} />
+                </PageButton>
+            </PaginationContainer>
 
             {/* 휴가 상세 내역 모달 */}
             {selectedDetailLog && (

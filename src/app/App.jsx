@@ -48,8 +48,8 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
 
     // 앱 시작 시 토큰 검증 및 사용자 정보 복원
-    useEffect(() => {
-        const initAuth = async () => {
+
+    const initAuth = async () => {
             const token = localStorage.getItem('token');
 
             if (token) {
@@ -64,6 +64,20 @@ function App() {
                     };
                     login(authUser, token);
 
+                    
+
+                    const checkImage = async (url) => {
+                        const DEFAULT_AVATAR = 'https://i.postimg.cc/bJSGpBqg/Gemini-Generated-Image-s33rl9s33rl9s33r-(1).png';
+                        if (!url) return DEFAULT_AVATAR;
+
+                        try {
+                            const res = await fetch(url, { method: 'HEAD' });
+                            return res.ok ? url : DEFAULT_AVATAR;
+                        } catch {
+                            return DEFAULT_AVATAR;
+                        }
+                    };
+
                     // 프로필 설정 (백엔드 데이터만 사용)
                     let newProfile = null;
                     if (userInfo.memberRole === 'ADMINISTRATOR' || userInfo.role === 'ADMINISTRATOR') {
@@ -74,7 +88,7 @@ function App() {
                             name: userInfo.memberName,
                             email: userInfo.corporEmail || userInfo.memberAccount,
                             role: userInfo.memberRole,
-                            avatarUrl: userInfo.profileImage || '',
+                            avatarUrl: await checkImage(userInfo.profileImage),
                             coverUrl: userInfo.profileBanner || '',
                             // 직원 상세 정보
                             job: userInfo.task || '-',
@@ -97,7 +111,7 @@ function App() {
                                 name: creatorInfo.member_name || userInfo.memberName,
                                 email: creatorInfo.member_account || userInfo.memberAccount,
                                 role: 'CREATOR',
-                                avatarUrl: creatorInfo.profile_image || userInfo.profileImage || '',
+                                avatarUrl: await checkImage(userInfo.profileImage),
                                 coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
                                 job: 'Creator',
                                 org: 'MCN',
@@ -117,7 +131,7 @@ function App() {
                                 job: 'Creator',
                                 org: 'MCN',
                                 rank: '-',
-                                avatarUrl: userInfo.profileImage || '',
+                                avatarUrl: await checkImage(userInfo.profileImage),
                                 coverUrl: userInfo.profileBanner || '',
                                 employeeId: userInfo.memberId || userInfo.id,
                             };
@@ -130,7 +144,7 @@ function App() {
                             name: userInfo.memberName,
                             email: userInfo.corporEmail || userInfo.memberAccount,
                             role: userInfo.memberRole,
-                            avatarUrl: userInfo.profileImage || '',
+                            avatarUrl: await checkImage(userInfo.profileImage),
                             coverUrl: userInfo.profileBanner || '',
                             // 직원 상세 정보
                             job: userInfo.task || '-',
@@ -156,11 +170,13 @@ function App() {
             setIsLoading(false);
         };
 
+    useEffect(() => {
         initAuth();
     }, []);
 
     useEffect(() => {
         if (isAuthenticated) {
+            initAuth();
             initAttendanceLogs();
         }
     }, [isAuthenticated, initAttendanceLogs]);

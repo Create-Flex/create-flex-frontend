@@ -1,9 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect} from 'react';
 import { X, Upload } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton, ModalBody, PrimaryButton,
     ImageGrid, ImageOptimized, ImageEl, AvatarUploadWrapper, CurrentAvatar, HelperText
 } from './Modal.styled';
+import { postMyProfile, putMyProfile, deleteMyProfile, deleteMyProfileS3 } from '../../../api/memberService';
 
 const MOCK_COVER_IMAGES = [
     'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
@@ -23,6 +25,7 @@ export const ImageUploadModal = ({
     onImageUpload
 }) => {
     const fileInputRef = useRef(null);
+    const [file, setFile] = useState(null);
 
     const handleUpload = (e) => {
         const file = e.target.files?.[0];
@@ -32,8 +35,30 @@ export const ImageUploadModal = ({
                 onImageUpload(reader.result);
             };
             reader.readAsDataURL(file);
+            setFile(file);
         }
     };
+
+    const fetchImage = async () => {
+            if(file){
+                const formData = new FormData();
+                formData.append("file", file);
+
+                try{
+                    const responseDelete = await deleteMyProfile();
+                    await deleteMyProfileS3(responseDelete.data.presignedURL);
+                    const responseUpload = await postMyProfile(formData);
+                    await putMyProfile(file, responseUpload.data.presignedURL);
+                } catch (error) {
+                    console.error("업데이트 실패 : ", error);
+                    toast.error('업로드 실패');
+                }
+            }
+    }
+
+    useEffect(() => {
+        fetchImage();
+    }, [file])
 
     if (!isOpen) return null;
 

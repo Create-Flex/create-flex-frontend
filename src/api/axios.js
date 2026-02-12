@@ -7,11 +7,13 @@ const api = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     timeout: API_CONFIG.TIMEOUT,
     headers: API_CONFIG.HEADERS,
+    withCredentials: true,  // HttpOnly 쿠키 전송을 위해 필수
 });
 
 const fileApi = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     timeout: API_CONFIG.TIMEOUT,
+    withCredentials: true,  // HttpOnly 쿠키 전송을 위해 필수
 });
 
 // 토큰 갱신 중인지 여부
@@ -84,26 +86,18 @@ api.interceptors.response.use(
                 originalRequest._retry = true;
                 isRefreshing = true;
 
-                const refreshToken = localStorage.getItem('refreshToken');
-
-                if (!refreshToken) {
-                    // Refresh Token이 없으면 로그인 페이지로
-                    isRefreshing = false;
-                    useAuthStore.getState().clearAuth();
-                    window.location.href = '/login';
-                    return Promise.reject(error);
-                }
-
                 try {
-                    // 토큰 갱신 요청
-                    const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/reissue`, {
-                        refreshToken: refreshToken
-                    });
+                    // 토큰 갱신 요청 (Refresh Token은 HttpOnly 쿠키로 자동 전송)
+                    const response = await axios.post(
+                        `${API_CONFIG.BASE_URL}/auth/reissue`,
+                        {},  // body 없음 - 쿠키로 전송
+                        { withCredentials: true }
+                    );
 
-                    const { accessToken, refreshToken: newRefreshToken } = response.data;
+                    const { accessToken } = response.data;
 
-                    // 새 토큰 저장
-                    useAuthStore.getState().setTokens(accessToken, newRefreshToken);
+                    // 새 Access Token 저장
+                    useAuthStore.getState().setToken(accessToken);
 
                     // 대기 중인 요청들 처리
                     processQueue(null, accessToken);
@@ -191,22 +185,16 @@ fileApi.interceptors.response.use(
                 originalRequest._retry = true;
                 isRefreshing = true;
 
-                const refreshToken = localStorage.getItem('refreshToken');
-
-                if (!refreshToken) {
-                    isRefreshing = false;
-                    useAuthStore.getState().clearAuth();
-                    window.location.href = '/login';
-                    return Promise.reject(error);
-                }
-
                 try {
-                    const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/reissue`, {
-                        refreshToken: refreshToken
-                    });
+                    // 토큰 갱신 요청 (Refresh Token은 HttpOnly 쿠키로 자동 전송)
+                    const response = await axios.post(
+                        `${API_CONFIG.BASE_URL}/auth/reissue`,
+                        {},  // body 없음 - 쿠키로 전송
+                        { withCredentials: true }
+                    );
 
-                    const { accessToken, refreshToken: newRefreshToken } = response.data;
-                    useAuthStore.getState().setTokens(accessToken, newRefreshToken);
+                    const { accessToken } = response.data;
+                    useAuthStore.getState().setToken(accessToken);
                     processQueue(null, accessToken);
 
                     originalRequest.headers.Authorization = `Bearer ${accessToken}`;

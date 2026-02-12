@@ -50,13 +50,12 @@ export const Login = () => {
         password: formData.password
       });
 
-      // 2. 토큰 저장 (accessToken, refreshToken)
-      const { accessToken, refreshToken } = loginResponse;
+      // 2. Access Token 추출 (Refresh Token은 HttpOnly 쿠키로 자동 설정됨)
+      const { accessToken } = loginResponse;
 
       // 3. 토큰으로 사용자 정보 가져오기
       // JWT 토큰을 먼저 localStorage에 저장해야 getMyInfo가 동작함
       localStorage.setItem('token', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
 
       try {
         const userInfo = await authService.getMyInfo();
@@ -66,7 +65,7 @@ export const Login = () => {
           ...userInfo,
           id: userInfo.memberId || userInfo.id
         };
-        login(authUser, accessToken, refreshToken);
+        login(authUser, accessToken);
 
         // 5. 프로필 설정 (백엔드 데이터만 사용)
         let newProfile = null;
@@ -166,7 +165,7 @@ export const Login = () => {
       } catch (infoError) {
         console.error('사용자 정보 조회 실패:', infoError);
         // 사용자 정보 조회 실패 시에도 토큰은 유효하므로 기본 페이지로 이동
-        login({ memberAccount: formData.memberAccount }, accessToken, refreshToken);
+        login({ memberAccount: formData.memberAccount }, accessToken);
         navigate('/mypage');
       }
 
@@ -175,7 +174,6 @@ export const Login = () => {
 
       // 로그인 실패 시 토큰 제거
       localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
 
       if (err.code === 'ERR_NETWORK') {
         // 1. 네트워크 에러 (백엔드 서버 다운 등)

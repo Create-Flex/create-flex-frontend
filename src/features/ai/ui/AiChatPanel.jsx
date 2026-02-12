@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useUIStore } from '../../../shared/model/useUIStore';
 import { aiService } from '../api/aiService';
 import * as S from './AiChatPanel.styled';
@@ -100,7 +102,9 @@ export const AiChatPanel = () => {
                                         {msg.role === 'user' ? '나' : 'AI'}
                                     </S.MessageLabel>
                                     <S.MessageBubble $isUser={msg.role === 'user'}>
-                                        {msg.content}
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {msg.content}
+                                        </ReactMarkdown>
                                     </S.MessageBubble>
                                 </S.MessageGroup>
                             ))}

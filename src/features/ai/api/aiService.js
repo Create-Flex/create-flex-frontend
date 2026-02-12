@@ -8,7 +8,7 @@ export const aiService = {
      */
     sendMessage: async (message) => {
         try {
-            const response = await api.post('/ai/chat', { message }, { timeout: 60000 }); // 60초 타임아웃
+            const response = await api.post('/ai/chat', { message }, { timeout: 120000 }); // 120초 타임아웃
             return response.data.reply;
         } catch (error) {
             console.error('AI 챗봇 에러:', error);

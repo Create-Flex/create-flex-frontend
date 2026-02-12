@@ -158,7 +158,101 @@ export const MessageBubble = styled.div`
   padding: ${({ $isUser }) => ($isUser ? '10px 14px' : '2px 0')};
   border-radius: ${({ $isUser }) => ($isUser ? '8px' : '0')};
   word-break: break-word;
-  white-space: pre-wrap;
+  
+  /* Markdown Styles */
+  & > p {
+    margin-bottom: 0.5em;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  & > ul, & > ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+  }
+
+  & > li {
+    margin-bottom: 0.25em;
+  }
+
+  & > h1, & > h2, & > h3, & > h4, & > h5, & > h6 {
+    margin: 0.75em 0 0.5em;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  & > h1 { font-size: 1.5em; }
+  & > h2 { font-size: 1.3em; }
+  & > h3 { font-size: 1.1em; }
+  
+  & > blockquote {
+    border-left: 3px solid #e0e0e0;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: #787774;
+    font-style: italic;
+  }
+
+  & > pre {
+    background: #f7f6f3;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.5em 0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.9em;
+    border: 1px solid #e0e0e0;
+  }
+
+  & > code {
+    background: #f7f6f3; // rgba(135,131,120,0.15);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.85em;
+    color: #eb5757;
+  }
+
+  & > pre > code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  & > table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.5em 0;
+    font-size: 0.9em;
+  }
+
+  & > table th,
+  & > table td {
+    border: 1px solid #e0e0e0;
+    padding: 6px 10px;
+    text-align: left;
+  }
+
+  & > table th {
+    background: #f7f6f3;
+    font-weight: 600;
+  }
+
+  & > a {
+    color: #0b6bcb; // Notion-like blue or adjust as need
+    text-decoration: underline;
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  & > hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 1em 0;
+  }
 `;
 
 /* ───────── Typing Indicator ───────── */

@@ -1,0 +1,57 @@
+// 테스트 사용자 데이터 제거됨 - 백엔드 API에서 사용자 정보 조회
+
+export const INITIAL_SCHEDULE_TEMPLATES = [
+    { id: 'company', name: '회사 일정', color: 'blue' },
+    { id: 'personal', name: '개인 일정', color: 'green' },
+];
+
+export const INITIAL_SCHEDULE_EVENTS = [
+    { id: 1, templateId: 'company', title: '신년 전체 회의', content: '2026년 목표 설정', date: '2026-01-05', ownerId: 'HR001' },
+    { id: 2, templateId: 'personal', title: '건강검진', content: '오전 9시', date: '2026-01-12', ownerId: 'LP125' },
+    { id: 3, templateId: 'company', title: '설날 선물 배포', content: '로비 1층', date: '2026-01-28', ownerId: 'HR001' },
+    { id: 4, templateId: 'personal', title: '관리자 전용 일정', content: '이건 직원에게 보이면 안됨', date: '2026-01-15', ownerId: 'HR001' },
+];
+
+export const INITIAL_VACATION_LOGS = [
+    { id: 101, name: '손흥민', type: '연차', startDate: '2026-02-14', endDate: '2026-02-15', days: 2, status: '대기중', reason: '개인 사정으로 인한 휴가' },
+    { id: 102, name: '김민재', type: '워케이션', startDate: '2026-02-20', endDate: '2026-02-24', days: 5, status: '대기중', reason: '제주도 워케이션', location: '제주 오피스', emergencyContact: '010-1111-2222', workGoals: '백엔드 마이그레이션 기획' },
+    { id: 103, name: '박지성', type: '반차', startDate: '2026-02-10', endDate: '2026-02-10', days: 0.5, status: '대기중', reason: '오후 병원 진료' },
+    { id: 201, name: '이채연', type: '연차', startDate: '2026-01-20', endDate: '2026-01-22', days: 3, status: '승인됨', reason: '겨울 가족 여행' },
+    { id: 203, name: '박지성', type: '병가', startDate: '2026-01-05', endDate: '2026-01-07', days: 3, status: '승인됨', reason: '독감', symptoms: '고열 및 근육통', hospital: '서울대병원' },
+    { id: 301, name: '이강인', type: '워케이션', startDate: '2026-01-08', endDate: '2026-01-12', days: 5, status: '반려됨', reason: '강릉 워케이션', rejectionReason: '해당 기간 팀 내 주요 프로젝트 런칭 일정과 겹쳐 부재가 불가능합니다.' },
+    { id: 401, name: '김유연', type: '연차', startDate: '2025-12-20', endDate: '2025-12-22', days: 3, status: '사용완료', reason: '크리스마스 휴가' },
+];
+
+export const INITIAL_EMPLOYEES = [
+
+    { id: '1001', name: '김인사', engName: 'Kim Insa', dept: '인사문화팀', role: '인사 관리', workStatus: '출근', email: 'kim.insa@gmail.com', phone: '010-1111-1111', joinDate: '2020-03-02', avatarUrl: 'https://cdn.mcn.com/profiles/kim_insa.jpg', nickname: '인사왕', rank: '관리자', remainingVacation: 15 },
+    { id: '1003', name: '박매니저', engName: 'Park Manager', dept: '매니지먼트팀', role: '크리에이터 매니저', workStatus: '출근', email: 'park.mg@gmail.com', phone: '010-3333-3333', joinDate: '2019-01-10', avatarUrl: 'https://cdn.mcn.com/profiles/park_manager.jpg', nickname: '매니저박', rank: '매니저', remainingVacation: 10 },
+    { id: '1007', name: '윤개발', engName: 'Yoon Dev', dept: '기술본부', role: '백엔드 개발자', workStatus: '출근', email: 'yoon.dev@gmail.com', phone: '010-7777-7777', joinDate: '2022-01-03', avatarUrl: 'https://cdn.mcn.com/profiles/yoon_dev.jpg', nickname: '윤개발자', rank: '직원', remainingVacation: 10 },
+    { id: '1008', name: '한코딩', engName: 'Han Coding', dept: '기술본부', role: '프론트엔드 개발자', workStatus: '퇴근', email: 'han.code@naver.com', phone: '010-8888-8888', joinDate: '2020-07-15', avatarUrl: 'https://cdn.mcn.com/profiles/default.jpg', nickname: '한코더', rank: '직원', remainingVacation: 13 },
+];
+
+export const INITIAL_HEALTH_RECORDS = [
+    { id: 1, name: '김유연', lastCheck: '2025-10-15', hospital: 'KMI 여의도', result: '정상 (양호)', nextCheck: '2026-10-15' },
+    { id: 2, name: '이채연', lastCheck: '2025-11-20', hospital: '강북삼성병원', result: '정상 (경미)', nextCheck: '2026-11-20' },
+    { id: 3, name: '박지성', lastCheck: '2025-09-10', hospital: '서울대병원', result: '유소견 (주의)', nextCheck: '2026-03-10' },
+    { id: 4, name: '손흥민', lastCheck: '2025-12-05', hospital: '하나로의료재단', result: '정상 (양호)', nextCheck: '2026-12-05' },
+    { id: 5, name: '이강인', lastCheck: '2026-01-15', hospital: '세브란스병원', result: '정상 (양호)', nextCheck: '2027-01-15' },
+    { id: 6, name: '김민재', lastCheck: '2025-08-22', hospital: '서울성모병원', result: '유소견 (주의)', nextCheck: '2026-02-22' },
+    { id: 7, name: '황희찬', lastCheck: '2025-07-01', hospital: 'KMI 광화문', result: '정상 (양호)', nextCheck: '2026-07-01' },
+    { id: 8, name: '조규성', lastCheck: '2025-06-12', hospital: '강남내과', result: '유소견 (위험)', nextCheck: '2025-12-12' },
+    { id: 9, name: '정우영', lastCheck: '2025-05-20', hospital: '부산대병원', result: '정상 (양호)', nextCheck: '2026-05-20' },
+    { id: 10, name: '백승호', lastCheck: '2025-04-10', hospital: '한림대성심병원', result: '재검 필요', nextCheck: '2025-05-10' },
+    { id: 11, name: '이재성', lastCheck: '2025-03-05', hospital: '서울대병원', result: '정상 (양호)', nextCheck: '2026-03-05' },
+    { id: 12, name: '김승규', lastCheck: '2025-02-18', hospital: '강북삼성병원', result: '정상 (경미)', nextCheck: '2026-02-18' },
+    { id: 13, name: '권창훈', lastCheck: '2024-12-10', hospital: 'KMI 여의도', result: '유소견 (주의)', nextCheck: '2025-06-10' },
+    { id: 14, name: '나상호', lastCheck: '2025-01-05', hospital: '세브란스병원', result: '정상 (양호)', nextCheck: '2026-01-05' },
+    { id: 15, name: '김진수', lastCheck: '2024-11-12', hospital: '서울아산병원', result: '유소견 (위험)', nextCheck: '2025-02-12' },
+    { id: 16, name: '김문환', lastCheck: '2025-08-05', hospital: '강남세브란스', result: '정상 (양호)', nextCheck: '2026-08-05' },
+    { id: 17, name: '김영권', lastCheck: '2025-07-20', hospital: '서울성모병원', result: '정상 (양호)', nextCheck: '2026-07-20' },
+    { id: 18, name: '조현우', lastCheck: '2025-09-30', hospital: '하나로의료재단', result: '재검 필요', nextCheck: '2025-10-30' },
+];
+
+export const INITIAL_ISSUE_LOGS = [
+    { id: 1, creatorName: '김민재', date: '2025-08-25', issue: '허리 통증 호소', status: '진행중', action: '정형외과 예약' },
+    { id: 2, creatorName: '조규성', date: '2025-06-15', issue: '성대 결절 초기 증상', status: '완료', action: '휴식 권고' },
+];

@@ -3,21 +3,21 @@ import axios from 'axios';
 import { API_CONFIG } from '../../../api/config';
 
 export const authService = {
-  // 로그인
+  // 로그인 (Refresh Token은 HttpOnly 쿠키로 자동 설정됨)
   login: async (loginData) => {
     try {
       const response = await api.post('/auth/login', {
         memberAccount: loginData.memberAccount,
         password: loginData.password
       });
-      return response.data; // { accessToken: "...", refreshToken: "..." }
+      return response.data; // { accessToken: "..." } - refreshToken은 쿠키로 설정됨
     } catch (error) {
       console.error('로그인 API 에러:', error);
       throw error;
     }
   },
 
-  // 로그아웃
+  // 로그아웃 (Refresh Token 쿠키도 서버에서 삭제됨)
   logout: async () => {
     try {
       const response = await api.post('/auth/logout');
@@ -28,13 +28,15 @@ export const authService = {
     }
   },
 
-  // 토큰 갱신
-  reissue: async (refreshToken) => {
+  // 토큰 갱신 (Refresh Token은 쿠키로 자동 전송됨)
+  reissue: async () => {
     try {
-      const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/reissue`, {
-        refreshToken: refreshToken
-      });
-      return response.data; // { accessToken: "...", refreshToken: "..." }
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/auth/reissue`,
+        {},  // body 없음 - Refresh Token은 쿠키로 전송
+        { withCredentials: true }
+      );
+      return response.data; // { accessToken: "..." } - refreshToken은 쿠키로 설정됨
     } catch (error) {
       console.error('토큰 갱신 에러:', error);
       throw error;

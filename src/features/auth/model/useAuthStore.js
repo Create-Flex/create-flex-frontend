@@ -1,34 +1,34 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/**
+ * 인증 상태 관리 스토어
+ * - Access Token은 localStorage에 저장
+ * - Refresh Token은 HttpOnly Cookie로 서버에서 관리 (XSS 방어)
+ */
 export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
       token: null,
-      refreshToken: null,
       isAuthenticated: false,
 
-      // 로그인
-      login: (userData, accessToken, refreshToken) => {
+      // 로그인 (Refresh Token은 쿠키로 자동 설정됨)
+      login: (userData, accessToken) => {
         localStorage.setItem('token', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
         set({
           user: userData,
           token: accessToken,
-          refreshToken: refreshToken,
           isAuthenticated: true
         });
       },
 
-      // 로그아웃
+      // 로그아웃 (Refresh Token 쿠키는 서버에서 삭제)
       logout: () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         set({
           user: null,
           token: null,
-          refreshToken: null,
           isAuthenticated: false
         });
       },
@@ -38,36 +38,21 @@ export const useAuthStore = create(
         set({ user: userData });
       },
 
-      // 토큰 설정 (토큰 갱신 시 사용)
-      setTokens: (accessToken, refreshToken) => {
+      // Access Token 설정 (토큰 갱신 시 사용)
+      setToken: (accessToken) => {
         localStorage.setItem('token', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
         set({
           token: accessToken,
-          refreshToken: refreshToken,
           isAuthenticated: true
         });
-      },
-
-      // 토큰 설정 (기존 호환성 유지)
-      setToken: (token) => {
-        localStorage.setItem('token', token);
-        set({ token, isAuthenticated: true });
-      },
-
-      // Refresh Token 가져오기
-      getRefreshToken: () => {
-        return get().refreshToken || localStorage.getItem('refreshToken');
       },
 
       // 인증 상태 초기화
       clearAuth: () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         set({
           user: null,
           token: null,
-          refreshToken: null,
           isAuthenticated: false
         });
       }
@@ -76,7 +61,6 @@ export const useAuthStore = create(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated
       })
     }

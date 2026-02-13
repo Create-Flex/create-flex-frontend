@@ -13,6 +13,7 @@ import { AttendanceView } from '../features/attendance/ui/AttendanceView';
 import { VacationView } from '../features/vacation/ui/VacationView';
 import { HRDashboardView } from '../components/HRDashboardView';
 import { TeamView } from '../features/organization/ui/TeamView';
+import { ChatPage } from '../features/chat/ui/ChatPage';
 import { AiChatPanel } from '../features/ai/ui/AiChatPanel';
 import { NotificationButton } from '../features/notification/ui/NotificationButton';
 import { NotificationProvider } from '../features/notification/model/NotificationContext';
@@ -265,6 +266,7 @@ function App() {
                             <Route path="/schedule" element={<ScheduleView />} />
                             <Route path="/attendance" element={<AttendanceView />} />
                             <Route path="/vacation" element={<VacationView />} />
+                            <Route path="/chat" element={<ChatPage />} />
 
                             {/* HR Dashboard Routes */}
                             <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />

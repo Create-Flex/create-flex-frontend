@@ -25,7 +25,7 @@ export const ScheduleWriteModal = ({
     scheduleName: '',
     scheduleDate: date || new Date().toISOString().split('T')[0],
     scheduleDetail: '',
-    scheduleType: 'CONTENT', // Default to CONTENT or PROMOTION? User example used 'PROMOTION' and 'MERGE'
+    scheduleType: 'CONTENT', 
     creatorId: initialCreatorId || '',
     visitorIds: []
   });

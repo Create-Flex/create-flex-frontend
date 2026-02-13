@@ -120,10 +120,14 @@ export const CalendarTab = ({
     // 모달 상태
     const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null); // 수정 중인 일정
+    const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜
 
     // 일정 추가 버튼 클릭 핸들러
-    const handleAddEventClick = () => {
+    const handleAddEventClick = (date) => {
         setEditingEvent(null); // 추가 모드
+        // date가 문자열로 넘어오면 Date 객체로 변환, 없으면 현재 날짜
+        const targetDate = date ? new Date(date) : new Date();
+        setSelectedDate(targetDate);
         setIsWriteModalOpen(true);
     };
 
@@ -163,7 +167,7 @@ export const CalendarTab = ({
                     <Subtitle>담당하는 모든 크리에이터의 일정을 한눈에 확인하세요.</Subtitle>
                 </TitleGroup>
                 <AddButton
-                    onClick={handleAddEventClick}
+                    onClick={() => handleAddEventClick()}
                     disabled={!hasCreators}
                 >
                     <Plus size={16} /> 일정 추가
@@ -177,8 +181,8 @@ export const CalendarTab = ({
                         creatorsMap={creatorsMap}
                         currentDate={currentDate}
                         onDateChange={setCurrentDate}
-                        onAddEvent={() => { setEditingEvent(null); setIsWriteModalOpen(true); }}
-                        onEventClick={(evt) => onEventClick(evt, handleEditEvent)} // Pass handleEditEvent callback
+                        onAddEvent={handleAddEventClick}
+                        onEventClick={(evt) => onEventClick(evt, handleEditEvent)}
                         legendCreators={myCreators}
                     />
                 </BlurLayer>
@@ -204,7 +208,7 @@ export const CalendarTab = ({
             <ScheduleWriteModal
                 isOpen={isWriteModalOpen}
                 onClose={() => setIsWriteModalOpen(false)}
-                date={currentDate.toISOString().split('T')[0]}
+                date={selectedDate.toISOString().split('T')[0]} // Use selectedDate
                 initialCreatorId={editingEvent ? editingEvent.creatorId : (myCreators.length > 0 ? myCreators[0].id : '')}
                 myCreators={myCreators}
                 onConfirm={handleScheduleCreate}

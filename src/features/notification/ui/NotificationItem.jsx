@@ -16,7 +16,8 @@ export const NotificationItem = ({ notification }) => {
     return (
         <div className={`notification-item ${isHiding ? 'hide' : ''}`}>
             <div className="notification-content">
-                {notification.message}
+                <div className="notification-title">{notification.title}</div>
+                <div className="notification-message">{notification.message}</div>
             </div>
             <div className="notification-progress" />
         </div>

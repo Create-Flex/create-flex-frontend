@@ -30,11 +30,25 @@
     transition: all 0.3s ease;
 
     .notification-content {
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #2d3748;
-        letter-spacing: -0.01em;
-        line-height: 1.4;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .notification-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1a1a1b;
+            letter-spacing: -0.01em;
+        }
+
+        .notification-message {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: #4a5568;
+            letter-spacing: -0.01em;
+            line-height: 1.4;
+        }
     }
 
     // 하단 진행 바 (3초 타이머)

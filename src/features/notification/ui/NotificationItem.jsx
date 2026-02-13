@@ -18,6 +18,7 @@ export const NotificationItem = ({ notification }) => {
             <div className="notification-content">
                 {notification.message}
             </div>
+            <div className="notification-progress" />
         </div>
     );
 };

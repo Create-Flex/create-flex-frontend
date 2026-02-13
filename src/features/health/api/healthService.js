@@ -43,3 +43,9 @@ export const deleteManageHealth = (healthId) => {
 export const deleteManageS3 = (presignedUrl) => {
     return axios.delete(presignedUrl);
 }
+
+export const analyzeHealthCheckupImage = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fileApi.post('/image/analyze/health-checkup', formData);
+};

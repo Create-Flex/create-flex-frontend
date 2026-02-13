@@ -30,6 +30,24 @@ export const Title = styled.h2`
   margin: 0;
 `;
 
+export const IconButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: background-color 0.2s;
+
+  &:hover {
+      background-color: #f0f0f0;
+      color: #333;
+  }
+`;
+
 export const SearchBar = styled.div`
   padding: 15px;
   border-bottom: 1px solid #f0f0f0;

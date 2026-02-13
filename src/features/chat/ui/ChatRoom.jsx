@@ -2,14 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import * as S from './Chat.styled';
 import { Send, Smile, Paperclip } from 'lucide-react';
 
-export const ChatRoom = ({ chat }) => {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    { id: 1, text: '안녕하세요! 요청하신 자료 보냈습니다.', isMine: false, time: '오후 2:30' },
-    { id: 2, text: '네, 확인해보겠습니다. 감사합니다.', isMine: true, time: '오후 2:31' },
-    { id: 3, text: '혹시 추가 자료 필요하시면 말씀해 주세요.', isMine: false, time: '오후 2:32' },
-    { id: 4, text: '알겠습니다!', isMine: true, time: '오후 2:35' },
-  ]);
+export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, formatRoomName }) => {
+  const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -21,18 +15,9 @@ export const ChatRoom = ({ chat }) => {
   }, [messages]);
 
   const handleSend = () => {
-    if (!message.trim()) return;
-
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-
-    setMessages([...messages, {
-      id: Date.now(),
-      text: message,
-      isMine: true,
-      time: timeString
-    }]);
-    setMessage('');
+    if (!inputValue.trim()) return;
+    onSendMessage(inputValue);
+    setInputValue('');
   };
 
   const handleKeyPress = (e) => {
@@ -52,24 +37,49 @@ export const ChatRoom = ({ chat }) => {
     );
   }
 
+  // 이름 표시용 (방 이름 포맷팅)
+  const displayName = formatRoomName ? formatRoomName(chat.name) : chat.name;
+
   return (
     <S.ChatMain>
       <S.ChatHeader>
         <S.HeaderInfo>
-          <S.HeaderName>{chat.name}</S.HeaderName>
-          <S.HeaderDetail>{chat.department || '개발팀'}</S.HeaderDetail>
+          <S.HeaderName>{displayName}</S.HeaderName>
         </S.HeaderInfo>
       </S.ChatHeader>
 
       <S.MessageList>
-        {messages.map((msg) => (
-          <S.MessageGroup key={msg.id} $isMine={msg.isMine}>
-            <S.MessageBubble $isMine={msg.isMine}>
-              {msg.text}
-            </S.MessageBubble>
-            <S.MessageTime $isMine={msg.isMine}>{msg.time}</S.MessageTime>
-          </S.MessageGroup>
-        ))}
+        {messages && messages.map((msg, index) => {
+
+          const isMine = msg.sender?.trim() === currentUserName?.trim();
+
+          // 시간 파싱 (2024-02-13T10:00:00 -> 오전 10:00)
+          let timeString = '';
+          if (msg.sendDate) {
+            try {
+              const date = new Date(msg.sendDate);
+              timeString = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) { }
+          }
+
+          if (msg.type === 'ENTER') {
+            return (
+              <div key={index} style={{ textAlign: 'center', color: '#888', margin: '10px 0', fontSize: '0.8rem' }}>
+                {msg.message}
+              </div>
+            )
+          }
+
+          return (
+            <S.MessageGroup key={index} $isMine={isMine}>
+              {!isMine && <div style={{ fontSize: '0.8rem', marginBottom: '4px', color: '#666' }}>{msg.sender}</div>}
+              <S.MessageBubble $isMine={isMine}>
+                {msg.message}
+              </S.MessageBubble>
+              <S.MessageTime $isMine={isMine}>{timeString}</S.MessageTime>
+            </S.MessageGroup>
+          );
+        })}
         <div ref={messagesEndRef} />
       </S.MessageList>
 
@@ -78,12 +88,12 @@ export const ChatRoom = ({ chat }) => {
           <Paperclip size={20} color="#999" style={{ cursor: 'pointer', marginRight: '10px' }} />
           <S.MessageInput
             placeholder="메시지를 입력하세요..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
           />
           <Smile size={20} color="#999" style={{ cursor: 'pointer', marginRight: '10px' }} />
-          <S.SendButton onClick={handleSend} disabled={!message.trim()}>
+          <S.SendButton onClick={handleSend} disabled={!inputValue.trim()}>
             <Send size={18} />
           </S.SendButton>
         </S.InputWrapper>

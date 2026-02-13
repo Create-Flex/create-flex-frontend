@@ -25,7 +25,7 @@ export const NotificationProvider = ({ children, userId, token }) => {
     const [toasts, setToasts] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-    // notifications가 변경될 때마다 localStorage에 저장
+    // notifications가 변경될 때마다 localStorage에 저장 (userId가 있을 때만)
     useEffect(() => {
         try {
             localStorage.setItem('notifications', JSON.stringify(notifications));

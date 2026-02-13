@@ -12,13 +12,37 @@ export const useNotification = () => {
 };
 
 export const NotificationProvider = ({ children, userId, token }) => {
-    const [notifications, setNotifications] = useState([]);
+    // localStorage에서 알림 불러오기
+    const [notifications, setNotifications] = useState(() => {
+        try {
+            const saved = localStorage.getItem('notifications');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error('Failed to load notifications from localStorage:', e);
+            return [];
+        }
+    });
     const [toasts, setToasts] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-    const addNotification = useCallback((message) => {
+    // notifications가 변경될 때마다 localStorage에 저장 (userId가 있을 때만)
+    useEffect(() => {
+        try {
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+        } catch (e) {
+            console.error('Failed to save notifications to localStorage:', e);
+        }
+    }, [notifications]);
+
+    const addNotification = useCallback((notificationData) => {
         const id = Date.now();
-        const newNotification = { id, message, timestamp: new Date(), read: false };
+        // notificationData는 백엔드에서 보낸 전체 객체 (title, message, type 등 포함)
+        const newNotification = {
+            id,
+            ...notificationData,  // title, message, type 등 모두 포함
+            timestamp: new Date(),
+            read: false
+        };
 
         // 알림 리스트에 추가
         setNotifications(prev => [newNotification, ...prev]);
@@ -36,12 +60,17 @@ export const NotificationProvider = ({ children, userId, token }) => {
     const markAsRead = (id) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
-    const clearNotifications = () => setNotifications([]);
+    const clearNotifications = () => {
+        setNotifications([]);
+        try {
+            localStorage.removeItem('notifications');
+        } catch (e) {
+            console.error('Failed to clear notifications from localStorage:', e);
+        }
+    };
 
     useEffect(() => {
         if (!userId) return;
-
-        // VITE_API_URL 등을 포함한 절대 경로 사용 (프록시가 없을 경우를 대비)
         const baseUrl = API_CONFIG.BASE_URL.endsWith('/')
             ? API_CONFIG.BASE_URL.slice(0, -1)
             : API_CONFIG.BASE_URL;
@@ -57,9 +86,9 @@ export const NotificationProvider = ({ children, userId, token }) => {
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                addNotification(data.message || '새로운 알림이 도착했습니다.');
+                addNotification(data);  // 전체 데이터 객체 전달
             } catch (e) {
-                addNotification(event.data);
+                addNotification({ message: event.data });  // 문자열인 경우 객체로 감싸기
             }
         };
 
@@ -67,7 +96,7 @@ export const NotificationProvider = ({ children, userId, token }) => {
         eventSource.addEventListener('notification', (event) => {
             try {
                 const data = JSON.parse(event.data);
-                addNotification(data.message || '새로운 알림이 도착했습니다.');
+                addNotification(data);  // 전체 데이터 객체 전달 (title, message 등 포함)
             } catch (e) {
                 console.error('Notification Parse Error:', e);
             }

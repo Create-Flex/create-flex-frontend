@@ -19,6 +19,7 @@ import { NotificationButton } from '../features/notification/ui/NotificationButt
 import { NotificationProvider } from '../features/notification/model/NotificationContext';
 import { NotificationContainer } from '../features/notification/ui/NotificationContainer';
 import { NotificationPanel } from '../features/notification/ui/NotificationPanel';
+import QAListPage from '../features/qa_board/ui/QAListPage';
 
 
 import { PhqSurveyModal } from '../features/health/ui/Health';
@@ -267,7 +268,8 @@ function App() {
                             <Route path="/attendance" element={<AttendanceView />} />
                             <Route path="/vacation" element={<VacationView />} />
                             <Route path="/chat" element={<ChatPage />} />
-
+                            <Route path="/qna" element={<QAListPage />} />
+                            
                             {/* HR Dashboard Routes */}
                             <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />
                             <Route path="/hr/attendance" element={<HRDashboardView view="hr-attendance" />} />

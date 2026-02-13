@@ -5,7 +5,7 @@ import {
     Settings, PanelLeftClose, PanelLeftOpen, LayoutGrid, Calendar,
     Clock, Users, UserCircle, Briefcase,
     LogOut, Activity, Palmtree, BarChart4, ClipboardList, Scale, FileText, Megaphone, Network, Plane,
-    ChevronDown, ChevronRight, MessageCircle
+    ChevronDown, ChevronRight, MessageCircle, CircleQuestionMark
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -436,6 +436,9 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/chat')} $isActive={location.pathname === '/chat'} $center={isCollapsed} title="채팅하기">
                                 <MessageCircle size={16} />{!isCollapsed && <S.NavText>채팅하기</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
+                                <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
 

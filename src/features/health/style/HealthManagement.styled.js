@@ -134,20 +134,23 @@ export const SearchIconWrapper = styled.div`
 `;
 
 export const SearchButton = styled.button`
-  padding-left: 0.5rem; // pl-9
-  padding-right: 0.5rem; // pr-4
-  padding-top: 0.5rem; // py-2
-  padding-bottom: 0.5rem;
-  font-size: 0.875rem; // text-sm
-  border: 1px solid #e5e7eb; // border-gray-200
-  border-radius: 0.5rem; // rounded-lg
-  width: 3rem; // w-56
-  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: black;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
   &:hover {
-    color: #4b5563;
-    background-color: #ccd3df;
+    background-color: #1f2937;
   }
 `;
 

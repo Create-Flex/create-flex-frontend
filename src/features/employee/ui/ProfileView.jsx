@@ -306,6 +306,7 @@ export const ProfileView = ({
                 {!isCreatorProfile && (
                     <TabsContainer>
                         <TabsList>
+                            {/*
                             {tabs.map((tab) => (
                                 <TabItem
                                     key={tab}
@@ -315,6 +316,7 @@ export const ProfileView = ({
                                     {tab}
                                 </TabItem>
                             ))}
+                                */}
                         </TabsList>
                     </TabsContainer>
                 )}

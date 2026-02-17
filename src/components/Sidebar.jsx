@@ -539,6 +539,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/chat')} $isActive={location.pathname === '/chat'} $center={isCollapsed} title="채팅하기">
                                 <MessageCircle size={16} />{!isCollapsed && <S.NavText>채팅하기</S.NavText>}
                             </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
+                                <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
+                            </S.NavItem>
                         </S.NavContainer>
 
                         {/* 매니저용 크리에이터 관리 Section with Accordion */}
@@ -626,6 +629,9 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/team')} $isActive={location.pathname === '/team'} $center={isCollapsed} title="팀 현황">
                                 <Users size={16} />{!isCollapsed && <S.NavText>팀 현황</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
+                                <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
                     </>

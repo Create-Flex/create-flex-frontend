@@ -1,10 +1,12 @@
 import useQABoard from "../script/qaListScript";
 import {Container, InnerContainer, HeaderSection, Title,
-    Description, QAList, QAhead, Tr, Th, QAbody, Td,
+    Description, QAList, QAhead, Tr, Th, QAbody, Td, WriteButton,
     AnswerBadge, TableContainer} from "../style/qaListStyle";
 import {CircleQuestionMark} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function QAListPage() {
+    const navigate = useNavigate();
     const {qaList} = useQABoard();
 
     return(
@@ -20,7 +22,8 @@ function QAListPage() {
                     </div>
                 </HeaderSection>
             </InnerContainer>
-            <TableContainer>
+            <WriteButton onClick={() => navigate('/qna/quest')}>문의하기</WriteButton>
+            <TableContainer>    
                 <QAList>
                     <QAhead>
                         <Tr>
@@ -33,7 +36,7 @@ function QAListPage() {
                     </QAhead>
                     <QAbody>
                         {qaList.map((item) => (
-                            <Tr key={item.qaId}>
+                            <Tr key={item.qaId} onClick={() => navigate(`/qna/detail?qaId=${item.qaId}`)}>
                                 <Td style={{width : '60px'}}>
                                     <AnswerBadge $result={item.answered}>
                                         {item.answered ? "답변완료" : "미답변"}

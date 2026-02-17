@@ -20,7 +20,9 @@ import { NotificationProvider } from '../features/notification/model/Notificatio
 import { NotificationContainer } from '../features/notification/ui/NotificationContainer';
 import { NotificationPanel } from '../features/notification/ui/NotificationPanel';
 import QAListPage from '../features/qa_board/ui/QAListPage';
-
+import QADetailPage from '../features/qa_board/ui/QADetailPage';
+import QAQuestPage from '../features/qa_board/ui/QAQuestPage';
+import QAAnswerPage from '../features/qa_board/ui/QAAnswerPage';
 
 import { PhqSurveyModal } from '../features/health/ui/Health';
 import { VacationModal } from '../features/vacation/ui/components/VacationModal';
@@ -269,6 +271,9 @@ function App() {
                             <Route path="/vacation" element={<VacationView />} />
                             <Route path="/chat" element={<ChatPage />} />
                             <Route path="/qna" element={<QAListPage />} />
+                            <Route path="/qna/detail" element={<QADetailPage />} />
+                            <Route path="/qna/quest" element={<QAQuestPage />} />
+                            <Route path="/qna/answer" element={<QAAnswerPage />} />
                             
                             {/* HR Dashboard Routes */}
                             <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />

@@ -91,12 +91,21 @@ export const Avatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #ddd;
+  background-color: #f0f0f0;
   margin-right: 15px;
-  background-image: url(${props => props.src});
-  background-size: cover;
-  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
+  border: 1px solid #eee;
+  color: #999;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 export const ChatInfo = styled.div`
@@ -291,4 +300,200 @@ export const EmptyState = styled.div`
     p {
         font-size: 1.1rem;
     }
+`;
+
+export const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+export const ModalContainer = styled.div`
+  background-color: white;
+  border-radius: 16px;
+  width: 420px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+`;
+
+export const ModalHeader = styled.div`
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+`;
+
+export const CloseButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+`;
+
+export const ModalContent = styled.div`
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ModalSearchArea = styled.div`
+  padding: 16px 24px 8px;
+`;
+
+export const UserList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+`;
+
+export const UserItem = styled.div`
+  padding: 10px 12px;
+  margin: 4px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  background-color: ${props => props.$isSelected ? '#f0f9f6' : 'transparent'};
+
+  &:hover {
+    background-color: ${props => props.$isSelected ? '#f0f9f6' : '#f8f9fa'};
+  }
+`;
+
+export const UserAvatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #eee;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+export const UserInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+export const UserName = styled.div`
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 2px;
+`;
+
+export const UserDetail = styled.div`
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const CheckCircle = styled.div`
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid ${props => props.$isSelected ? '#00C471' : '#ddd'};
+  background-color: ${props => props.$isSelected ? '#00C471' : 'transparent'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: 10px;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+    opacity: ${props => props.$isSelected ? 1 : 0};
+  }
+`;
+
+export const ModalFooter = styled.div`
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+export const ActionButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${props => props.disabled ? '#e0e0e0' : '#00C471'};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.2s;
+  box-shadow: ${props => props.disabled ? 'none' : '0 4px 12px rgba(0, 196, 113, 0.2)'};
+
+  &:hover {
+    background-color: ${props => props.disabled ? '#e0e0e0' : '#00a860'};
+    transform: ${props => props.disabled ? 'none' : 'translateY(-1px)'};
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;

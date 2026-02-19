@@ -76,7 +76,14 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
               <S.MessageBubble $isMine={isMine}>
                 {msg.message}
               </S.MessageBubble>
-              <S.MessageTime $isMine={isMine}>{timeString}</S.MessageTime>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', marginLeft: '4px', marginRight: '4px' }}>
+                {msg.unreadCount > 0 && (
+                  <span style={{ color: 'yellow', fontSize: '0.7rem', marginBottom: '2px', fontWeight: 'bold' }}>
+                    {msg.unreadCount}
+                  </span>
+                )}
+                <S.MessageTime $isMine={isMine}>{timeString}</S.MessageTime>
+              </div>
             </S.MessageGroup>
           );
         })}

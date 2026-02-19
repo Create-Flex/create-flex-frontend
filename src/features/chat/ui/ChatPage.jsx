@@ -109,6 +109,7 @@ export const ChatPage = () => {
       type: 'TALK',
       roomId: selectedChatId,
       sender: user?.memberName || user?.name,
+      senderId : user?.memberId,
       message: messageText
     };
 

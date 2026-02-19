@@ -1,29 +1,23 @@
 import {useState} from "react";
-import { Container, InnerContainer, HeaderSection, Title, Description,
-    QuestWriteContainer, QuestWriteTitle, Input, InputDetail, QuestWriteDetail, UploadButton
+import { Container, QuestWriteContainer, QuestWriteTitle, Input, InputDetail, QuestWriteDetail, UploadButton
 } from '../style/qaQuestStyle';
+import {FadeOut, LoadingMark} from "../style/qaLodingStyle";
 import useQAQuest from '../script/qaWrite';
-import {CircleQuestionMark} from 'lucide-react';
+import QAHeader from './QAHeader';
 
 function QAQuestPage() {
     const [title, setTitle] = useState('');
     const [detail, setDetail] = useState('');
-    const { postQAQuest } = useQAQuest(title, detail);
-
+    const { postQAQuest, loading} = useQAQuest(title, detail);
 
     return(
         <Container>
-            <InnerContainer>
-                <HeaderSection>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <CircleQuestionMark size={32} />
-                        <div className="mb-6">
-                            <Title>질의 게시판</Title>
-                            <Description>인사팀에 문의사항을 남길 수 있습니다.</Description>
-                        </div>
-                    </div>
-                </HeaderSection>
-            </InnerContainer>
+            {loading && (
+                <FadeOut>
+                    <LoadingMark />
+                </FadeOut>
+            )}
+            <QAHeader/>
             <QuestWriteContainer>
                 <QuestWriteTitle>
                     <Input

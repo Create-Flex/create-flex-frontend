@@ -1,27 +1,18 @@
 import useQABoard from "../script/qaListScript";
-import {Container, InnerContainer, HeaderSection, Title,
-    Description, QAList, QAhead, Tr, Th, QAbody, Td, WriteButton,
+import {Container, QAList, QAhead, Tr, Th, QAbody, Td, WriteButton,
     AnswerBadge, TableContainer} from "../style/qaListStyle";
-import {CircleQuestionMark} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import QAHeader from "./QAHeader";
+
 
 function QAListPage() {
     const navigate = useNavigate();
     const {qaList} = useQABoard();
+    
 
     return(
         <Container>
-            <InnerContainer>
-                <HeaderSection>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <CircleQuestionMark size={32} />
-                        <div className="mb-6">
-                            <Title>질의 게시판</Title>
-                            <Description>인사팀에 문의사항을 남길 수 있습니다.</Description>
-                        </div>
-                    </div>
-                </HeaderSection>
-            </InnerContainer>
+            <QAHeader/>
             <WriteButton onClick={() => navigate('/qna/quest')}>문의하기</WriteButton>
             <TableContainer>    
                 <QAList>

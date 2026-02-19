@@ -1,12 +1,12 @@
 import {useState} from "react";
 import useQADetail from '../script/qaDetailScript';
 import {
-    Container, InnerContainer, HeaderSection, Title, Description,
-    DetailContainer, Question, QuestionTitle, QuestionInfo, QuestionMemberName, QuestionDepartmentName,
+    Container, DetailContainer, Question, QuestionTitle, QuestionInfo, QuestionMemberName, QuestionDepartmentName,
     QuestionTime, QuestionDetail, AnswerContainer, AnswerWriteDetail, InputDetail, UploadButton
 } from '../style/qaAnswerStyle'
+import {FadeOut, LoadingMark} from "../style/qaLodingStyle";
 import useQAAnswer from '../script/qaAnswer';
-import {CircleQuestionMark} from 'lucide-react';
+import QAHeader from './QAHeader';
 import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 
@@ -15,23 +15,18 @@ function QAAnswerPage() {
     const qaId = searchParams.get("qaId");
     const {qaDetail} = useQADetail(qaId);
     const [detail, setDetail] = useState('');
-    const {postQAAnswer} = useQAAnswer(qaId, detail);
+    const {postQAAnswer, loading} = useQAAnswer(qaId, detail);
 
     if (!qaDetail) return <div></div>;
 
     return(
         <Container>
-            <InnerContainer>
-                <HeaderSection>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <CircleQuestionMark size={32} />
-                        <div className="mb-6">
-                            <Title>질의 게시판</Title>
-                            <Description>인사팀에 문의사항을 남길 수 있습니다.</Description>
-                        </div>
-                    </div>
-                </HeaderSection>
-            </InnerContainer>
+            {loading && (
+                <FadeOut>
+                    <LoadingMark />
+                </FadeOut>
+            )}
+            <QAHeader/>
             <DetailContainer>
                 <Question>
                     <QuestionTitle>

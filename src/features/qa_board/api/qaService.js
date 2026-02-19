@@ -9,11 +9,8 @@ export const getQADetail = (qaId) => {
     });
 };
 
-export const postQuest = (title, detail) => {
-    return api.post("/qna/question", {
-        questionTitle: title,
-        questionDetail: detail
-    });
+export const postQuest = (formData) => {
+    return fileApi.post("/qna/question", formData);
 };
 
 export const postAnswer = (id, detail) => {

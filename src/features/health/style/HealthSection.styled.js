@@ -141,14 +141,21 @@ export const SectionTitleWithIcon = styled.h3`
   }
 `;
 
+export const FilterSection = styled.div`
+  display: flex;
+  text-align: right;
+  gap: 0.5rem;
+`
+
 export const FilterBar = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #f9fafb;
-  padding: 0.25rem 0.5rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 `;
 
 export const FilterLabel = styled.span`
@@ -158,21 +165,13 @@ export const FilterLabel = styled.span`
 `;
 
 export const DateInput = styled.input`
-  border: 1px solid #e5e7eb;
-  border-radius: 0.25rem;
-  padding: 0.125rem 0.25rem;
-  font-size: 0.75rem;
-  color: #374151;
-  background-color: white;
-  
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-  }
-
-  &::-webkit-clear-button{
-    display: none;
-  }
+  font-size: 0.8125rem;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #4b5563;
+  border: none;
+  &:focus { outline: none; }
 `;
 
 export const ResetButton = styled.button`
@@ -187,18 +186,23 @@ export const ResetButton = styled.button`
 `;
 
 export const SearchButton = styled.button`
-  marginleft: 0.5rem;
-  padding: 0.1rem 0.2rem;
-  color: #9ca3af;
-  background-color: #fefeff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: black;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  border: 0.1pt solid #8c939f;
-  border-radius: 4px;
-  
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
   &:hover {
-    color: #4b5563;
-    background-color: #ccd3df;
+    background-color: #1f2937;
   }
 `;
 

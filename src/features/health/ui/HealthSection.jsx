@@ -5,7 +5,7 @@ import {
     AlertActionWrapper, ActionButton, AlertIconWrapper, DecorationCircle,
     HistorySectionHeader, SectionTitleWithIcon, FilterBar, FilterLabel, DateInput, ResetButton, SearchButton,
     HistoryList, HistoryItem, HistoryItemContent, HistoryTitleRow, HistoryYearType, HistoryStatus,
-    HistoryDateRow, DownloadButton, EmptyState, EmptyIcon, EmptyText
+    HistoryDateRow, DownloadButton, EmptyState, EmptyIcon, EmptyText, FilterSection
 } from '../style/HealthSection.styled';
 import { getMyHealth } from '../api/healthService';
 
@@ -89,9 +89,8 @@ export const HealthSection = ({
                     <SectionTitleWithIcon>
                         <Calendar size={16} /> 지난 검진 이력
                     </SectionTitleWithIcon>
-
-                    <FilterBar>
-                        <FilterLabel>기간</FilterLabel>
+                    <FilterSection>
+                        <FilterBar>
                         <DateInput
                             type="date"
                             value={historyStartDate}
@@ -103,8 +102,10 @@ export const HealthSection = ({
                             value={historyEndDate}
                             onChange={(e) => setHistoryEndDate(e.target.value)}
                         />
+                        </FilterBar>
                         <SearchButton onClick={healthSearch}>검색</SearchButton>
-                    </FilterBar>
+
+                    </FilterSection>
                 </HistorySectionHeader>
 
                 <HistoryList>

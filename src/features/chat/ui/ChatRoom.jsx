@@ -77,12 +77,12 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
                 {msg.message}
               </S.MessageBubble>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', marginLeft: '4px', marginRight: '4px' }}>
-                {msg.unreadCount > 0 && (
-                  <span style={{ color: 'yellow', fontSize: '0.7rem', marginBottom: '2px', fontWeight: 'bold' }}>
+                
+                <S.MessageTime $isMine={isMine}>{msg.unreadCount > 0 && (
+                  <span style={{ color: '#fd7272', fontSize: '0.7rem', marginBottom: '2px',marginRight:'5px', fontWeight: 'bold' }}>
                     {msg.unreadCount}
                   </span>
-                )}
-                <S.MessageTime $isMine={isMine}>{timeString}</S.MessageTime>
+                )}{timeString}</S.MessageTime>
               </div>
             </S.MessageGroup>
           );

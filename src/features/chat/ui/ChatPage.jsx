@@ -1,161 +1,73 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import React, { useEffect } from 'react';
 import { ChatList } from './ChatList';
 import { ChatRoom } from './ChatRoom';
 import * as S from './Chat.styled';
-import { chatService } from '../api/ChatService';
 import { useAuthStore } from '../../auth/model/useAuthStore';
+import { useChatStore } from '../model/useChatStore';
 
 export const ChatPage = () => {
   const { user, token } = useAuthStore();
-  const [chats, setChats] = useState([]);
-  const [selectedChatId, setSelectedChatId] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const {
+    chats, selectedChatId, messages,
+    connect, disconnect, loadRooms, enterRoom, createRoom, sendMessage,
+    setSelectedChatId
+  } = useChatStore();
 
-  // Stomp Client Ref
-  const stompClient = useRef(null);
-
-  //  초기 채팅방 목록 로드
+  // 1. 초기 연결 및 방 목록 로드
   useEffect(() => {
-    loadRooms();
-  }, []);
-
-  const loadRooms = async () => {
-    try {
-      const rooms = await chatService.findAllRooms();
-      if (Array.isArray(rooms)) {
-        setChats(rooms);
-      } else {
-        console.warn("채팅방 목록이 배열이 아닙니다:", rooms);
-        setChats([]);
-      }
-    } catch (error) {
-      console.error("채팅방 목록 로드 실패:", error);
-      setChats([]);
+    if (token && user) {
+      connect(token, user.memberId || user.id);
+      loadRooms();
     }
-  };
-
-  // WebSocket 연결 설정
-  useEffect(() => {
-    if (!token) return;
-
-    const client = new Client({
-      // brokerURL: 'ws://localhost:8888/ws-stomp', // SockJS 사용 시 brokerURL 대신 webSocketFactory 사용
-      webSocketFactory: () => new SockJS('http://localhost:8888/ws-stomp'),
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-      debug: function (str) {
-        console.log(str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      onConnect: () => {
-        setIsConnected(true);
-        console.log('Stomp Connected!');
-      },
-      onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
-      },
-    });
-
-    client.activate();
-    stompClient.current = client;
-
     return () => {
-      if (client) client.deactivate();
+      // 페이지를 벗어나면 연결을 끊을지, 유지할지는 기획에 따라 다름.
+      // 보통 SPA에서는 유지하고 싶을 수 있으나, 여기선 cleanup 예시로 남김.
+      // 전역 스토어이므로 disconnect를 안 하면 다른 페이지에서도 소켓 수신 가능 (알림 등)
+      // disconnect(); 
     };
-  }, [token]);
+  }, [token, user, connect, loadRooms]);
 
-  //  채팅방 선택 시 구독 및 메시지 로드
+  // 2. 방 선택 변경 시 진입 처리
   useEffect(() => {
-    if (!selectedChatId || !stompClient.current || !isConnected) return;
-
-    // 이전 메시지 로드
-    loadMessages(selectedChatId);
-
-    // 구독 설정
-    const subscription = stompClient.current.subscribe(`/sub/chat/room/${selectedChatId}`, (message) => {
-      const receivedMsg = JSON.parse(message.body);
-
-      if (!receivedMsg.sendDate) {
-        receivedMsg.sendDate = new Date().toISOString();
-      }
-      setMessages(prev => [...prev, receivedMsg]);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [selectedChatId, isConnected]);
-
-  const loadMessages = async (roomId) => {
-    try {
-      const pastMessages = await chatService.getMessages(roomId);
-      setMessages(pastMessages);
-    } catch (error) {
-      console.error("메시지 로드 실패:", error);
+    if (selectedChatId) {
+      enterRoom(selectedChatId);
     }
-  };
-
-  const handleSendMessage = (messageText) => {
-    if (!stompClient.current || !isConnected || !selectedChatId) return;
-
-    const messageDto = {
-      type: 'TALK',
-      roomId: selectedChatId,
-      sender: user?.memberName || user?.name,
-      senderId : user?.memberId,
-      message: messageText
-    };
-
-    stompClient.current.publish({
-      destination: '/pub/chat/message',
-      body: JSON.stringify(messageDto),
-    });
-  };
+  }, [selectedChatId, enterRoom]);
 
   const handleCreateRoom = async (selectedMembers) => {
     if (!user || selectedMembers.length === 0) return;
 
-    // 내 이름(또는 닉네임) 가져오기
     const myName = user.memberName || user.name || 'Unknown';
     const myId = user.memberId || user.id;
 
-    // 방 이름"
+    // 방 이름
     const allNames = [myName, ...selectedMembers.map(m => m.memberName)];
     const roomName = allNames.join(',');
 
     // 참여자 ID 리스트
     const memberIds = [myId, ...selectedMembers.map(m => m.memberId)];
 
-    try {
-
-      const newRoom = await chatService.createRoom(roomName, memberIds);
-
-      setChats(prev => [newRoom, ...prev]);
-      setSelectedChatId(newRoom.roomId);
-    } catch (error) {
-      console.error("방 생성 실패:", error);
-      alert("방 생성에 실패했습니다.");
-    }
+    await createRoom(roomName, memberIds);
   };
 
+  const handleSendMessage = (messageText) => {
+    if (!selectedChatId) return;
+    sendMessage(
+      selectedChatId,
+      user?.memberName || user?.name,
+      user?.memberId,
+      messageText
+    );
+  };
 
   const formatRoomName = (chatOrName) => {
     const myName = user?.name || user?.memberName || 'Unknown';
-
 
     if (typeof chatOrName === 'object' && chatOrName.members) {
       const otherMembers = chatOrName.members.filter(m => m.memberName !== myName);
       if (otherMembers.length > 0) {
         return otherMembers.map(m => m.memberName).join(', ');
       }
-      // 나 혼자면 그냥 방 이름 or 내 이름
       return chatOrName.name || myName;
     }
 

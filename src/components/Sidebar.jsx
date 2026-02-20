@@ -195,7 +195,7 @@ export const Sidebar = ({ onLogout }) => {
             }
         };
         fetchStatus();
-    }, [user, attendanceLogs, attendanceRefreshKey]); // Also watch refreshKey for auto-update after check-in/out
+    }, [user, attendanceRefreshKey]); // attendanceLogs 제거 - Sidebar는 자체 API 호출하므로 중복 방지
 
     useEffect(() => {
         if (isClockedIn) {
@@ -231,23 +231,16 @@ export const Sidebar = ({ onLogout }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // 미승인 휴가 건수 조회 (관리자용)
+    // 미승인 휴가 건수 조회 (관리자용) - 통계 API 사용으로 쿼리 최적화
     useEffect(() => {
         const fetchPendingCount = async () => {
             const userIsAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
-            // 관리자만 휴가 전체 목록 조회 API 호출 가능 (매니저는 403 오류 발생)
+            // 관리자만 휴가 통계 API 호출 가능 (매니저는 403 오류 발생)
             if (!userIsAdmin) return;
             try {
-                // 전체 미승인 건수를 조회하기 위해 넓은 날짜 범위 사용 (페이징 적용)
-                const response = await vacationService.getAllVacations({
-                    startDate: '2020-01-01',
-                    endDate: '2030-12-31',
-                    size: 10000  // 충분히 큰 사이즈로 전체 조회
-                });
-                // Page 응답에서 content 추출
-                const listData = response.content || [];
-                const pendingCount = listData.filter(v => v.vacationApprove === 'APPROVE_NEED').length;
-                setPendingApprovals(pendingCount);
+                // 통계 API로 미승인 건수만 조회 (전체 목록 조회 대신)
+                const stats = await vacationService.getVacationStats();
+                setPendingApprovals(stats.pendingApprovalCount || 0);
             } catch (error) {
                 console.error('미승인 휴가 건수 조회 실패:', error);
             }

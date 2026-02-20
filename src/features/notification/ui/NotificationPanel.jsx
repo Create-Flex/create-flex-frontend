@@ -1,20 +1,38 @@
+import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../model/NotificationContext';
-import { useUIStore } from '../../../shared/model/useUIStore';
+import { useAuthStore } from '../../auth/model/useAuthStore';
+import { getNavigationPath } from '../utils/navigation';
 import { X, Trash2 } from 'lucide-react';
 import * as S from '../style/Notification.styled';
 import '../style/Notification.scss';
 
 export const NotificationPanel = () => {
     const { notifications, isPanelOpen, togglePanel, markAsRead, clearNotifications } = useNotification();
-    const { isChatOpen } = useUIStore();
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
 
     if (!isPanelOpen) return null;
+
+    const handleNotificationClick = (n) => {
+        // 읽음 처리
+        if (!n.isRead) {
+            markAsRead(n.notificationId);
+        }
+
+        // 알림 패널 닫기
+        togglePanel();
+
+        // 역할 기반 이동 경로 결정
+        const userRole = user?.role || user?.memberRole;
+        const path = getNavigationPath(n.type || '', userRole);
+        navigate(path);
+    };
 
     return (
         <div
             className="notification-panel"
             style={{
-                right: isChatOpen ? '440px' : '28px',
+                right: '28px',
                 transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
         >
@@ -37,11 +55,11 @@ export const NotificationPanel = () => {
                 ) : (
                     notifications.map((n) => (
                         <div
-                            key={n.id}
-                            className={`notification-list-item ${!n.read ? 'unread' : ''}`}
-                            onClick={() => markAsRead(n.id)}
+                            key={n.notificationId}
+                            className={`notification-list-item ${!n.isRead ? 'unread' : ''}`}
+                            onClick={() => handleNotificationClick(n)}
                         >
-                            {!n.read && <span className="dot" />}
+                            {!n.isRead && <span className="dot" />}
                             <div className="message">{n.message}</div>
                             <div className="time">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>

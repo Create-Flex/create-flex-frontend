@@ -39,7 +39,7 @@ export const NotificationProvider = ({ children, userId, token }) => {
         const newNotification = {
             ...notificationData,
             timestamp: notificationData.timestamp ? new Date(notificationData.timestamp) : new Date(),
-            read: notificationData.read || false
+            isRead: notificationData.isRead || notificationData.read || false
         };
 
         // 중복 체크 (SSE로 받은 게 이미 리스트에 있을 수 있음)

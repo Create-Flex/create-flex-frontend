@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { API_CONFIG } from '../../../api/config';
 
 const NotificationContext = createContext();
@@ -12,60 +13,80 @@ export const useNotification = () => {
 };
 
 export const NotificationProvider = ({ children, userId, token }) => {
-    // localStorage에서 알림 불러오기
-    const [notifications, setNotifications] = useState(() => {
-        try {
-            const saved = localStorage.getItem('notifications');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            console.error('Failed to load notifications from localStorage:', e);
-            return [];
-        }
-    });
+    const [notifications, setNotifications] = useState([]);
     const [toasts, setToasts] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-    // notifications가 변경될 때마다 localStorage에 저장 (userId가 있을 때만)
-    useEffect(() => {
+    // 백엔드에서 알림 목록 불러오기
+    const fetchNotifications = useCallback(async () => {
+        if (!userId || !token) return;
         try {
-            localStorage.setItem('notifications', JSON.stringify(notifications));
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/notifications`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(response.data);
         } catch (e) {
-            console.error('Failed to save notifications to localStorage:', e);
+            console.error('Failed to fetch notifications from backend:', e);
         }
-    }, [notifications]);
+    }, [userId, token]);
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
 
     const addNotification = useCallback((notificationData) => {
-        const id = Date.now();
-        // notificationData는 백엔드에서 보낸 전체 객체 (title, message, type 등 포함)
+        const id = notificationData.notificationId || Date.now();
         const newNotification = {
-            id,
-            ...notificationData,  // title, message, type 등 모두 포함
-            timestamp: new Date(),
-            read: false
+            ...notificationData,
+            timestamp: notificationData.timestamp ? new Date(notificationData.timestamp) : new Date(),
+            isRead: notificationData.isRead || notificationData.read || false
         };
 
-        // 알림 리스트에 추가
-        setNotifications(prev => [newNotification, ...prev]);
+        // 중복 체크 (SSE로 받은 게 이미 리스트에 있을 수 있음)
+        setNotifications(prev => {
+            const exists = prev.some(n => n.notificationId === newNotification.notificationId);
+            if (exists) return prev;
+            return [newNotification, ...prev];
+        });
 
-        // 토스트(팝업) 알림에 추가
-        setToasts(prev => [...prev, newNotification]);
+        // 토스트 알림 추가
+        const toastId = id;
+        setToasts(prev => [...prev, { ...newNotification, id: toastId }]);
 
         // 3초 후 토스트 제거
         setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id));
+            setToasts(prev => prev.filter(t => (t.notificationId || t.id) !== id));
         }, 3000);
     }, []);
 
     const togglePanel = () => setIsPanelOpen(prev => !prev);
-    const markAsRead = (id) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    };
-    const clearNotifications = () => {
-        setNotifications([]);
+
+    const markAsRead = async (id) => {
         try {
-            localStorage.removeItem('notifications');
+            await axios.patch(`${API_CONFIG.BASE_URL}/notifications/${id}/read`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(prev => prev.map(n =>
+                (n.notificationId === id) ? { ...n, isRead: true } : n
+            ));
         } catch (e) {
-            console.error('Failed to clear notifications from localStorage:', e);
+            console.error('Failed to mark notification as read:', e);
+            // 편의상 프론트에서도 미리 반영 가능
+            setNotifications(prev => prev.map(n =>
+                (n.notificationId === id) ? { ...n, isRead: true } : n
+            ));
+        }
+    };
+
+    const clearNotifications = async () => {
+        try {
+            await axios.patch(`${API_CONFIG.BASE_URL}/notifications/read-all`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        } catch (e) {
+            console.error('Failed to clear notifications:', e);
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         }
     };
 
@@ -81,29 +102,22 @@ export const NotificationProvider = ({ children, userId, token }) => {
 
         const eventSource = new EventSource(url);
 
-
-        // 기본 메시지 핸들러
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                addNotification(data);  // 전체 데이터 객체 전달
+                addNotification(data);
             } catch (e) {
-                addNotification({ message: event.data });  // 문자열인 경우 객체로 감싸기
+                console.error('SSE Message Error:', e);
             }
         };
 
-        // 백엔드에서 'notification' 이름으로 보내는 이벤트 리스너 추가
         eventSource.addEventListener('notification', (event) => {
             try {
                 const data = JSON.parse(event.data);
-                addNotification(data);  // 전체 데이터 객체 전달 (title, message 등 포함)
+                addNotification(data);
             } catch (e) {
-                console.error('Notification Parse Error:', e);
+                console.error('Notification Event Error:', e);
             }
-        });
-
-        eventSource.addEventListener('connected', (e) => {
-            console.log('SSE Connected:', e.data);
         });
 
         eventSource.onerror = (error) => {
@@ -116,8 +130,7 @@ export const NotificationProvider = ({ children, userId, token }) => {
         };
     }, [userId, token, addNotification]);
 
-
-    const hasUnread = notifications.some(n => !n.read);
+    const hasUnread = notifications.some(n => !n.isRead);
 
     return (
         <NotificationContext.Provider value={{

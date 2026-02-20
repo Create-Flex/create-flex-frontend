@@ -606,7 +606,7 @@ export const CreatorHealthView = ({
                                         placeholder={isAnalyzing ? "분석 중..." : "예: 2026년 정기 건강검진"}
                                         value={newCheckup.checkupName}
                                         onChange={e => setNewCheckup({ ...newCheckup, checkupName: e.target.value })}
-                                        disabled={isAnalyzing} // [추가]
+                                        disabled={isAnalyzing}
                                     />
                                 </div>
 
@@ -616,7 +616,7 @@ export const CreatorHealthView = ({
                                         type="date"
                                         value={newCheckup.date}
                                         onChange={e => setNewCheckup({ ...newCheckup, date: e.target.value })}
-                                        disabled={isAnalyzing} // [추가]
+                                        disabled={isAnalyzing}
                                     />
                                 </div>
 
@@ -625,7 +625,7 @@ export const CreatorHealthView = ({
                                     <Select
                                         value={newCheckup.result}
                                         onChange={e => setNewCheckup({ ...newCheckup, result: e.target.value })}
-                                        disabled={isAnalyzing} // [추가]
+                                        disabled={isAnalyzing}
                                     >
                                         <option value="NORMAL_AB">정상 (A/B) - 양호</option>
                                         <option value="NORMAL_B">정상 (B) - 경미한 소견</option>
@@ -644,15 +644,14 @@ export const CreatorHealthView = ({
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         className="hidden"
                                         style={{ display: 'none' }}
-                                        disabled={isAnalyzing} // [추가]
+                                        disabled={isAnalyzing}
                                     />
                                     <UploadArea
                                         onClick={triggerFileInput} 
                                         $hasFile={!!file}
-                                        style={{ cursor: isAnalyzing ? 'wait' : 'pointer' }} // [추가]
+                                        style={{ cursor: isAnalyzing ? 'wait' : 'pointer' }}
                                     >
                                         <UploadIconWrapper $hasFile={!!file}>
-                                            {/* [수정] 로딩 애니메이션 추가 */}
                                             {isAnalyzing ? (
                                                 <Loader2 size={24} className="animate-spin" />
                                             ) : file ? (
@@ -661,7 +660,6 @@ export const CreatorHealthView = ({
                                                 <Upload size={24} />
                                             )}
                                         </UploadIconWrapper>
-                                        {/* [수정] 텍스트 변경 */}
                                         {isAnalyzing ? (
                                             <>
                                                 <UploadText>AI 분석 중...</UploadText>
@@ -685,7 +683,7 @@ export const CreatorHealthView = ({
                                     <ActionButton 
                                         onClick={handleSubmit} 
                                         style={{ width: '100%', justifyContent: 'center' }}
-                                        disabled={isAnalyzing} // [추가]
+                                        disabled={isAnalyzing}
                                     >
                                         <CheckCircle2 size={16} /> 저장하기
                                     </ActionButton>

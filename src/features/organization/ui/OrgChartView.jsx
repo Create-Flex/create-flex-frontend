@@ -167,7 +167,7 @@ export const OrgChartView = () => {
                 <S.Header>
                     <div>
                         <S.Title>
-                            <Building color="#1f2937" size={32} /> 회사 조직도
+                            <Building color="#1f2937" size={32} /> 부서 관리
                         </S.Title>
                         <S.SubTitle>
                             부서별 연락처 및 구성원을 확인할 수 있습니다.
@@ -190,7 +190,7 @@ export const OrgChartView = () => {
 
                         {isAdmin && (
                             <S.AddButton onClick={handleOpenAdd}>
-                                <Plus size={16} /> 조직 추가
+                                <Plus size={16} /> 부서 추가
                             </S.AddButton>
                         )}
                     </S.HeaderActions>

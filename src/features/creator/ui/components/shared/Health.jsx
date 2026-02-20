@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList, Check } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, AlertCircle, BrainCircuit, Stethoscope, Plus, Activity, User, Calendar, FileText, Download, Upload, ClipboardList, Check, Loader2 } from 'lucide-react';
 import {
     Container, StatGrid, StatCardWrapper, StatHeader, StatLabel, IconBox, StatValueGroup, StatValue, StatUnit, StatSubLabel,
     MainGrid, LeftSection, RightSection, SectionHeader, SectionTitleGroup, SectionTitle, SectionDesc, AddButton,
@@ -16,7 +16,7 @@ import {
 import {
     ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton as ModalCloseBtn, ModalBody
 } from '../../../../../shared/ui/Modal.styled';
-import { getCreatorHealth, saveCreatorMental, putMyHealth, postMyHealth } from '../../../../health/api/healthService';
+import { getCreatorHealth, saveCreatorMental, putMyHealth, postMyHealth, analyzeHealthCheckupImage } from '../../../../health/api/healthService';
 
 const mentalResult = (score) => {
     if (score <= 4) {
@@ -224,8 +224,13 @@ export const CreatorHealthView = ({
     });
     const [file, setFile] = useState(null);
     const fileInputRef = useRef(null);
+
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
     const triggerFileInput = () => {
-        fileInputRef.current?.click();
+        if (!isAnalyzing) {
+            fileInputRef.current?.click();
+        }
     };
 
     const handleAddCheckup = () => {
@@ -255,14 +260,64 @@ export const CreatorHealthView = ({
         toast.success('검진 결과가 성공적으로 등록되었습니다.');
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) {
+    const handleFileChange = async (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            if (selectedFile.size > 10 * 1024 * 1024) {
                 toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
                 return;
             }
-            setFile(file);
+            setFile(selectedFile);
+
+            setIsAnalyzing(true);
+            const loadingToast = toast.loading('AI가 검진 결과를 분석 중입니다...');
+
+            try {
+                const response = await analyzeHealthCheckupImage(selectedFile);
+                const result = response.data; // { examinationDate, hospitalName, overallResult }
+
+                let updatedCheckup = { ...newCheckup };
+
+                //검진일 자동 입력
+                if (result.examinationDate && result.examinationDate !== '알 수 없음') {
+                    updatedCheckup.date = result.examinationDate;
+                }
+
+                //검진명 자동 생성
+                if (result.hospitalName) {
+                    const year = result.examinationDate ? result.examinationDate.split('-')[0] : new Date().getFullYear();
+                    updatedCheckup.checkupName = `${year}년 건강검진 (${result.hospitalName})`;
+                } else {
+                    updatedCheckup.checkupName = `${new Date().getFullYear()}년 정기 건강검진`;
+                }
+
+                //종합 소견 처리
+                if (result.overallResult) {
+                    toast.success(`분석 결과: ${result.overallResult}`, { duration: 5000 });
+                    
+                    const resLower = result.overallResult;
+                    if (resLower.includes("정상")) {
+                        if (resLower.includes("B") || resLower.includes("경미")) updatedCheckup.result = "NORMAL_B";
+                        else updatedCheckup.result = "NORMAL_AB";
+                    } else if (resLower.includes("주의") || resLower.includes("식생활")) {
+                        updatedCheckup.result = "CAUTION";
+                    } else if (resLower.includes("위험") || resLower.includes("질환")) {
+                        updatedCheckup.result = "DANGER";
+                    } else if (resLower.includes("재검")) {
+                        updatedCheckup.result = "RETEST_NEED";
+                    }
+                }
+
+                // 폼 데이터 덮어쓰기
+                setNewCheckup(updatedCheckup);
+                toast.success('검진 정보를 자동으로 입력했습니다!', { id: loadingToast });
+
+            } catch (error) {
+                console.error("AI Analysis Error:", error);
+                toast.error('이미지 분석에 실패했습니다. 직접 입력해주세요.', { id: loadingToast });
+            } finally {
+                setIsAnalyzing(false);
+            }
         }
     };
 
@@ -523,13 +578,14 @@ export const CreatorHealthView = ({
                                 <GuideContent>
                                     <GuideTitle>결과지 업로드 안내</GuideTitle>
                                     <GuideText>
-                                        병원에서 발급받은 건강검진 결과표(PDF)를 업로드하여 DB에 저장합니다.<br />
-                                        인사/운영팀 건강 관리 리스트에 자동 업데이트 됩니다.
+                                        병원에서 발급받은 건강검진 결과표 이미지를 업로드하세요.<br />
+                                        <strong>AI가 내용을 분석하여 자동으로 입력해줍니다.</strong>
                                     </GuideText>
                                 </GuideContent>
                             </UploadGuideBox>
 
                             <FormStackSpaced>
+                                {/* 크리에이터 선택 필드는 그대로 둠 (disabled 적용 안 함) */}
                                 {!isCreator && (
                                     <div>
                                         <Label>대상 크리에이터 선택</Label>
@@ -547,9 +603,10 @@ export const CreatorHealthView = ({
                                     <Label>검진 명</Label>
                                     <StyledInput
                                         type="text"
-                                        placeholder="예: 2026년 정기 건강검진"
+                                        placeholder={isAnalyzing ? "분석 중..." : "예: 2026년 정기 건강검진"}
                                         value={newCheckup.checkupName}
                                         onChange={e => setNewCheckup({ ...newCheckup, checkupName: e.target.value })}
+                                        disabled={isAnalyzing}
                                     />
                                 </div>
 
@@ -559,6 +616,7 @@ export const CreatorHealthView = ({
                                         type="date"
                                         value={newCheckup.date}
                                         onChange={e => setNewCheckup({ ...newCheckup, date: e.target.value })}
+                                        disabled={isAnalyzing}
                                     />
                                 </div>
 
@@ -567,6 +625,7 @@ export const CreatorHealthView = ({
                                     <Select
                                         value={newCheckup.result}
                                         onChange={e => setNewCheckup({ ...newCheckup, result: e.target.value })}
+                                        disabled={isAnalyzing}
                                     >
                                         <option value="NORMAL_AB">정상 (A/B) - 양호</option>
                                         <option value="NORMAL_B">정상 (B) - 경미한 소견</option>
@@ -585,29 +644,47 @@ export const CreatorHealthView = ({
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         className="hidden"
                                         style={{ display: 'none' }}
+                                        disabled={isAnalyzing}
                                     />
                                     <UploadArea
-                                        onClick={triggerFileInput} $hasFile={!!file}
+                                        onClick={triggerFileInput} 
+                                        $hasFile={!!file}
+                                        style={{ cursor: isAnalyzing ? 'wait' : 'pointer' }}
                                     >
-                                        <UploadIconWrapper $hasFile={!!File}>
-                                            {file ? <Check size={24} /> : <Upload size={24} />}
+                                        <UploadIconWrapper $hasFile={!!file}>
+                                            {isAnalyzing ? (
+                                                <Loader2 size={24} className="animate-spin" />
+                                            ) : file ? (
+                                                <Check size={24} />
+                                            ) : (
+                                                <Upload size={24} />
+                                            )}
                                         </UploadIconWrapper>
-                                        {file ? (
+                                        {isAnalyzing ? (
+                                            <>
+                                                <UploadText>AI 분석 중...</UploadText>
+                                                <UploadSubText>잠시만 기다려주세요</UploadSubText>
+                                            </>
+                                        ) : file ? (
                                             <>
                                                 <UploadText>{file.name}</UploadText>
-                                                <UploadSubText className="text-green-600">업로드 완료</UploadSubText>
+                                                <UploadSubText className="text-green-600">업로드 및 분석 완료</UploadSubText>
                                             </>
                                         ) : (
                                             <>
-                                                <UploadText>PDF 파일을 드래그하거나 클릭하여 업로드</UploadText>
-                                                <UploadSubText>최대 10MB</UploadSubText>
+                                                <UploadText>파일을 드래그하거나 클릭하여 업로드</UploadText>
+                                                <UploadSubText>이미지 자동 분석 (최대 10MB)</UploadSubText>
                                             </>
                                         )}
                                     </UploadArea>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                                    <ActionButton onClick={handleSubmit} style={{ width: '100%', justifyContent: 'center' }}>
+                                    <ActionButton 
+                                        onClick={handleSubmit} 
+                                        style={{ width: '100%', justifyContent: 'center' }}
+                                        disabled={isAnalyzing}
+                                    >
                                         <CheckCircle2 size={16} /> 저장하기
                                     </ActionButton>
                                 </div>

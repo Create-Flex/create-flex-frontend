@@ -20,37 +20,56 @@ export const VacationView = () => {
     const memberId = user?.memberId || user?.id;
     const isCreator = user?.role === 'CREATOR' || user?.memberRole === 'CREATOR' || userProfile?.role === 'CREATOR';
 
-    // 잔여 연차 상태
+    // userProfile에서 잔여 연차 가져오기 (초기값)
+    const profileRemainder = userProfile?.vacationRemainder ?? 15;
+    const totalVacation = 15;
+
+    // 잔여 연차 상태 (userProfile 기반 초기화로 중복 API 호출 제거)
     const [vacationStats, setVacationStats] = useState({
-        total: 15,
-        used: 0,
-        remaining: 15,
+        total: totalVacation,
+        used: totalVacation - profileRemainder,
+        remaining: profileRemainder,
         approved: 0,
         pending: 0
     });
 
-    // 잔여 연차 + 휴가 통계 조회 (휴가 신청/변경 시 자동 새로고침)
+    // 휴가 통계 조회 (승인/미승인 건수만 - 잔여 연차는 userProfile에서 가져옴)
+    // vacationRefreshKey 변경 시에만 잔여 연차도 새로고침
     useEffect(() => {
         const fetchStats = async () => {
             if (!memberId || isCreator) return;
             try {
-                const [remainder, stats] = await Promise.all([
-                    vacationService.getMyVacationRemainder(memberId),
-                    vacationService.getMyVacationStats(memberId)
-                ]);
-                setVacationStats({
-                    total: remainder.totalVacation || 15,
-                    used: remainder.usedVacation || 0,
-                    remaining: remainder.vacationRemainder || 15,
-                    approved: stats.approvedCount || 0,
-                    pending: stats.pendingCount || 0
-                });
+                // 초기 로드: 통계만 조회 (잔여 연차는 userProfile 사용)
+                // 휴가 변경 후 새로고침: 잔여 연차도 다시 조회
+                const needsRemainderRefresh = vacationRefreshKey > 0;
+
+                if (needsRemainderRefresh) {
+                    const [remainder, stats] = await Promise.all([
+                        vacationService.getMyVacationRemainder(memberId),
+                        vacationService.getMyVacationStats(memberId)
+                    ]);
+                    setVacationStats({
+                        total: remainder.totalVacation || totalVacation,
+                        used: remainder.usedVacation || 0,
+                        remaining: remainder.vacationRemainder || profileRemainder,
+                        approved: stats.approvedCount || 0,
+                        pending: stats.pendingCount || 0
+                    });
+                } else {
+                    // 초기 로드: 통계만 조회
+                    const stats = await vacationService.getMyVacationStats(memberId);
+                    setVacationStats(prev => ({
+                        ...prev,
+                        approved: stats.approvedCount || 0,
+                        pending: stats.pendingCount || 0
+                    }));
+                }
             } catch (error) {
                 console.error('휴가 통계 조회 실패:', error);
             }
         };
         fetchStats();
-    }, [memberId, vacationRefreshKey, isCreator]);
+    }, [memberId, vacationRefreshKey, isCreator, profileRemainder]);
 
     // 프로필 데이터가 없으면 렌더링 안함
     if (!userProfile) {

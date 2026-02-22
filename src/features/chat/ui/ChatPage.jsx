@@ -29,10 +29,11 @@ export const ChatPage = () => {
 
   // 2. 방 선택 변경 시 진입 처리
   useEffect(() => {
-    if (selectedChatId) {
-      enterRoom(selectedChatId);
+    if (selectedChatId && user) {
+      const userName = user.memberName || user.name || 'Unknown';
+      enterRoom(selectedChatId, userName);
     }
-  }, [selectedChatId, enterRoom]);
+  }, [selectedChatId, user, enterRoom]);
 
   const handleCreateRoom = async (selectedMembers) => {
     if (!user || selectedMembers.length === 0) return;

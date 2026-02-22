@@ -80,7 +80,7 @@ export const useChatStore = create((set, get) => ({
     },
 
     // Select Room & Subscribe
-    enterRoom: async (roomId) => {
+    enterRoom: async (roomId, senderName) => {
         const { stompClient, isConnected } = get();
 
         //  상태 업데이트
@@ -91,7 +91,7 @@ export const useChatStore = create((set, get) => ({
 
         // 구독 설정 (이미 연결된 경우)
         if (stompClient && isConnected) {
-            get().subscribeToRoom(roomId);
+            get().subscribeToRoom(roomId, senderName);
         }
     },
 
@@ -104,11 +104,9 @@ export const useChatStore = create((set, get) => ({
         }
     },
 
-    subscribeToRoom: (roomId) => {
+    subscribeToRoom: (roomId, senderName) => {
         const { stompClient } = get();
         if (!stompClient || !stompClient.active) return;
-
-    
 
         const currentSub = get().currentSubscription;
         if (currentSub) {
@@ -119,11 +117,8 @@ export const useChatStore = create((set, get) => ({
             const receivedMsg = JSON.parse(message.body);
 
             if (receivedMsg.type === 'READ') {
-                const myId = get().currentUserId;
-                if (String(receivedMsg.senderId) === String(myId)) {
-                    return;
-                }
-                get().loadMessages(roomId); 
+                // 본인이 보낸 READ 이벤트라도 메시지 목록을 다시 불러와서 안읽은 숫자를 갱신함
+                get().loadMessages(roomId);
                 return;
             }
 
@@ -136,6 +131,25 @@ export const useChatStore = create((set, get) => ({
                 messages: [...state.messages, receivedMsg]
             }));
         });
+
+
+        const enterMessage = {
+            type: 'ENTER',
+            roomId: roomId,
+            sender: senderName,
+            senderId: get().currentUserId,
+            message: ''
+        };
+
+        stompClient.publish({
+            destination: '/pub/chat/message',
+            body: JSON.stringify(enterMessage),
+        });
+
+
+        setTimeout(() => {
+            get().loadMessages(roomId);
+        }, 300);
 
         set({ currentSubscription: subscription });
     },

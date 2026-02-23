@@ -497,3 +497,76 @@ export const ActionButton = styled.button`
     transform: translateY(0);
   }
 `;
+
+export const ParticipantListPanel = styled.div`
+  width: ${props => props.$isOpen ? '260px' : '0'};
+  background-color: #fff;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  overflow: hidden;
+`;
+
+export const ParticipantHeader = styled.div`
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const ParticipantTitle = styled.h4`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+`;
+
+export const ParticipantScrollArea = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+`;
+
+export const ParticipantItem = styled.div`
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+`;
+
+export const ParticipantAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #eee;
+  flex-shrink: 0;
+  color: #999;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+export const ParticipantName = styled.span`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;

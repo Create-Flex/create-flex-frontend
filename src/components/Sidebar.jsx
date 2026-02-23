@@ -15,9 +15,7 @@ import { useAuthStore } from '../features/auth/model/useAuthStore';
 import { useUIStore } from '../shared/model/useUIStore';
 import { useUserStore } from '../features/employee/model/useUserStore';
 import { useAttendanceStore } from '../features/attendance/model/useAttendanceStore';
-import { useVacationStore } from '../features/vacation/model/useVacationStore';
 import { attendanceService } from '../features/attendance/api/attendanceService';
-import { vacationService } from '../features/vacation/api/vacationService';
 
 const CalendarWidget = () => {
     // Local state for calendar widget navigation is fine to keep local
@@ -102,10 +100,6 @@ export const Sidebar = ({ onLogout }) => {
     const location = useLocation();
     const { userProfile } = useUserStore();
     const { attendanceLogs, addAttendanceLog, triggerRefresh: triggerAttendanceRefresh, refreshKey: attendanceRefreshKey } = useAttendanceStore();
-    const { refreshKey: vacationRefreshKey } = useVacationStore();
-
-    // 미승인 휴가 건수 (백엔드에서 조회)
-    const [pendingApprovals, setPendingApprovals] = useState(0);
 
     const [isClockedIn, setIsClockedIn] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -231,22 +225,6 @@ export const Sidebar = ({ onLogout }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // 미승인 휴가 건수 조회 (관리자용) - 통계 API 사용으로 쿼리 최적화
-    useEffect(() => {
-        const fetchPendingCount = async () => {
-            const userIsAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
-            // 관리자만 휴가 통계 API 호출 가능 (매니저는 403 오류 발생)
-            if (!userIsAdmin) return;
-            try {
-                // 통계 API로 미승인 건수만 조회 (전체 목록 조회 대신)
-                const stats = await vacationService.getVacationStats();
-                setPendingApprovals(stats.pendingApprovalCount || 0);
-            } catch (error) {
-                console.error('미승인 휴가 건수 조회 실패:', error);
-            }
-        };
-        fetchPendingCount();
-    }, [user, vacationRefreshKey]);
 
     // Safety check - must be AFTER all hooks
     if (!user || !userProfile) return null;
@@ -464,9 +442,6 @@ export const Sidebar = ({ onLogout }) => {
                                 <S.NavItem onClick={() => navigate('/hr/vacation')} $isActive={location.pathname === '/hr/vacation'} $center={isCollapsed} title="휴가 관리">
                                     <Palmtree size={16} />
                                     {!isCollapsed && <S.NavText>휴가 관리</S.NavText>}
-                                    {pendingApprovals > 0 && (
-                                        <S.Badge $isCollapsed={isCollapsed}>{pendingApprovals}</S.Badge>
-                                    )}
                                 </S.NavItem>
                                 <S.NavItem onClick={() => navigate('/org-chart')} $isActive={location.pathname === '/org-chart'} $center={isCollapsed} title="회사 조직도">
                                     <Briefcase size={16} />{!isCollapsed && <S.NavText>부서 관리</S.NavText>}

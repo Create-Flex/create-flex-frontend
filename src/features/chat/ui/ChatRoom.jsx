@@ -63,11 +63,7 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
           }
 
           if (msg.type === 'ENTER') {
-            return (
-              <div key={index} style={{ textAlign: 'center', color: '#888', margin: '10px 0', fontSize: '0.8rem' }}>
-                {msg.message}
-              </div>
-            )
+            return null;
           }
 
           return (
@@ -76,7 +72,24 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
               <S.MessageBubble $isMine={isMine}>
                 {msg.message}
               </S.MessageBubble>
-              <S.MessageTime $isMine={isMine}>{timeString}</S.MessageTime>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', marginLeft: '4px', marginRight: '4px' }}>
+
+                <S.MessageTime $isMine={isMine} style={{ display: 'flex', alignItems: 'center' }}>
+                  {isMine && msg.unreadCount > 0 && (
+                    <span style={{ color: '#fd7272', fontSize: '0.7rem', marginRight: '5px', fontWeight: 'bold' }}>
+                      {msg.unreadCount}
+                    </span>
+                  )}
+
+                  {timeString}
+
+                  {!isMine && msg.unreadCount > 0 && (
+                    <span style={{ color: '#fd7272', fontSize: '0.7rem', marginLeft: '5px', fontWeight: 'bold' }}>
+                      {msg.unreadCount}
+                    </span>
+                  )}
+                </S.MessageTime>
+              </div>
             </S.MessageGroup>
           );
         })}

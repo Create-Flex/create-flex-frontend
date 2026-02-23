@@ -185,7 +185,7 @@ function App() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            initAuth();
+            //initAuth();
             initAttendanceLogs();
         }
     }, [isAuthenticated, initAttendanceLogs]);

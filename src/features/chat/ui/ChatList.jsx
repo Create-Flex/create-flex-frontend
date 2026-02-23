@@ -8,11 +8,13 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]); // 다중 선택을 위한 상태
   const [searchTerm, setSearchTerm] = useState('');
+  const [roomName, setRoomName] = useState('');
 
   useEffect(() => {
     if (isModalOpen) {
       loadMembers();
       setSelectedMembers([]);
+      setRoomName('');
     }
   }, [isModalOpen]);
 
@@ -35,7 +37,7 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
 
   const handleCreateGroupChat = () => {
     if (selectedMembers.length === 0) return;
-    onCreateRoom(selectedMembers);
+    onCreateRoom(selectedMembers, roomName);
     setIsModalOpen(false);
   };
 
@@ -132,6 +134,7 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
               />
             </S.ModalSearchArea>
 
+
             <S.UserList>
               {filteredMembers.map(member => {
                 const isSelected = selectedMembers.some(m => m.memberId === member.memberId);
@@ -158,10 +161,19 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
               })}
             </S.UserList>
 
-            <S.ModalFooter>
+            <S.ModalFooter style={{ flexDirection: 'column', gap: '12px' }}>
+              {selectedMembers.length > 0 && (
+                <S.SearchInput
+                  placeholder="채팅방 이름 (미지정 시 유저 이름으로 설정)"
+                  value={roomName}
+                  onChange={e => setRoomName(e.target.value)}
+                  style={{ width: '100%', marginBottom: '4px' }}
+                />
+              )}
               <S.ActionButton
                 onClick={handleCreateGroupChat}
                 disabled={selectedMembers.length === 0}
+                style={{ width: '100%' }}
               >
                 {selectedMembers.length > 0 ? `${selectedMembers.length}명 초대하여 시작` : '대화상대 선택'}
               </S.ActionButton>

@@ -39,5 +39,13 @@ export const chatService = {
     getAllMembers: async () => {
         const response = await axios.get(`${BASE_URL}/api/members/all`, getAuthHeaders());
         return response.data;
+    },
+
+    // 채팅방 이름 수정
+    updateRoomName: async (roomId, name) => {
+        const response = await axios.patch(`${BASE_URL}/chat/room/${roomId}/name`, {
+            name
+        }, getAuthHeaders());
+        return response.data;
     }
 };

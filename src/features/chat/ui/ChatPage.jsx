@@ -35,15 +35,18 @@ export const ChatPage = () => {
     }
   }, [selectedChatId, user, enterRoom]);
 
-  const handleCreateRoom = async (selectedMembers) => {
+  const handleCreateRoom = async (selectedMembers, customRoomName) => {
     if (!user || selectedMembers.length === 0) return;
 
     const myName = user.memberName || user.name || 'Unknown';
     const myId = user.memberId || user.id;
 
-    // 방 이름
-    const allNames = [myName, ...selectedMembers.map(m => m.memberName)];
-    const roomName = allNames.join(',');
+    // 방 이름 결정
+    let roomName = customRoomName;
+    if (!roomName || roomName.trim() === '') {
+      const allNames = [myName, ...selectedMembers.map(m => m.memberName)];
+      roomName = allNames.join(',');
+    }
 
     // 참여자 ID 리스트
     const memberIds = [myId, ...selectedMembers.map(m => m.memberId)];
@@ -64,20 +67,26 @@ export const ChatPage = () => {
   const formatRoomName = (chatOrName) => {
     const myName = user?.name || user?.memberName || 'Unknown';
 
-    if (typeof chatOrName === 'object' && chatOrName.members) {
-      const otherMembers = chatOrName.members.filter(m => m.memberName !== myName);
-      if (otherMembers.length > 0) {
-        return otherMembers.map(m => m.memberName).join(', ');
+    if (typeof chatOrName === 'object' && chatOrName !== null) {
+      const dbName = chatOrName.name;
+
+      if (!dbName) return "Room";
+
+      if (dbName.includes(',')) {
+        const names = dbName.split(',').map(n => n.trim());
+        if (names.includes(myName)) {
+          const otherNames = names.filter(n => n !== myName);
+          return otherNames.length > 0 ? otherNames.join(', ') : dbName;
+        }
       }
-      return chatOrName.name || myName;
+
+      return dbName;
     }
 
-    const rawName = typeof chatOrName === 'string' ? chatOrName : chatOrName.name;
-
-    if (!rawName) return "Room";
+    const rawName = typeof chatOrName === 'string' ? chatOrName : 'Room';
     if (rawName.includes(',')) {
-      const names = rawName.split(',');
-      const otherNames = names.filter(n => n.trim() !== myName);
+      const names = rawName.split(',').map(n => n.trim());
+      const otherNames = names.filter(n => n !== myName);
       return otherNames.length > 0 ? otherNames.join(', ') : rawName;
     }
     return rawName;
@@ -101,6 +110,7 @@ export const ChatPage = () => {
         onSendMessage={handleSendMessage}
         currentUserName={user?.memberName || user?.name}
         formatRoomName={formatRoomName}
+        onRefreshRooms={loadRooms}
       />
     </S.ChatContainer>
   );

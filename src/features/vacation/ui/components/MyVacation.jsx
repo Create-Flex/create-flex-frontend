@@ -69,7 +69,7 @@ export const MyVacation = () => {
     const [pageInfo, setPageInfo] = useState({
         currentPage: 1,
         totalPages: 1,
-        totalElements: 0,
+        totalElements: 0, 
         size: 10
     });
     const PAGE_SIZE = 10;

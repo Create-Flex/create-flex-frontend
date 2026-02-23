@@ -211,7 +211,7 @@ export const HealthResultModal = ({
                                     </>
                                 ) : (
                                     <>
-                                        <UploadText>파일을 드래그하거나 클릭하여 업로드</UploadText>
+                                        <UploadText>클릭하여 파일을 업로드</UploadText>
                                         <UploadSubText>이미지 자동 분석 (최대 10MB)</UploadSubText>
                                     </>
                                 )}

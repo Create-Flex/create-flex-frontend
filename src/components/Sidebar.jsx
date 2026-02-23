@@ -430,7 +430,7 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/chat')} $isActive={location.pathname === '/chat'} $center={isCollapsed} title="채팅하기">
                                 <MessageCircle size={16} />{!isCollapsed && <S.NavText>채팅하기</S.NavText>}
                             </S.NavItem>
-                            <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
+                            <S.NavItem onClick={() => navigate('/qna?page=1')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
                                 <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>

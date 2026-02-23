@@ -1,13 +1,15 @@
 import useQABoard from "../script/qaListScript";
 import {Container, QAList, QAhead, Tr, Th, QAbody, Td, WriteButton,
     AnswerBadge, TableContainer} from "../style/qaListStyle";
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import QAHeader from "./QAHeader";
 
 
 function QAListPage() {
     const navigate = useNavigate();
-    const {qaList} = useQABoard();
+    const [searchParams] = useSearchParams();
+    const listPage = searchParams.get("page");
+    const {qaList} = useQABoard(listPage);
     
 
     return(

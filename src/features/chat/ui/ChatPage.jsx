@@ -13,21 +13,18 @@ export const ChatPage = () => {
     setSelectedChatId
   } = useChatStore();
 
-  // 1. 초기 연결 및 방 목록 로드
+  //  초기 연결 및 방 목록 로드
   useEffect(() => {
     if (token && user) {
       connect(token, user.memberId || user.id);
       loadRooms();
     }
     return () => {
-      // 페이지를 벗어나면 연결을 끊을지, 유지할지는 기획에 따라 다름.
-      // 보통 SPA에서는 유지하고 싶을 수 있으나, 여기선 cleanup 예시로 남김.
-      // 전역 스토어이므로 disconnect를 안 하면 다른 페이지에서도 소켓 수신 가능 (알림 등)
-      // disconnect(); 
+
     };
   }, [token, user, connect, loadRooms]);
 
-  // 2. 방 선택 변경 시 진입 처리
+  // 방 선택 변경 시 진입 처리
   useEffect(() => {
     if (selectedChatId && user) {
       const userName = user.memberName || user.name || 'Unknown';

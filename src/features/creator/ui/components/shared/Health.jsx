@@ -600,10 +600,10 @@ export const CreatorHealthView = ({
                                 )}
 
                                 <div>
-                                    <Label>검진 명</Label>
+                                    <Label>검진 병원</Label>
                                     <StyledInput
                                         type="text"
-                                        placeholder={isAnalyzing ? "분석 중..." : "예: 2026년 정기 건강검진"}
+                                        placeholder={isAnalyzing ? "분석 중..." : "예: xx병원 2026년 건강검진"}
                                         value={newCheckup.checkupName}
                                         onChange={e => setNewCheckup({ ...newCheckup, checkupName: e.target.value })}
                                         disabled={isAnalyzing}

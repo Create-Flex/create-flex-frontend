@@ -139,10 +139,10 @@ export const HealthResultModal = ({
 
                     <FormStackSpaced>
                         <div>
-                            <Label>검진 명</Label>
+                            <Label>검진 병원</Label>
                             <Input
                                 type="text"
-                                placeholder={isAnalyzing ? "분석 중..." : "예: 2026년 정기 건강검진"}
+                                placeholder={isAnalyzing ? "분석 중..." : "예: xx병원 2026년 건강검진"}
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 disabled={isAnalyzing}
@@ -150,7 +150,7 @@ export const HealthResultModal = ({
                         </div>
 
                         <div>
-                            <Label>최근 검진일</Label>
+                            <Label>검진일</Label>
                             <Input
                                 type="date"
                                 value={date}

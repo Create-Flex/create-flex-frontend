@@ -208,6 +208,9 @@ fileApi.interceptors.response.use(
                     isRefreshing = false;
                 }
             }
+            if (originalRequest.url && originalRequest.url.includes('/image/analyze')) {
+                return Promise.reject(error);
+            }
 
             switch (status) {
                 case 401:

@@ -211,6 +211,10 @@ export const VacationManagement = ({ employees = [] }) => {
                 if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
                 if (nameFilter) filters.name = nameFilter;
 
+                // 탭 필터를 백엔드 status 파라미터로 전달 (totalPages가 탭 기준으로 정확히 계산되도록)
+                const TAB_TO_STATUS = { pending: 'APPROVE_NEED', approved: 'APPROVED', rejected: 'REJECTED' };
+                if (TAB_TO_STATUS[activeTab]) filters.status = TAB_TO_STATUS[activeTab];
+
                 const response = await vacationService.getAllVacations(filters);
 
                 // Page 응답 처리
@@ -242,20 +246,8 @@ export const VacationManagement = ({ employees = [] }) => {
         fetchList();
     }, [startDate, endDate, typeFilter, nameFilter, activeTab, page, vacationRefreshKey]);
 
-    const filteredAndSorted = vacationLogs.filter(v => {
-        if (v.status === '사용완료') return false;
-        // if (v.type === '워케이션') return false; // 워케이션도 포함하여 표시
-
-        // 이름 필터는 백엔드에서 처리하므로 프론트엔드 필터링 제거
-        if (startDate && v.endDate < startDate) return false;
-        if (endDate && v.startDate > endDate) return false;
-
-        if (activeTab === 'approved') return v.status === '승인됨';
-        if (activeTab === 'rejected') return v.status === '반려됨';
-        if (activeTab === 'pending') return v.status === '대기중';
-
-        return true;
-    }).sort((a, b) => {
+    // 상태/날짜 필터는 백엔드에서 처리. 프론트엔드는 정렬만 담당
+    const filteredAndSorted = vacationLogs.sort((a, b) => {
         if (sortConfig) {
             const aValue = a[sortConfig.key];
             const bValue = b[sortConfig.key];

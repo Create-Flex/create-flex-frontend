@@ -17,9 +17,9 @@ export const useChatStore = create((set, get) => ({
     setSelectedChatId: (id) => set({ selectedChatId: id }),
     setMessages: (messages) => set({ messages }),
 
-    // Initialize & Connect WebSocket
+    // 웹소켓 연결 초기화
     connect: (token, userId) => {
-        set({ currentUserId: userId }); // Always update userId
+        set({ currentUserId: userId });
 
         if (get().stompClient && get().stompClient.active) return; // 이미 연결됨
 
@@ -98,9 +98,38 @@ export const useChatStore = create((set, get) => ({
     loadMessages: async (roomId) => {
         try {
             const pastMessages = await chatService.getMessages(roomId);
-            set({ messages: pastMessages });
+            set({
+                messages: pastMessages,
+                hasMoreOlder: pastMessages.length >= 20
+            });
         } catch (error) {
             console.error("Failed to load messages:", error);
+        }
+    },
+
+    loadOlderMessages: async (roomId) => {
+        const { messages, hasMoreOlder } = get();
+        if (!hasMoreOlder || messages.length === 0) return;
+
+        const firstMsg = messages[0];
+        if (!firstMsg || !firstMsg.id) {
+            console.warn("Missing first message ID for paging");
+            return;
+        }
+
+        try {
+            const olderMessages = await chatService.getOlderMessages(roomId, firstMsg.id);
+
+            if (olderMessages.length > 0) {
+                set((state) => ({
+                    messages: [...olderMessages, ...state.messages],
+                    hasMoreOlder: olderMessages.length >= 20
+                }));
+            } else {
+                set({ hasMoreOlder: false });
+            }
+        } catch (error) {
+            console.error("Failed to load older messages:", error);
         }
     },
 
@@ -117,7 +146,7 @@ export const useChatStore = create((set, get) => ({
             const receivedMsg = JSON.parse(message.body);
 
             if (receivedMsg.type === 'READ') {
-                // 본인이 보낸 READ 이벤트라도 메시지 목록을 다시 불러와서 안읽은 숫자를 갱신함
+                // 메시지 목록 갱신을 통한 안읽은 숫자 업데이트
                 get().loadMessages(roomId);
                 return;
             }

@@ -128,7 +128,13 @@ export const AiChatPanel = () => {
                             <S.Input
                                 ref={inputRef}
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
+                                onChange={(e) => {
+                                    setInput(e.target.value);
+                                    // Reset height to calculate correctly
+                                    e.target.style.height = 'auto';
+                                    // Set new height based on scrollHeight, up to max-height defined in CSS
+                                    e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
                                 onKeyDown={handleKeyDown}
                                 placeholder="메시지를 입력하세요..."
                                 rows={1}

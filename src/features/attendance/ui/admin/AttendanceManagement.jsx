@@ -11,13 +11,19 @@ import {
 } from './AttendanceManagement.styled';
 
 export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
-    const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // 1달 전 설정
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    const oneMonthAgoStr = oneMonthAgo.toISOString().split('T')[0];
+
     const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('All');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = useState(oneMonthAgoStr);
+    const [endDate, setEndDate] = useState(todayStr);
 
     // Status Map for API
     const STATUS_MAP = {
@@ -236,7 +242,7 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
                     </DateRangePicker>
                 </FilterContainer>
                 <ResetButton
-                    onClick={() => { setStartDate(''); setEndDate(''); setSearchInput(''); setSearchQuery(''); setSelectedStatus('All'); setPage(0); }}
+                    onClick={() => { setStartDate(oneMonthAgoStr); setEndDate(todayStr); setSearchInput(''); setSearchQuery(''); setSelectedStatus('All'); setPage(0); }}
                 >
                     필터 초기화
                 </ResetButton>

@@ -229,6 +229,17 @@ export const MessageTime = styled.span`
   margin-right: ${props => props.$isMine ? '5px' : '0'};
 `;
 
+export const SystemMessage = styled.div`
+  align-self: center;
+  background-color: #e9ecef;
+  color: #6c757d;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin: 10px 0;
+  text-align: center;
+`;
+
 export const InputArea = styled.div`
   padding: 20px;
   background-color: #fff;

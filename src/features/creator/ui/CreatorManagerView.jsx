@@ -10,7 +10,6 @@ import { useAuthStore } from '../../auth/model/useAuthStore';
 import { useCreatorStore } from '../model/useCreatorStore';
 import { useEmployeeStore } from '../../employee/model/useEmployeeStore';
 import { useHealthStore } from '../../health/model/useHealthStore';
-import { useScheduleStore } from '../../calendar/model/useScheduleStore';
 import { useUserStore } from '../../employee/model/useUserStore';
 import { useUIStore } from '../../../shared/model/useUIStore';
 
@@ -120,7 +119,6 @@ export const CreatorManagerView = ({ view }) => {
         creatorIssueLogs, setCreatorIssueLogs
     } = useHealthStore();
 
-    const { allTasks, addTask, toggleTask, deleteTask } = useScheduleStore();
     const { currentDate, currentView: storeView } = useUIStore();
     const currentView = view || storeView;
 
@@ -185,10 +183,6 @@ export const CreatorManagerView = ({ view }) => {
             events={creatorEvents}
             onUpdateEvents={setCreatorEvents}
             onAddSupportRequest={addSupportRequest}
-            allTasks={allTasks}
-            onAddTask={addTask}
-            onToggleTask={toggleTask}
-            onDeleteTask={deleteTask}
             currentView={currentView}
             supportRequests={supportRequests}
         />;

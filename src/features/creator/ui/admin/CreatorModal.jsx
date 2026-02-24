@@ -122,11 +122,6 @@ export const CreatorModal = ({
 
         try {
             if (isEdit) {
-                // 기존 onSave 호출 (부모 컴포넌트 로직 유지)
-                if (onSave) {
-                    onSave(formData, isEdit);
-                }
-
                 // 백엔드 API 호출
                 const response = await creatorService.updateCreator(initialData.id, formData);
                 console.log('크리에이터 수정 성공:', response);
@@ -138,15 +133,26 @@ export const CreatorModal = ({
                     manager: formData.managerName || '담당자 없음'
                 });
 
+                // 부모 컴포넌트 알림 (필요한 경우)
+                if (onSave) {
+                    onSave(formData, isEdit);
+                }
             } else {
-                // 기존 onSave 호출 (부모 컴포넌트 로직 유지)
+                // 백엔드 API 호출
+                const response = await creatorService.createCreator(formData);
+                console.log('크리에이터 등록 성공:', response);
+
+                // 스토어 즉시 갱신 (새로고침과 동일한 효과)
+                // 현재 검색어나 페이지 무관하게 첫 페이지로 이동하여 신규 등록 확인 가능하게 함
+                const { fetchCreators } = useCreatorStore.getState();
+                await fetchCreators(null, 0);
+
+                // 부모 컴포넌트 알림
                 if (onSave) {
                     onSave(formData, isEdit);
                 }
 
-                // 백엔드 API 호출
-                const response = await creatorService.createCreator(formData);
-                console.log('크리에이터 등록 성공:', response);
+                toast.success('새 크리에이터가 등록되었습니다.');
             }
 
             onClose();

@@ -40,50 +40,8 @@ export const AdminCreatorView = ({
     };
 
     const handleSaveCreator = (formData, isEdit) => {
-        if (isEdit && editingCreator) {
-            const updatedCreators = creators.map(c =>
-                c.id === editingCreator.id
-                    ? {
-                        ...c,
-                        name: formData.name,
-                        platform: formData.platform,
-                        subscribers: formData.subscribers,
-                        category: formData.category,
-                        status: formData.status,
-                        avatarUrl: formData.avatarUrl,
-                        contactInfo: formData.contactInfo,
-                        loginId: formData.loginId,
-                        password: formData.password,
-                        manager: formData.managerName || '담당자 없음',
-                        managementStartDate: formData.managerName ? (c.managementStartDate || new Date().toISOString().split('T')[0]) : undefined,
-                        managementEndDate: formData.managerName ? (c.managementEndDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]) : undefined
-                    }
-                    : c
-            );
-            onUpdateCreators(updatedCreators);
-        } else {
-            const newId = (creators.length + 1).toString();
-            const newCreator = {
-                id: newId,
-                name: formData.name,
-                platform: formData.platform,
-                status: formData.status,
-                subscribers: formData.subscribers,
-                avatarUrl: formData.avatarUrl,
-                coverUrl: '',
-                tags: [],
-                category: formData.category,
-                manager: formData.managerName || '담당자 없음',
-                channelName: formData.name + ' Channel',
-                contactInfo: formData.contactInfo,
-                contractStatus: 'Drafting',
-                loginId: formData.loginId || formData.name.toLowerCase(),
-                password: formData.password,
-                managementStartDate: formData.managerName ? new Date().toISOString().split('T')[0] : undefined,
-                managementEndDate: formData.managerName ? new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0] : undefined
-            };
-            onUpdateCreators([...creators, newCreator]);
-        }
+        // Modal 내부에서 Store를 직접 업데이트하므로,
+        // 이곳에서의 수동 상태 관리는 더 이상 필요하지 않습니다.
         setIsAddModalOpen(false);
     };
 

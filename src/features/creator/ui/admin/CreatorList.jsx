@@ -23,40 +23,27 @@ export const CreatorList = ({
     const [activeMenuId, setActiveMenuId] = useState(null);
     const menuRef = useRef(null);
 
-    // 페이징 상태
-    const [page, setPage] = useState(0);
-    const [size, setSize] = useState(10);
-    const [totalPages, setTotalPages] = useState(0);
-    const [totalElements, setTotalElements] = useState(0);
+    // 스토어에서 상태와 함수 가져오기
+    const {
+        creators,
+        fetchCreators,
+        removeCreator,
+        setLoading,
+        isLoading,
+        totalPages,
+        totalElements,
+        currentPage: page
+    } = useCreatorStore();
 
-    const { creators, setCreators, removeCreator, setLoading, isLoading } = useCreatorStore();
-
-    // 크리에이터 목록 조회
-    const fetchCreators = async (name = searchQuery, pageNum = page) => {
-        setLoading(true);
-        try {
-            const response = await creatorService.getAllCreators(name, pageNum, size);
-            console.log('받아온 크리에이터 데이터:', response);
-
-            // response가 Page 객체인 경우 (content, totalPages, totalElements 등 포함)
-            const creatorsData = response.content || [];
-            const mappedCreators = creatorsData.map(mapCreatorFromBackend);
-
-            setCreators(mappedCreators);
-            setTotalPages(response.totalPages || 0);
-            setTotalElements(response.totalElements || 0);
-        } catch (error) {
-            console.error('크리에이터 목록 조회 실패:', error);
-            setCreators([]);
-        } finally {
-            setLoading(false);
-        }
+    // 페이지 변경 시 fetchCreators 호출
+    const setPage = (newPage) => {
+        fetchCreators(searchQuery, newPage);
     };
 
     // 컴포넌트 마운트 시 목록 조회
     useEffect(() => {
-        fetchCreators(searchQuery, page);
-    }, [page]);
+        fetchCreators(searchQuery, 0);
+    }, []);
 
     // 검색 실행 함수
     const handleSearch = () => {
@@ -142,7 +129,7 @@ export const CreatorList = ({
                         </tr>
                     </TableHead>
                     <TableBody>
-                        {creators.map(creator => (
+                        {filteredCreators.map(creator => (
                             <TableRow
                                 key={creator.id}
                                 onClick={() => onOpenEditModal(creator)}

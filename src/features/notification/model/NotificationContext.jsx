@@ -121,8 +121,8 @@ export const NotificationProvider = ({ children, userId, token }) => {
         });
 
         eventSource.onerror = (error) => {
-            console.error('SSE Error:', error);
-            eventSource.close();
+            console.error('SSE Error (Possible timeout, will retry):', error);
+            // eventSource.close(); // 브라우저가 자동으로 재연결하도록 닫지 않음
         };
 
         return () => {

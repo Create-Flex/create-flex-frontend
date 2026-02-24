@@ -274,7 +274,7 @@ function App() {
                             <Route path="/qna/detail" element={<QADetailPage />} />
                             <Route path="/qna/quest" element={<QAQuestPage />} />
                             <Route path="/qna/answer" element={<QAAnswerPage />} />
-                            
+
                             {/* HR Dashboard Routes */}
                             <Route path="/hr/staff" element={<HRDashboardView view="hr-staff" />} />
                             <Route path="/hr/attendance" element={<HRDashboardView view="hr-attendance" />} />

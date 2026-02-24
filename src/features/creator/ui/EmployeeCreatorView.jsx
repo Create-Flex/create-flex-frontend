@@ -32,10 +32,6 @@ export const EmployeeCreatorView = ({
     onUpdateEvents,
     onAddSupportRequest,
     currentView,
-    allTasks,
-    onAddTask,
-    onToggleTask,
-    onDeleteTask,
     supportRequests,
 }) => {
     const [selectedCreatorId, setSelectedCreatorId] = useState(null);
@@ -246,16 +242,8 @@ export const EmployeeCreatorView = ({
 
                         {activeTab === 'list' && (
                             <CreatorListTab
-                                selectedCreatorId={selectedCreatorId}
-                                setSelectedCreatorId={setSelectedCreatorId}
-                                myCreators={myCreators}
-                                allTasks={allTasks}
-                                events={events}
                                 onAddEvent={handleOpenEventModal}
                                 onEventClick={handleEventClick}
-                                onAddTask={onAddTask}
-                                onToggleTask={onToggleTask}
-                                onDeleteTask={onDeleteTask}
                             />
                         )}
 

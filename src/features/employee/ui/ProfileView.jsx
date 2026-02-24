@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { ProfileInfo } from './profile/ProfileInfo';
-import { TaskSection } from './profile/TaskSection';
 import { HealthSection } from './profile/HealthSection';
+import { CreatorTodoBoard } from '../../creator-todo/ui/CreatorTodoBoard';
 import { ImageUploadModal } from './profile/modals/ImageUploadModal';
 import { PasswordChangeModal } from './profile/modals/PasswordChangeModal';
 import { HealthResultModal } from './profile/modals/HealthResultModal';
@@ -77,8 +77,6 @@ export const ProfileView = ({
     });
 
     const [creatorInfo, setCreatorInfo] = useState(null);
-    const [creatorTasks, setCreatorTasks] = useState([]);
-    const [isTaskLoading, setIsTaskLoading] = useState(false);
     const [healthList, setHealthList] = useState([]);
     const [healthCheck, setHealthCheck] = useState();
 
@@ -107,97 +105,6 @@ export const ProfileView = ({
         };
         fetchCreatorInfo();
     }, [isCreatorProfile, displayProfile?.employeeId]);
-
-    // 크리에이터 업무 목록 조회
-    useEffect(() => {
-        const fetchCreatorTasks = async () => {
-            if (!isCreatorProfile || !displayProfile?.employeeId) {
-                setCreatorTasks([]);
-                return;
-            }
-
-            try {
-                setIsTaskLoading(true);
-                const response = await creatorService.getCreatorWorks(displayProfile.employeeId);
-
-                const formattedTasks = (response || []).map(work => ({
-                    id: work.creatorWorkId,
-                    title: work.workName,
-                    status: work.workStatus === 'DONE' ? '완료됨' : '진행중',
-                    assignee: work.workerName,
-                    creatorId: displayProfile.employeeId
-                }));
-
-                setCreatorTasks(formattedTasks);
-            } catch (error) {
-                console.error('크리에이터 업무 목록 조회 실패:', error);
-                setCreatorTasks([]);
-            } finally {
-                setIsTaskLoading(false);
-            }
-        };
-
-        fetchCreatorTasks();
-    }, [isCreatorProfile, displayProfile?.employeeId]);
-
-    // 크리에이터 업무 추가 핸들러
-    const handleAddCreatorTask = async (title) => {
-        if (!displayProfile?.employeeId || !title.trim()) return;
-
-        try {
-            const response = await creatorService.createCreatorWork(displayProfile.employeeId, title.trim());
-
-            const newTask = {
-                id: response.creatorWorkId,
-                title: response.workName,
-                status: response.workStatus === 'DONE' ? '완료됨' : '진행중',
-                assignee: response.workerName,
-                creatorId: displayProfile.employeeId
-            };
-
-            setCreatorTasks(prev => [...prev, newTask]);
-        } catch (error) {
-            console.error('업무 추가 실패:', error);
-            toast.error('업무 추가에 실패했습니다.');
-        }
-    };
-
-    // 크리에이터 업무 상태 토글 핸들러
-    const handleToggleCreatorTask = async (taskId) => {
-        if (!displayProfile?.employeeId) return;
-
-        const task = creatorTasks.find(t => t.id === taskId);
-        if (!task) return;
-
-        try {
-            const newStatus = task.status === '완료됨' ? 'WORKING' : 'DONE';
-            const response = await creatorService.updateCreatorWorkStatus(displayProfile.employeeId, taskId, newStatus);
-
-            setCreatorTasks(prev => prev.map(t =>
-                t.id === taskId
-                    ? { ...t, status: response.workStatus === 'DONE' ? '완료됨' : '진행중' }
-                    : t
-            ));
-        } catch (error) {
-            console.error('업무 상태 변경 실패:', error);
-            toast.error('업무 상태 변경에 실패했습니다.');
-        }
-    };
-
-    // 크리에이터 업무 삭제 핸들러
-    const handleDeleteCreatorTask = async (taskId) => {
-        if (!displayProfile?.employeeId) return;
-
-        if (!window.confirm('이 업무를 삭제하시겠습니까?')) return;
-
-        try {
-            await creatorService.deleteCreatorWork(displayProfile.employeeId, taskId);
-            setCreatorTasks(prev => prev.filter(t => t.id !== taskId));
-        } catch (error) {
-            console.error('업무 삭제 실패:', error);
-            toast.error('업무 삭제에 실패했습니다.');
-        }
-    };
 
     // 잔여 연차 조회
     useEffect(() => {
@@ -333,14 +240,8 @@ export const ProfileView = ({
                                 onEditProfileClick={() => setIsEditProfileModalOpen(true)}
                             />
 
-                            {isCreatorProfile && !hideTasks && (
-                                <TaskSection
-                                    tasks={creatorTasks}
-                                    onAddTask={canUpdate ? handleAddCreatorTask : undefined}
-                                    onToggleTask={canUpdate ? handleToggleCreatorTask : undefined}
-                                    onDeleteTask={canUpdate ? handleDeleteCreatorTask : undefined}
-                                    readOnly={readOnly || !canUpdate}
-                                />
+                            {isCreatorProfile && !hideTasks && displayProfile?.employeeId && (
+                                <CreatorTodoBoard creatorId={String(displayProfile.employeeId)} />
                             )}
                         </>)}
 

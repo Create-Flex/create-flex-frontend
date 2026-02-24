@@ -7,6 +7,7 @@ export default function useQADetail(qaId){
     const fetchQADetail = async (id) => {
         try{
             const res = await getQADetail(id);
+            console.log(res.data);
             setQaDetail(res.data);
         } catch (err) {
             console.error('QA 상세 조회 실패', err);

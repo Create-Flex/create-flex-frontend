@@ -51,6 +51,25 @@ export const QuestionInfo = styled.div`
 export const QuestionMemberName = styled.p``;
 export const QuestionDepartmentName = styled.p``;
 export const QuestionTime = styled.p``;
+
+export const QuestionFileList = styled.ul`
+  display: flex;
+  font-weight: normal;
+  text-transform: none;
+  font-size: 0.8rem;
+  align-items: center; 
+  list-style: none;
+  padding: 0;
+`;
+
+export const QuestionFile = styled.li`
+  transition: color 0.2s;
+
+  &:hover {
+    color: #4b4e55;
+  }
+`
+
 export const QuestionDetail = styled.p`
   padding: 12px 24px 24px;
   font-weight: normal;

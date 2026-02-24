@@ -2,7 +2,7 @@ import api, { fileApi } from '../../../api/axios';
 import axios from 'axios';
 
 export const getQAList = (listPage) =>{
-    api.get('/qna/', {
+    return api.get('/qna/', {
         params: {listPage}
     });
 };

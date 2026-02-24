@@ -170,6 +170,41 @@ export const useChatStore = create((set, get) => ({
             destination: '/pub/chat/message',
             body: JSON.stringify(messageDto),
         });
+    },
+
+    // Leave Room
+    leaveRoom: async (roomId, senderName, senderId) => {
+        const { stompClient, isConnected } = get();
+        try {
+            //  서버 DB에서 삭제 API 호출
+            await chatService.leaveRoom(roomId);
+
+            // 퇴장 메시지 발행 (EXIT 타입)
+            if (stompClient && isConnected) {
+                const exitMessage = {
+                    type: 'EXIT',
+                    roomId: roomId,
+                    sender: senderName,
+                    senderId: senderId,
+                    message: `${senderName}님이 퇴장하셨습니다.`
+                };
+                stompClient.publish({
+                    destination: '/pub/chat/message',
+                    body: JSON.stringify(exitMessage),
+                });
+            }
+
+            // 로컬 상태 업데이트
+            set((state) => ({
+                chats: state.chats.filter(c => c.roomId !== roomId),
+                selectedChatId: state.selectedChatId === roomId ? null : state.selectedChatId,
+                messages: state.selectedChatId === roomId ? [] : state.messages
+            }));
+
+        } catch (error) {
+            console.error("Failed to leave room:", error);
+            throw error;
+        }
     }
 
 }));

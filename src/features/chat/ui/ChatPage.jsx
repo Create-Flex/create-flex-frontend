@@ -61,6 +61,17 @@ export const ChatPage = () => {
     );
   };
 
+  const handleLeaveRoom = async (roomId) => {
+    if (!window.confirm("정말 이 채팅방을 나가시겠습니까? 나가면 대화 내용이 모두 삭제되고 목록에서 사라집니다.")) return;
+
+    try {
+      const { leaveRoom } = useChatStore.getState();
+      await leaveRoom(roomId, user?.memberName || user?.name, user?.memberId || user?.id);
+    } catch (error) {
+      alert("방 나가기에 실패했습니다.");
+    }
+  };
+
   const formatRoomName = (chatOrName) => {
     const myName = user?.name || user?.memberName || 'Unknown';
 
@@ -108,6 +119,7 @@ export const ChatPage = () => {
         currentUserName={user?.memberName || user?.name}
         formatRoomName={formatRoomName}
         onRefreshRooms={loadRooms}
+        onLeaveRoom={() => handleLeaveRoom(selectedChatId)}
       />
     </S.ChatContainer>
   );

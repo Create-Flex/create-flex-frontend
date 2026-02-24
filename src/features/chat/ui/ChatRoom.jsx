@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as S from './Chat.styled';
-import { Send, Edit2, Users, X } from 'lucide-react';
+import { Send, Edit2, Users, X, LogOut } from 'lucide-react';
 import { chatService } from '../api/ChatService';
 
-export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, formatRoomName, onRefreshRooms }) => {
+export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, formatRoomName, onRefreshRooms, onLeaveRoom }) => {
   const [inputValue, setInputValue] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
@@ -93,12 +93,21 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
               </>
             )}
           </S.HeaderInfo>
-          <S.IconButton
-            onClick={() => setIsParticipantsOpen(!isParticipantsOpen)}
-            title="참여자 목록"
-          >
-            <Users size={20} />
-          </S.IconButton>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <S.IconButton
+              onClick={() => setIsParticipantsOpen(!isParticipantsOpen)}
+              title="참여자 목록"
+            >
+              <Users size={20} />
+            </S.IconButton>
+            <S.IconButton
+              onClick={onLeaveRoom}
+              title="채팅방 나가기"
+              style={{ color: '#fd7272' }}
+            >
+              <LogOut size={20} />
+            </S.IconButton>
+          </div>
         </S.ChatHeader>
 
         <S.MessageList>
@@ -114,6 +123,13 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
             }
 
             if (msg.type === 'ENTER') return null;
+            if (msg.type === 'EXIT') {
+              return (
+                <S.SystemMessage key={index}>
+                  {msg.message || `${msg.sender}님이 퇴장하셨습니다.`}
+                </S.SystemMessage>
+              );
+            }
 
             return (
               <S.MessageGroup key={index} $isMine={isMine}>

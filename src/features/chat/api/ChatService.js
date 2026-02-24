@@ -47,5 +47,11 @@ export const chatService = {
             name
         }, getAuthHeaders());
         return response.data;
+    },
+
+    // 채팅방 나가기
+    leaveRoom: async (roomId) => {
+        const response = await axios.delete(`${BASE_URL}/chat/room/${roomId}/leave`, getAuthHeaders());
+        return response.data;
     }
 };

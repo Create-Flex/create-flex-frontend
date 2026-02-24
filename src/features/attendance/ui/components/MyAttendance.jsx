@@ -50,16 +50,14 @@ const REVERSE_STATUS_MAP = {
 export const MyAttendance = () => {
     const today = new Date();
 
-    // 오늘 기준 한 달 전/후 설정
+    // 오늘 기준 한 달 전 설정
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(today.getMonth() - 1);
-    const oneMonthLater = new Date();
-    oneMonthLater.setMonth(today.getMonth() + 1);
 
     const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
 
     const [startDate, setStartDate] = useState(getISODate(oneMonthAgo));
-    const [endDate, setEndDate] = useState(getISODate(oneMonthLater));
+    const [endDate, setEndDate] = useState(getISODate(today));
     const [statusFilter, setStatusFilter] = useState('All');
     const [workLogs, setWorkLogs] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -209,10 +207,8 @@ export const MyAttendance = () => {
                         const today = new Date();
                         const oneMonthAgo = new Date();
                         oneMonthAgo.setMonth(today.getMonth() - 1);
-                        const oneMonthLater = new Date();
-                        oneMonthLater.setMonth(today.getMonth() + 1);
                         setStartDate(getISODate(oneMonthAgo));
-                        setEndDate(getISODate(oneMonthLater));
+                        setEndDate(getISODate(today));
                         setStatusFilter('All');
                         setPage(0);
                     }}>

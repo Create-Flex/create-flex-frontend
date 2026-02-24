@@ -143,12 +143,14 @@ export const Sidebar = ({ onLogout }) => {
                     const outTime = myLog.attendanceEnd ? myLog.attendanceEnd.split('T')[1].substring(0, 5) : null;
 
                     if (inTime && !outTime) {
+                        const isLateCheck = inTime > '09:00';
+
                         // Currently clocked in
                         setIsClockedIn(true);
                         setAttendanceState({
                             inTime: inTime,
                             outTime: null,
-                            isLate: myLog.attendanceStatus === 'LATE' || myLog.attendanceStatus === '지각',
+                            isLate: isLateCheck,
                             isEarlyLeave: false
                         });
 
@@ -163,13 +165,13 @@ export const Sidebar = ({ onLogout }) => {
                     } else if (inTime && outTime) {
                         // Clocked out for today
                         setIsClockedIn(false);
-                        const isEarly = (myLog.attendanceStatus === 'EARLY_LEAVE' || myLog.attendanceStatus === '조퇴')
-                            || (outTime < '18:00' && myLog.attendanceStatus !== 'HALF_VACATION' && myLog.attendanceStatus !== '반차');
+                        const isEarly = outTime < '18:00';
+                        const isLateCheck = inTime > '09:00';
 
                         setAttendanceState({
                             inTime: inTime,
                             outTime: outTime,
-                            isLate: myLog.attendanceStatus === 'LATE' || myLog.attendanceStatus === '지각',
+                            isLate: isLateCheck,
                             isEarlyLeave: isEarly
                         });
 
@@ -232,27 +234,13 @@ export const Sidebar = ({ onLogout }) => {
     const handleClockInOut = async () => {
         if (!user) return;
 
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-
         try {
             if (!isClockedIn) {
                 // Processing Clock In
                 await attendanceService.checkIn();
                 toast.success('출근 처리되었습니다.');
 
-                // Optimistic UI Update
-                setWorkSeconds(0);
-                setLastWorkRecord(null);
-                setIsClockedIn(true);
-
-                const nineAM = new Date(now);
-                nineAM.setHours(9, 0, 0, 0);
-                const isLate = now.getTime() > nineAM.getTime();
-
-                setAttendanceState(prev => ({ ...prev, inTime: timeString, isLate: isLate, outTime: null, isEarlyLeave: false }));
-
-                // Trigger refresh for other components
+                // Trigger refresh for other components and sidebar itself
                 if (triggerAttendanceRefresh) triggerAttendanceRefresh();
 
             } else {
@@ -260,17 +248,7 @@ export const Sidebar = ({ onLogout }) => {
                 await attendanceService.checkOut();
                 toast.success('퇴근 처리되었습니다.');
 
-                setIsClockedIn(false);
-                // Last work record calc
-                setLastWorkRecord(formatTime(workSeconds));
-
-                const sixPM = new Date(now);
-                sixPM.setHours(18, 0, 0, 0);
-                const isEarly = now.getTime() < sixPM.getTime();
-
-                setAttendanceState(prev => ({ ...prev, outTime: timeString, isEarlyLeave: isEarly }));
-
-                // Trigger refresh for other components
+                // Trigger refresh for other components and sidebar itself
                 if (triggerAttendanceRefresh) triggerAttendanceRefresh();
             }
         } catch (error) {

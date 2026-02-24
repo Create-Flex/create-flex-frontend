@@ -342,8 +342,13 @@ export const Input = styled.textarea`
   color: #37352f;
   resize: none;
   line-height: 1.5;
-  max-height: 100px;
-  min-height: 20px;
+  max-height: 42px; /* 14px * 1.5 = 21px per line. 2 lines = 42px */
+  min-height: 21px;
+  overflow-y: auto;
+  
+  /* Hide scrollbar for cleaner look if desired, or keep it */
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #d6d6d6; border-radius: 2px; }
 
   &::placeholder {
     color: #b4b4b4;

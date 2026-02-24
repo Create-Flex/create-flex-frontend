@@ -3,9 +3,11 @@ import {Container, DetailContainer, Question, QuestionTitle,
     QuestionInfo, QuestionMemberName, QuestionDepartmentName,
     QuestionTime, QuestionDetail, Answer, AnswerInfo, AnsweredTitle,
     AnsweredMemberName, AnsweredTime, AnsweredDetail, BackButton,
-    NotAnswered, NotAnsweredDetail, AnsweredDepartmentName, NotAnsweredNotAdmin
+    NotAnswered, NotAnsweredDetail, AnsweredDepartmentName, NotAnsweredNotAdmin,
+    QuestionFileList, QuestionFile
 } from "../style/qaDetailStyle";
 import QAHeader from './QAHeader';
+import {File} from 'lucide-react';
 import { useSearchParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 
@@ -34,6 +36,19 @@ function QADetailPage() {
                         <QuestionMemberName>{qaDetail.questionMemberName}(</QuestionMemberName>
                         <QuestionDepartmentName>{qaDetail.questionDepartmentName}</QuestionDepartmentName>
                         <QuestionTime>) 문의시각:{dayjs(qaDetail.questionTime).format("YYYY-MM-DD HH:mm")}</QuestionTime>
+                    </QuestionInfo>
+                    <QuestionInfo>
+                        <QuestionFileList>
+                            {qaDetail.files.map((file, index) => (
+                                index == 0 ?
+                                    <QuestionFile key={index}><a href={file.fileURL}><File size={12}/>
+                                    {file.fileName}({(file.fileSize / 1024).toFixed(1)}KB)
+                                </a></QuestionFile> :
+                                <QuestionFile key={index}><a href={file.fileURL}>
+                                    , <File size={12}/>{file.fileName}({(file.fileSize / 1024).toFixed(1)}KB)
+                                </a></QuestionFile>
+                            ))}
+                        </QuestionFileList>
                     </QuestionInfo>
                     <QuestionDetail>{qaDetail.questionDetail}</QuestionDetail>
                 </Question>

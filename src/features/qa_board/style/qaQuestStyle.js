@@ -45,6 +45,18 @@ export const QuestWriteDetail = styled.p`
   color: #4b4e55;
 `;
 
+export const QuestWriteFile = styled.div`
+  display: flex;
+  gap: 5pt;
+  padding: 12px 24px 24px;
+  font-weight: normal;
+  text-transform: none;
+  font-size: 0.7rem;
+  whiteSpace: pre-line;
+  background-color: white;
+  color: #4b4e55;
+`;
+
 export const UploadButton = styled.button`
   margin-top: 0.5rem;
   padding: 0.5rem 1rem;
@@ -64,6 +76,26 @@ export const UploadButton = styled.button`
 
   &:hover {
     background-color: #e5e7eb;
+  }
+`
+
+export const FileButton = styled.label`
+  padding: 0.2rem 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: black;
+  background-color: #f0f0f0;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #dadce0;
   }
 `
 
@@ -92,4 +124,15 @@ export const InputDetail = styled.textarea`
   &:focus {
     outline: none;
   }
+`;
+
+export const FileList = styled.ul`
+  display: flex;
+  align-items: center; 
+  list-style: none;
+  padding: 0;
+`;
+
+export const File = styled.li`
+
 `;

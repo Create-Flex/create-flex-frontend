@@ -7,7 +7,7 @@ export default function useQADetail(qaId){
     const fetchQADetail = async (id) => {
         try{
             const res = await getQADetail(id);
-            console.log("받아온 결과 : ", res.data);
+            console.log(res.data);
             setQaDetail(res.data);
         } catch (err) {
             console.error('QA 상세 조회 실패', err);
@@ -15,7 +15,6 @@ export default function useQADetail(qaId){
     };
 
     useEffect(() => {
-        console.log("호출 체크");
         fetchQADetail(qaId);
     }, [qaId]);
 

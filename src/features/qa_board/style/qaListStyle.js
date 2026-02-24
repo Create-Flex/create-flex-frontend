@@ -144,3 +144,42 @@ export const WriteButton = styled.button`
     background-color: #e5e7eb;
   }
 `;
+
+export const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+`;
+
+export const PageButton = styled.button`
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid ${props => props.$active ? '#111827' : '#e5e7eb'};
+  background-color: ${props => props.$active ? '#111827' : 'white'};
+  color: ${props => props.$active ? 'white' : '#374151'};
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: #111827;
+    background-color: ${props => props.$active ? '#1f2937' : '#f3f4f6'};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+export const PageInfo = styled.span`
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0 0.75rem;
+`;

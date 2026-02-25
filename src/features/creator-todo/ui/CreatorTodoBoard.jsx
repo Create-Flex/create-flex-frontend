@@ -121,8 +121,29 @@ export const CreatorTodoBoard = ({ creatorId }) => {
 
         switch (type) {
             case 'MOVE_SUCCESS': {
-                // 수신 측은 서버 최신 상태로 silent re-fetch (필드명 불일치/타입 불일치 방지)
-                fetchBoard(true);
+                const todoId = Number(payload.todoId);
+                const destColId = Number(payload.columnId); // 백엔드 필드명: columnId
+                const newPosition = Number(payload.newPosition);
+
+                setColumns(prev => {
+                    let movedTodo = null;
+                    // 기존 컬럼에서 해당 todo 제거
+                    const withoutTodo = prev.map(col => {
+                        const todo = col.todos.find(t => Number(t.id) === todoId);
+                        if (todo) {
+                            movedTodo = { ...todo, columnId: destColId, position: newPosition };
+                            return { ...col, todos: col.todos.filter(t => Number(t.id) !== todoId) };
+                        }
+                        return col;
+                    });
+                    if (!movedTodo) return prev;
+                    // 목적지 컬럼에 삽입 후 position 순 정렬
+                    return withoutTodo.map(col => {
+                        if (col.id !== destColId) return col;
+                        const newTodos = [...col.todos, movedTodo].sort((a, b) => a.position - b.position);
+                        return { ...col, todos: newTodos };
+                    });
+                });
                 break;
             }
             case 'TODO_CREATED': {
@@ -350,7 +371,7 @@ export const CreatorTodoBoard = ({ creatorId }) => {
             <BoardHeader>
                 <BoardTitle>
                     <ClipboardList size={20} style={{ color: '#374151' }} />
-                    칸반 보드
+                    할일 목록
                     <BoardCount>({totalCount})</BoardCount>
                 </BoardTitle>
             </BoardHeader>

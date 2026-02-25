@@ -54,6 +54,8 @@ export const AttendanceManagement = ({ employees, attendanceLogs = [] }) => {
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 10;
 
+    const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
+
     // Initial Data Fetch & Filter Updates
     useEffect(() => {
         const fetchData = async () => {

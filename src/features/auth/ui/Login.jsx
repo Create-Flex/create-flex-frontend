@@ -68,6 +68,25 @@ export const Login = () => {
         login(authUser, accessToken);
 
         // 5. 프로필 설정 (백엔드 데이터만 사용)
+        const DEFAULT_AVATAR = 'https://i.postimg.cc/bJSGpBqg/Gemini-Generated-Image-s33rl9s33rl9s33r-(1).png';
+        const checkImage = (url) => new Promise((resolve) => {
+          if (!url) { resolve(DEFAULT_AVATAR); return; }
+          const img = new Image();
+          img.onload = () => resolve(url);
+          img.onerror = () => resolve(DEFAULT_AVATAR);
+          setTimeout(() => resolve(DEFAULT_AVATAR), 5000);
+          img.src = url;
+        });
+        // 배너는 유효하지 않으면 '' 반환 → PlaceholderCover 표시
+        const checkCoverImage = (url) => new Promise((resolve) => {
+          if (!url) { resolve(''); return; }
+          const img = new Image();
+          img.onload = () => resolve(url);
+          img.onerror = () => resolve('');
+          setTimeout(() => resolve(''), 5000);
+          img.src = url;
+        });
+
         let newProfile = null;
         const role = userInfo.memberRole || userInfo.role;
 
@@ -77,8 +96,8 @@ export const Login = () => {
             name: userInfo.memberName,
             email: userInfo.corporEmail || userInfo.memberAccount,
             role: userInfo.memberRole,
-            avatarUrl: userInfo.profileImage || '',
-            coverUrl: userInfo.profileBanner || '',
+            avatarUrl: await checkImage(userInfo.profileImage),
+            coverUrl: await checkCoverImage(userInfo.profileBanner),
             job: userInfo.task || '-',
             nickname: userInfo.nickname || '',
             org: userInfo.departmentName || '-',
@@ -99,8 +118,8 @@ export const Login = () => {
               name: creatorInfo.member_name || userInfo.memberName,
               email: creatorInfo.member_account || userInfo.memberAccount,
               role: 'CREATOR',
-              avatarUrl: creatorInfo.profile_image || userInfo.profileImage || '',
-              coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
+              avatarUrl: await checkImage(creatorInfo.profile_image || userInfo.profileImage),
+              coverUrl: await checkCoverImage(creatorInfo.profile_banner || userInfo.profileBanner),
               job: 'Creator',
               org: 'MCN',
               rank: '-',
@@ -119,8 +138,8 @@ export const Login = () => {
               job: 'Creator',
               org: 'MCN',
               rank: '-',
-              avatarUrl: userInfo.profileImage || '',
-              coverUrl: userInfo.profileBanner || '',
+              avatarUrl: await checkImage(userInfo.profileImage),
+              coverUrl: await checkCoverImage(userInfo.profileBanner),
               employeeId: String(userInfo.memberId),
             };
           }
@@ -131,8 +150,8 @@ export const Login = () => {
             name: userInfo.memberName,
             email: userInfo.corporEmail || userInfo.memberAccount,
             role: userInfo.memberRole,
-            avatarUrl: userInfo.profileImage || '',
-            coverUrl: userInfo.profileBanner || '',
+            avatarUrl: await checkImage(userInfo.profileImage),
+            coverUrl: await checkCoverImage(userInfo.profileBanner),
             job: userInfo.task || '-',
             nickname: userInfo.nickname || '',
             org: userInfo.departmentName || '-',

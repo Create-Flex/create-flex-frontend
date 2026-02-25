@@ -8,6 +8,7 @@ import { ProfileView } from '../features/employee/ui/ProfileView';
 import { HealthPrivate } from '../features/health/ui/HealthPrivate';
 import { ScheduleView } from '../features/calendar/ui/ScheduleView';
 import { OrgChartView } from '../features/organization/ui/OrgChartView';
+import { DepartmentReadOnlyView } from '../features/organization/ui/DepartmentReadOnlyView';
 import { CreatorManagerView } from '../features/creator/ui/CreatorManagerView';
 import { AttendanceView } from '../features/attendance/ui/AttendanceView';
 import { VacationView } from '../features/vacation/ui/VacationView';
@@ -94,6 +95,15 @@ function App() {
                         img.src = url;
                     });
                 };
+                // 배너는 유효하지 않으면 '' 반환 → PlaceholderCover 표시
+                const checkCoverImage = (url) => new Promise((resolve) => {
+                    if (!url) { resolve(''); return; }
+                    const img = new Image();
+                    img.onload = () => resolve(url);
+                    img.onerror = () => resolve('');
+                    setTimeout(() => resolve(''), 5000);
+                    img.src = url;
+                });
 
                 // 프로필 설정 (백엔드 데이터만 사용)
                 let newProfile = null;
@@ -106,7 +116,7 @@ function App() {
                         email: userInfo.corporEmail || userInfo.memberAccount,
                         role: userInfo.memberRole,
                         avatarUrl: await checkImage(userInfo.profileImage),
-                        coverUrl: userInfo.profileBanner || '',
+                        coverUrl: await checkCoverImage(userInfo.profileBanner),
                         // 직원 상세 정보
                         job: userInfo.task || '-',
                         nickname: userInfo.nickname || '',
@@ -129,7 +139,7 @@ function App() {
                             email: creatorInfo.member_account || userInfo.memberAccount,
                             role: 'CREATOR',
                             avatarUrl: await checkImage(userInfo.profileImage),
-                            coverUrl: creatorInfo.profile_banner || userInfo.profileBanner || '',
+                            coverUrl: await checkCoverImage(creatorInfo.profile_banner || userInfo.profileBanner),
                             job: 'Creator',
                             org: 'MCN',
                             rank: '-',
@@ -149,7 +159,7 @@ function App() {
                             org: 'MCN',
                             rank: '-',
                             avatarUrl: await checkImage(userInfo.profileImage),
-                            coverUrl: userInfo.profileBanner || '',
+                            coverUrl: await checkCoverImage(userInfo.profileBanner),
                             employeeId: userInfo.memberId || userInfo.id,
                         };
                     }
@@ -162,7 +172,7 @@ function App() {
                         email: userInfo.corporEmail || userInfo.memberAccount,
                         role: userInfo.memberRole,
                         avatarUrl: await checkImage(userInfo.profileImage),
-                        coverUrl: userInfo.profileBanner || '',
+                        coverUrl: await checkCoverImage(userInfo.profileBanner),
                         // 직원 상세 정보
                         job: userInfo.task || '-',
                         nickname: userInfo.nickname || '',
@@ -292,6 +302,7 @@ function App() {
                             <Route path="/hr/support" element={<HRDashboardView view="hr-support" />} />
 
                             <Route path="/org-chart" element={<OrgChartView />} />
+                            <Route path="/company-departments" element={<DepartmentReadOnlyView />} />
                             <Route path="/team" element={<TeamView />} />
 
                             {/* Creator Routes */}

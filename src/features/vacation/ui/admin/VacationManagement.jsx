@@ -388,16 +388,18 @@ export const VacationManagement = ({ employees = [] }) => {
                         <Calendar size={14} color="#9ca3af" />
                         <DateInput
                             type="date"
+                            max="9999-12-31"
                             value={startDate}
-                            onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
+                            onChange={(e) => { const [y] = e.target.value.split('-'); if (y.length <= 4) { setStartDate(e.target.value); setPage(0); } }}
                         />
                         <DateRangeArrow>
                             <ArrowRight size={12} />
                         </DateRangeArrow>
                         <DateInput
                             type="date"
+                            max="9999-12-31"
                             value={endDate}
-                            onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
+                            onChange={(e) => { const [y] = e.target.value.split('-'); if (y.length <= 4) { setEndDate(e.target.value); setPage(0); } }}
                         />
                     </DateFilter>
                 </FilterGroup>

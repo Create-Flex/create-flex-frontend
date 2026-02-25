@@ -210,9 +210,9 @@ export const MyVacation = () => {
                     <FilterGroup>
                         <DateRangePicker>
                             <FilterLabel>기간</FilterLabel>
-                            <DateInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                            <DateInput type="date" max="9999-12-31" value={startDate} onChange={(e) => { const [y] = e.target.value.split('-'); if (y.length <= 4) setStartDate(e.target.value); }} />
                             <ArrowRight size={14} color="#d1d5db" style={{ margin: '0 0.25rem' }} />
-                            <DateInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                            <DateInput type="date" max="9999-12-31" value={endDate} onChange={(e) => { const [y] = e.target.value.split('-'); if (y.length <= 4) setEndDate(e.target.value); }} />
                         </DateRangePicker>
 
                         <SelectWrapper>

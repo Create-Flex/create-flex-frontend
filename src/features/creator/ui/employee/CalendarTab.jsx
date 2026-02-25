@@ -95,7 +95,7 @@ export const CalendarTab = ({
                     partnerNames: schedule.visitorNames || [],
                     // 매니저가 등록한 일정인지 크리에이터가 등록한 일정인지 구분
                     creatorName: schedule.creatorName || null,
-                    isManagerCreated: schedule.creatorId !== null,
+                    isManagerCreated: schedule.memberRole !== 'CREATOR', // 크리에이터가 아닌 경우(매니저/관리자 등)는 모두 매니저 등록 일정으로 판단
                     writerName: schedule.memberName // 작성자 이름 매핑 추가
                 };
             });

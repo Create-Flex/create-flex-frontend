@@ -25,7 +25,7 @@ export const ScheduleWriteModal = ({
     scheduleName: '',
     scheduleDate: date || new Date().toISOString().split('T')[0],
     scheduleDetail: '',
-    scheduleType: 'CONTENT', 
+    scheduleType: 'CONTENT',
     creatorId: initialCreatorId || '',
     visitorIds: []
   });

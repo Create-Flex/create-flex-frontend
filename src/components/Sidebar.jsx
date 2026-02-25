@@ -3,7 +3,7 @@ import { UserRole } from '../shared/constants/enums';
 import * as S from './Sidebar.styled';
 import {
     Settings, PanelLeftClose, PanelLeftOpen, LayoutGrid, Calendar,
-    Clock, Users, UserCircle, Briefcase,
+    Clock, Users, UserCircle, Briefcase, Building,
     LogOut, Activity, Palmtree, BarChart4, ClipboardList, Scale, FileText, Megaphone, Network, Plane,
     ChevronDown, ChevronRight, MessageCircle, CircleQuestionMark
 } from 'lucide-react';
@@ -392,6 +392,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
                                 <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
                             </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/company-departments')} $isActive={location.pathname === '/company-departments'} $center={isCollapsed} title="회사 부서">
+                                <Building size={16} />{!isCollapsed && <S.NavText>회사 부서</S.NavText>}
+                            </S.NavItem>
                         </S.NavContainer>
 
                         {/* 인사/운영 관리 Section with Accordion */}
@@ -491,6 +494,9 @@ export const Sidebar = ({ onLogout }) => {
                             <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
                                 <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
                             </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/company-departments')} $isActive={location.pathname === '/company-departments'} $center={isCollapsed} title="회사 부서">
+                                <Building size={16} />{!isCollapsed && <S.NavText>회사 부서</S.NavText>}
+                            </S.NavItem>
                         </S.NavContainer>
 
                         {/* 매니저용 크리에이터 관리 Section with Accordion */}
@@ -581,6 +587,9 @@ export const Sidebar = ({ onLogout }) => {
                             </S.NavItem>
                             <S.NavItem onClick={() => navigate('/qna')} $isActive={location.pathname === '/qna'} $center={isCollapsed} title="QnA">
                                 <CircleQuestionMark size={16} />{!isCollapsed && <S.NavText>Q & A</S.NavText>}
+                            </S.NavItem>
+                            <S.NavItem onClick={() => navigate('/company-departments')} $isActive={location.pathname === '/company-departments'} $center={isCollapsed} title="회사 부서">
+                                <Building size={16} />{!isCollapsed && <S.NavText>회사 부서</S.NavText>}
                             </S.NavItem>
                         </S.NavContainer>
                     </>

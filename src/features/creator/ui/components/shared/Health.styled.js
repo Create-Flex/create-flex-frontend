@@ -224,6 +224,21 @@ export const LogList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 3px solid #babec5;
+  border-radius: 0.75rem;
+
+  &::-webkit-scrollbar-track {
+    background: transparent; /* 트랙 배경 투명 */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3); /* 막대 색 + 투명도 */
+    border-radius: 4px;
+  }
 `;
 
 export const LogItem = styled.div`

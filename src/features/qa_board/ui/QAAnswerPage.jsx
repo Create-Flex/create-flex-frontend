@@ -34,7 +34,7 @@ function QAAnswerPage() {
                     </QuestionTitle>
                     <QuestionInfo>
                         <QuestionMemberName>{qaDetail.questionMemberName}(</QuestionMemberName>
-                        <QuestionDepartmentName>{qaDetail.QuestionDepartmentName}</QuestionDepartmentName>
+                        <QuestionDepartmentName>{qaDetail.questionDepartmentName}</QuestionDepartmentName>
                         <QuestionTime>) 문의시각:{dayjs(qaDetail.questionTime).format("YYYY-MM-DD HH:mm")}</QuestionTime>
                     </QuestionInfo>
                     <QuestionDetail>{qaDetail.questionDetail}</QuestionDetail>

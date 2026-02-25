@@ -77,14 +77,22 @@ function App() {
 
                 const checkImage = async (url) => {
                     const DEFAULT_AVATAR = 'https://i.postimg.cc/bJSGpBqg/Gemini-Generated-Image-s33rl9s33rl9s33r-(1).png';
-                    if (!url) return DEFAULT_AVATAR;
 
-                    try {
-                        const res = await fetch(url, { method: 'HEAD' });
-                        return res.ok ? url : DEFAULT_AVATAR;
-                    } catch {
-                        return DEFAULT_AVATAR;
-                    }
+                    return new Promise((resolve) => {
+                        if (!url){
+                            resolve(DEFAULT_AVATAR);
+                            return;
+                        }
+
+                        const img = new Image();
+
+                        img.onload = () => resolve(url);
+                        img.onerror = () => resolve(DEFAULT_AVATAR);
+                        setTimeout(() => {
+                            resolve(DEFAULT_AVATAR);
+                        }, 5000);
+                        img.src = url;
+                    });
                 };
 
                 // 프로필 설정 (백엔드 데이터만 사용)

@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// 기본 URL 설정 (백엔드 포트 확인 필요, 프록시 설정이 없다면 직접 지정)
 const BASE_URL = 'http://localhost:8888';
 
-// 토큰 가져오기 헬퍼
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return {
@@ -14,7 +12,7 @@ const getAuthHeaders = () => {
 };
 
 export const chatService = {
-    // 채팅방 생성 (이름 + 참여자 ID 목록)
+    // 채팅방 생성
     createRoom: async (name, memberIds) => {
         const response = await axios.post(`${BASE_URL}/chat/room`, {
             name,
@@ -35,7 +33,7 @@ export const chatService = {
         return response.data;
     },
 
-    // 모든 멤버 조회 (채팅방 생성 시 선택용 - /api/members/all 엔드포인트 사용)
+    // 모든 멤버 조회
     getAllMembers: async () => {
         const response = await axios.get(`${BASE_URL}/api/members/all`, getAuthHeaders());
         return response.data;
@@ -52,6 +50,15 @@ export const chatService = {
     // 채팅방 나가기
     leaveRoom: async (roomId) => {
         const response = await axios.delete(`${BASE_URL}/chat/room/${roomId}/leave`, getAuthHeaders());
+        return response.data;
+    },
+
+    // 이전 메시지 조회
+    getOlderMessages: async (roomId, lastId, size = 20) => {
+        const response = await axios.get(`${BASE_URL}/chat/room/${roomId}/messages/older`, {
+            params: { lastId, size },
+            ...getAuthHeaders()
+        });
         return response.data;
     }
 };

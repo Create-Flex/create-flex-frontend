@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import * as S from './Chat.styled';
 import { Send, Edit2, Users, X, LogOut } from 'lucide-react';
 import { chatService } from '../api/ChatService';
+import { useChatStore } from '../model/useChatStore';
 
 export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, formatRoomName, onRefreshRooms, onLeaveRoom }) => {
   const [inputValue, setInputValue] = useState('');
@@ -9,20 +10,58 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
   const [newRoomName, setNewRoomName] = useState('');
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [prevScrollHeight, setPrevScrollHeight] = useState(0);
+
+  // Zustand 스토어에서 페이징 관련 익스포트
+  const { loadOlderMessages, hasMoreOlder } = useChatStore();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // 메시지가 변경될 때 스크롤 처리
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length === 0) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+
+    // 현재 스크롤이 바닥 근처일 때 새로운 메시지가 오면 화면을 아래로
+    const isBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+
+    if (isInitialLoad || isBottom) {
+      // 신규 메시지나 초기 로드 시에는 바닥으로
+      if (isInitialLoad) setIsInitialLoad(false);
+
+      // 약간의 지연 렌더링 후 스크롤
+      setTimeout(scrollToBottom, 50);
+    } else if (prevScrollHeight > 0) {
+      // 이전 메시지가 위로 추가된 경우 (상단 페이징)
+      const scrollDiff = container.scrollHeight - prevScrollHeight;
+      container.scrollTop = scrollDiff;
+      setPrevScrollHeight(0);
+    }
   }, [messages]);
 
+  // 방이 바뀌면 초기 로드 상태로 초기화
   useEffect(() => {
+    setIsInitialLoad(true);
     if (chat) {
       setNewRoomName(chat.name || '');
     }
   }, [chat]);
+
+  // 상단 도달 시 이전 메시지 로드
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight } = e.currentTarget;
+    if (scrollTop === 0 && hasMoreOlder && chat) {
+      setPrevScrollHeight(scrollHeight);
+      loadOlderMessages(chat.roomId);
+    }
+  };
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
@@ -110,7 +149,7 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
           </div>
         </S.ChatHeader>
 
-        <S.MessageList>
+        <S.MessageList ref={scrollContainerRef} onScroll={handleScroll}>
           {messages && messages.map((msg, index) => {
             const isMine = msg.sender?.trim() === currentUserName?.trim();
 
@@ -122,14 +161,8 @@ export const ChatRoom = ({ chat, messages, onSendMessage, currentUserName, forma
               } catch (e) { }
             }
 
-            if (msg.type === 'ENTER') return null;
-            if (msg.type === 'EXIT') {
-              return (
-                <S.SystemMessage key={index}>
-                  {msg.message || `${msg.sender}님이 퇴장하셨습니다.`}
-                </S.SystemMessage>
-              );
-            }
+            // 시스템 메시지 (입장/퇴장)는 렌더링하지 않음
+            if (msg.type === 'ENTER' || msg.type === 'EXIT') return null;
 
             return (
               <S.MessageGroup key={index} $isMine={isMine}>

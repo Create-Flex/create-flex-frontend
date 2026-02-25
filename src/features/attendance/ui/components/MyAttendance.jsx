@@ -174,13 +174,21 @@ export const MyAttendance = () => {
                             <DateInput
                                 type="date"
                                 value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
+                                onChange={(e) => {
+                                    if (e.target.value && e.target.value.split('-')[0].length > 4) return;
+                                    setStartDate(e.target.value);
+                                }}
+                                max="9999-12-31"
                             />
                             <StyledArrowRight><ArrowRight size={14} /></StyledArrowRight>
                             <DateInput
                                 type="date"
                                 value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
+                                onChange={(e) => {
+                                    if (e.target.value && e.target.value.split('-')[0].length > 4) return;
+                                    setEndDate(e.target.value);
+                                }}
+                                max="9999-12-31"
                             />
                         </DateRangePicker>
 

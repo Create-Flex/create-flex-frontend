@@ -23,7 +23,7 @@ const mentalResult = (score) => {
         return {
             status: '우울아님',
             badgeText: '정상',
-            badgeColor: 'bg-green-50 text-green-700 border-green-200', // Legacy classes, handled by styled prop logic or specialized component
+            badgeColor: 'bg-green-50 text-green-700 border-green-200', 
             icon: CheckCircle2
         };
     } else if (score <= 9) {
@@ -69,7 +69,7 @@ export const PhqSurveyModal = ({ onClose, onSubmit }) => {
             return {
                 status: '우울아님',
                 badgeText: '정상',
-                badgeColor: 'bg-green-50 text-green-700 border-green-200', // Legacy classes, handled by styled prop logic or specialized component
+                badgeColor: 'bg-green-50 text-green-700 border-green-200', 
                 description: '유의한 수준의 우울감이 시사되지 않습니다.',
                 icon: CheckCircle2
             };

@@ -110,6 +110,7 @@ export const Sidebar = ({ onLogout }) => {
 
     const [workSeconds, setWorkSeconds] = useState(0);
     const [lastWorkRecord, setLastWorkRecord] = useState(null);
+    const [hasClockedOutToday, setHasClockedOutToday] = useState(false);
 
     const [attendanceState, setAttendanceState] = useState({ inTime: null, outTime: null, isLate: false, isEarlyLeave: false });
     const [dayProgress, setDayProgress] = useState(0);
@@ -175,16 +176,17 @@ export const Sidebar = ({ onLogout }) => {
                             isEarlyLeave: isEarly
                         });
 
-                        // Calculate duration for validation
-                        // Only show last work record if logged out
-                        // Calculate formatted duration
                         const [h1, m1] = inTime.split(':').map(Number);
                         const [h2, m2] = outTime.split(':').map(Number);
                         const d1 = new Date(); d1.setHours(h1, m1, 0);
                         const d2 = new Date(); d2.setHours(h2, m2, 0);
                         const diff = (d2 - d1) / 1000;
                         setLastWorkRecord(formatTime(diff));
+                        setHasClockedOutToday(true);
                     }
+                } else {
+                    // Reset if no log for today (e.g., past midnight)
+                    setHasClockedOutToday(false);
                 }
             } catch (error) {
                 console.error("Failed to fetch attendance status", error);
@@ -226,7 +228,6 @@ export const Sidebar = ({ onLogout }) => {
         const interval = setInterval(updateDayProgress, 60000);
         return () => clearInterval(interval);
     }, []);
-
 
     // Safety check - must be AFTER all hooks
     if (!user || !userProfile) return null;
@@ -311,10 +312,12 @@ export const Sidebar = ({ onLogout }) => {
                         {!isCreator ? (
                             <S.ActionButtonGroup>
                                 <S.ActionButton
-                                    $variant={isClockedIn ? 'clockOut' : 'clockIn'}
+                                    $variant={isClockedIn ? 'clockOut' : hasClockedOutToday ? 'disabled' : 'clockIn'}
                                     onClick={handleClockInOut}
+                                    disabled={hasClockedOutToday}
+                                    style={hasClockedOutToday ? { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#e5e7eb', color: '#9ca3af' } : {}}
                                 >
-                                    {isClockedIn ? '퇴근하기' : '출근하기'}
+                                    {isClockedIn ? '퇴근하기' : hasClockedOutToday ? '출근 완료' : '출근하기'}
                                 </S.ActionButton>
                                 <S.ActionButton
                                     $variant="default"

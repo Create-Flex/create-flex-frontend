@@ -225,7 +225,7 @@ export const LogList = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
-  max-height: 410px;
+  max-height: 420px;
   overflow-y: auto;
   overflow-x: hidden;
   border: 3px solid #babec5;

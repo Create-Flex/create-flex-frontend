@@ -224,10 +224,12 @@ export const LogList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 300px;
-  height: 200px;
+  width: 100%;
+  max-height: 420px;
   overflow-y: auto;
   overflow-x: hidden;
+  border: 3px solid #babec5;
+  border-radius: 0.75rem;
 
   &::-webkit-scrollbar-track {
     background: transparent; /* 트랙 배경 투명 */

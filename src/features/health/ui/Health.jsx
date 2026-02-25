@@ -430,7 +430,7 @@ export const CreatorHealthView = ({
 
                     <LogList>
                         {creatorMentalList.length > 0 ? creatorMentalList.map((red) => (
-                            <LogItem key={`${red.memberId}-${red.creatorMentalDate}`}>
+                            <LogItem key={`${red.memberId}-${red.creatorMentalDate}`} $score={red.creatorMentalScore}>
 
                                 <LogHeader>
                                     <LogCreator>{red.memberName}</LogCreator>

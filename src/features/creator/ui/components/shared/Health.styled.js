@@ -223,37 +223,53 @@ export const EmptyCell = styled.td`
 export const LogList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   width: 100%;
   max-height: 420px;
+  padding: 0.75rem;
   overflow-y: auto;
   overflow-x: hidden;
-  border: 3px solid #babec5;
+  background-color: white;
+  border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
   &::-webkit-scrollbar-track {
-    background: transparent; /* 트랙 배경 투명 */
+    background: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.3); /* 막대 색 + 투명도 */
-    border-radius: 4px;
+    background-color: #f3f4f6;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: #e5e7eb;
   }
 `;
 
 export const LogItem = styled.div`
   background-color: white;
-  padding: 1.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border-left-width: 4px;
-  border-left-color: #d1d5db;
-  position: relative;
-  transition: all 0.2s;
+  padding: 1.5rem;
+  border: 1px solid #f3f4f6;
+  border-radius: 0.5rem;
+  border-left: 5px solid transparent;
+  border-left-color: ${props => {
+    const score = props.$score;
+    if (score === undefined) return '#f3f4f6';
+    if (score <= 4) return '#bbf7d0'; // 정상 (연한 초록)
+    if (score <= 19) return '#fde68a'; // 주의 (연한 노랑/주황)
+    return '#fecaca'; // 위험 (연한 빨강)
+  }};
+  transition: all 0.2s ease;
   
   &:hover {
-    border-color: #d1d5db; /* border-gray-300 */
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
   }
 `;
 
@@ -279,7 +295,10 @@ export const LogStatusBadge = styled.span`
 `;
 
 export const LogHeader = styled.div`
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 export const LogCreator = styled.h4`

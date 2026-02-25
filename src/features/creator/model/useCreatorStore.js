@@ -61,7 +61,7 @@ export const useCreatorStore = create((set, get) => ({
         partnerCreators: event.visitorIds ? event.visitorIds.map(v => String(v)) : [],
         writerName: event.memberName, // 작성자 이름
         visitorNames: event.visitorNames || [], // 방문자(참여자) 이름 목록
-        isManagerCreated: event.memberRole === 'MANAGER' // 매니저가 생성한 일정 여부
+        isManagerCreated: event.memberRole !== 'CREATOR' // 크리에이터가 아닌 경우(매니저/관리자 등)는 모두 매니저 등록 일정으로 판단
       }));
       set({ creatorEvents: mappedEvents, isLoading: false });
     } catch (error) {

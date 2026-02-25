@@ -300,6 +300,7 @@ export const ContractManagement = () => {
                                     <Input
                                         type="date"
                                         value={contractForm.contract_start}
+                                        max="9999-12-31"
                                         onChange={e => setContractForm({
                                             ...contractForm,
                                             contract_start: e.target.value
@@ -311,6 +312,7 @@ export const ContractManagement = () => {
                                     <Input
                                         type="date"
                                         value={contractForm.contract_end}
+                                        max="9999-12-31"
                                         onChange={e => setContractForm({
                                             ...contractForm,
                                             contract_end: e.target.value

@@ -257,8 +257,8 @@ export const ProfileView = ({
                         )}
                     </MainContent>
 
-                    <SideWidget>
-                        {!hideVacationWidget && !isCreatorProfile && (
+                    {!hideVacationWidget && !isCreatorProfile && (
+                        <SideWidget>
                             <VacationWidget>
                                 <WidgetHeader>
                                     <WidgetTitle>잔여 연차</WidgetTitle>
@@ -280,8 +280,8 @@ export const ProfileView = ({
                                     </UsageItem>
                                 </UsageBarContainer>
                             </VacationWidget>
-                        )}
-                    </SideWidget>
+                        </SideWidget>
+                    )}
                 </SectionLayout>
             </ContentContainer>
 

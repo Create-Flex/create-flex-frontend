@@ -68,7 +68,7 @@ export const VacationManagement = ({ employees = [] }) => {
     const [typeFilter, setTypeFilter] = useState('All');
 
     // Sorting State
-    const [sortConfig, setSortConfig] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ key: 'startDate', direction: 'desc' });
 
     // 백엔드 데이터 State
     const [vacationLogs, setVacationLogs] = useState([]);
@@ -199,14 +199,8 @@ export const VacationManagement = ({ employees = [] }) => {
                     size: pageSize
                 };
 
-                // 미승인 탭일 때는 넓은 날짜 범위 사용 (모든 미승인 신청 표시)
-                if (activeTab === 'pending') {
-                    filters.startDate = '2020-01-01';
-                    filters.endDate = '2030-12-31';
-                } else {
-                    if (startDate) filters.startDate = startDate;
-                    if (endDate) filters.endDate = endDate;
-                }
+                if (startDate) filters.startDate = startDate;
+                if (endDate) filters.endDate = endDate;
 
                 if (typeFilter && typeFilter !== 'All') filters.type = typeFilter;
                 if (nameFilter) filters.name = nameFilter;
@@ -265,6 +259,7 @@ export const VacationManagement = ({ employees = [] }) => {
     const handleApproval = async (targetLog, approved) => {
         if (!approved && !rejectionReason.trim()) {
             setIsRejectionInputOpen(true);
+            toast.error('반려 사유를 입력해주세요.');
             return;
         }
 
@@ -306,7 +301,7 @@ export const VacationManagement = ({ employees = [] }) => {
         setEndDate('');
         setTypeFilter('All');
         setActiveTab('all');
-        setSortConfig(null);
+        setSortConfig({ key: 'startDate', direction: 'desc' });
         setPage(0);
     };
 
@@ -339,19 +334,19 @@ export const VacationManagement = ({ employees = [] }) => {
 
             {/* Tabs (세분화된 필터) */}
             <TabContainer>
-                <TabButton $active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setPage(0); }}>
+                <TabButton $active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setPage(0); setSortConfig({ key: 'startDate', direction: 'desc' }); }}>
                     전체 <TabCount $type="all">{countAll}</TabCount>
                     {activeTab === 'all' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'approved'} onClick={() => { setActiveTab('approved'); setPage(0); }}>
+                <TabButton $active={activeTab === 'approved'} onClick={() => { setActiveTab('approved'); setPage(0); setSortConfig({ key: 'startDate', direction: 'desc' }); }}>
                     승인 <TabCount $type="approved">{countApproved}</TabCount>
                     {activeTab === 'approved' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'rejected'} onClick={() => { setActiveTab('rejected'); setPage(0); }}>
+                <TabButton $active={activeTab === 'rejected'} onClick={() => { setActiveTab('rejected'); setPage(0); setSortConfig({ key: 'startDate', direction: 'desc' }); }}>
                     반려됨 <TabCount $type="rejected">{countRejected}</TabCount>
                     {activeTab === 'rejected' && <ActiveIndicator />}
                 </TabButton>
-                <TabButton $active={activeTab === 'pending'} onClick={() => { setActiveTab('pending'); setPage(0); }}>
+                <TabButton $active={activeTab === 'pending'} onClick={() => { setActiveTab('pending'); setPage(0); setSortConfig({ key: 'requestDate', direction: 'desc' }); }}>
                     미승인 <TabCount $type="pending">{countPending}</TabCount>
                     {activeTab === 'pending' && <ActiveIndicator />}
                 </TabButton>

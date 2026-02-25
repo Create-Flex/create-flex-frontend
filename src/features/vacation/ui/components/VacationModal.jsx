@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift } from 'lucide-react';
+import { X, MapPin, Phone, Target, ClipboardList, Stethoscope, Gift, Briefcase } from 'lucide-react';
 import * as S from './VacationModal.styled';
 import { vacationService } from '../../api/vacationService';
 import { useAuthStore } from '../../../auth/model/useAuthStore';
@@ -24,6 +24,21 @@ export const VacationModal = ({ isOpen, onClose }) => {
         const end = new Date(vacationForm.endDate);
         if (end < start) {
             return toast.error('종료일이 시작일보다 빠를 수 없습니다.');
+        }
+
+        if (vacationForm.type === '경조사') {
+            if (!vacationForm.relationship?.trim()) return toast.error('대상(관계)을 입력해주세요.');
+            if (!vacationForm.eventType?.trim()) return toast.error('경조 내용을 입력해주세요.');
+        }
+        if (vacationForm.type === '병가') {
+            if (!vacationForm.symptoms?.trim()) return toast.error('증상 및 사유를 입력해주세요.');
+            if (!vacationForm.hospital?.trim()) return toast.error('진료 예정 병원을 입력해주세요.');
+        }
+        if (vacationForm.type === '워케이션') {
+            if (!vacationForm.location?.trim()) return toast.error('근무 장소를 입력해주세요.');
+            if (!vacationForm.emergencyContact?.trim()) return toast.error('비상 연락망을 입력해주세요.');
+            if (!vacationForm.workGoals?.trim()) return toast.error('업무 계획 및 목표를 입력해주세요.');
+            if (!vacationForm.handover?.trim()) return toast.error('업무 인계 사항을 입력해주세요.');
         }
 
         let calculatedDays = 1;
@@ -110,6 +125,7 @@ export const VacationModal = ({ isOpen, onClose }) => {
 
                     {vacationForm.type === '워케이션' && (
                         <S.FormSection $bgColor="rgba(239, 246, 255, 0.4)" $borderColor="#dbeafe">
+                            <S.Label><Briefcase size={12} /> 워케이션 필수 정보</S.Label>
                             <S.Grid2>
                                 <div>
                                     <S.Label><MapPin size={12} /> 근무 장소</S.Label>

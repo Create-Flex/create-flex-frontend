@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Search, Plus, Edit3, Lock, Home, Mail, Users, Clock, UserPlus, X, AlertCircle, UserCheck, Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { staffService } from '../../api/staffService';
+import { useAttendanceStore } from '../../../attendance/model/useAttendanceStore';
 import {
     Container, StatsGrid, StatCardContainer, StatHeader, StatLabel, StatValueWrapper, StatValue, StatUnit, StatSubLabel,
     ControlsContainer, SearchWrapper, SearchInput, SearchIconWrapper, AddButton,
@@ -31,6 +32,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     const [searchInput, setSearchInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [departmentList, setDepartmentList] = useState([]); // API에서 가져온 부서 목록
+    const { refreshKey: attendanceRefreshKey } = useAttendanceStore();
 
     // Pagination State
     const [page, setPage] = useState(0);
@@ -93,7 +95,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
     useEffect(() => {
         fetchEmployees(searchInput, page);
         fetchDepartments(); // 부서 목록도 함께 조회
-    }, [page]); // Add page dependency
+    }, [page, attendanceRefreshKey]); // Add page and attendanceRefreshKey dependency
 
     const handleSearch = () => {
         setPage(0); // Reset to first page on search
@@ -143,6 +145,7 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
                 joinType: detail.employmentType === 'EXPERIENCED' ? '경력' : '신입',
                 memberStatus: detail.memberStatus || 'WORKING'
             });
+            setEditingStaffId(detail.memberid);
             setModalType('edit');
         } catch (error) {
             console.error('Failed to fetch employee detail:', error);
@@ -215,11 +218,21 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
         }
     };
 
-    const handleResignation = () => {
-        if (!resignationReason) return toast.error('사유를 입력해주세요.');
+    // 직원 퇴사 처리 실행
+    const handleResignation = async () => {
+        if (!resignationReason.trim()) return toast.error('퇴사 사유를 입력해주세요.');
 
-        setModalType('none');
-        fetchEmployees();
+        try {
+            await staffService.quitEmployee(editingStaffId, resignationReason);
+            toast.success('퇴사 처리가 완료되었습니다.');
+            setModalType('none');
+            setResignationReason('');
+            // 퇴사 처리 후 목록 및 대시보드 새로고침
+            fetchEmployees(searchInput, page);
+        } catch (error) {
+            console.error('퇴사 처리 실패:', error);
+            toast.error('퇴사 처리 중 오류가 발생했습니다.');
+        }
     };
 
     const handleDeptChange = (newDept) => {

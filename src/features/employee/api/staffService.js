@@ -36,5 +36,9 @@ export const staffService = {
     //직원 수정
     updateEmployee: (memberId, data) => {
         return api.patch(`/employees/${memberId}`, data);
+    },
+    // 직원 퇴사 처리
+    quitEmployee: (id, leavingReason) => {
+        return api.post(`/employees/quit/${id}`, { leavingReason });
     }
 };

@@ -33,14 +33,14 @@ import { getMyHealth, postMyHealth, putMyHealth } from '../../health/api/healthS
 import { authService } from '../../auth/api/authService';
 
 export const ProfileView = ({
-    profile, 
+    profile,
     readOnly = false,
     onBack,
     hideVacationWidget = false,
     hideTasks = false
 }) => {
     // Hooks from stores
-    const { user } = useAuthStore();
+    const { user, setUser } = useAuthStore();
     const { userProfile, updateProfile } = useUserStore();
     const { addEmployeeHealthRecord: addHealthRecord } = useHealthStore();
     const { vacationLogs } = useVacationStore();
@@ -345,6 +345,12 @@ export const ProfileView = ({
                         phone: data.personalCall
                     };
                     updateProfile(updatedProfile);
+
+                    // 만약 현재 로그인한 유저 본인의 프로필을 수정한 것이라면 auth store도 업데이트
+                    if (isCurrentUser) {
+                        setUser({ ...user, name: data.memberName, memberName: data.memberName });
+                    }
+
                     toast.success('정보가 성공적으로 수정되었습니다.');
                 }}
             />

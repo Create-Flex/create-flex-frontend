@@ -85,13 +85,14 @@ export const CreatorTodoBoard = ({ creatorId }) => {
     useEffect(() => {
         if (!token || !creatorId) return;
 
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8888';
         const client = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8888/ws-stomp'),
+            webSocketFactory: () => new SockJS(`${baseUrl}/ws-stomp`),
             connectHeaders: { Authorization: `Bearer ${token}` },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
-            debug: () => {},
+            debug: () => { },
             onConnect: () => {
                 client.subscribe(`/sub/creator-todo/${creatorId}`, (message) => {
                     const payload = JSON.parse(message.body);

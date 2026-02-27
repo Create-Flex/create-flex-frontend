@@ -152,6 +152,44 @@ create-flex-frontend/
 
 ---
 
+## 주요 화면
+
+### 인증
+| 관리자 | 매니저 |
+|--------|--------|
+| ![관리자](./image/adminLogin.gif) | ![매니저](./image/managerLogin.gif) |
+
+| 직원 | 크리에이터 |
+|--------|--------|
+| ![직원](./image/employLogin.gif) | ![크리에이터](./image/creatorLogin.gif) |
+
+### 마이페이지 & 할일 목록
+| 일반 마이페이지 | 크리에이터 마이페이지 | 할일 목록 실시간 동기화 |
+|--------|--------|--------|
+| ![마일반 마이페이지지](./image/employeMypage.png) | ![크리에이터 마이페이지](./image/creatorMypage.png) | ![칸반 실시간](./image/todolist.gif) |
+
+### 일정 & 근태 & 휴가
+| 나의 일정 관리 | 나의 근태 관리 | 나의 휴가 관리 |
+|--------|--------|--------|
+| ![나의 일정 관리](./image/mySchedule.gif) | ![나의 근태 관리](./image/myAttendance.gif) | ![나의 휴가 관리](./image/myVacation.gif) |
+
+### 채팅 & 알림
+| 채팅 목록 | 채팅방 | 알림 |
+|--------|--------|--------|
+| ![채팅 목록](./image/chatRoom.gif) | ![채팅방](./image/Chat.gif) | ![알림](./image/notification.gif) |
+
+### 인사 관리 & 회사 부서 관리
+| 인사 관리 | 회사 부서 관리| 크리에이터 관리 |
+|--------|--------|--------|
+| ![인사 관리](./image/PersonnelManagement.gif) | ![회사 부서 관리](./image/DepartmentManagement.gif) | ![크리에이터 관리](./image/CraterManagement.gif) |
+
+### 건강 관리 & QA & AI
+| 건강 관리 | QA 게시판 | AI 어시스턴트 |
+|--------|--------|--------|
+| ![건강 관리](./image/건강관리.gif) | ![QA 게시판](./image/QA게시판.gif) | ![AI 어시스턴트](./image/AI어시스턴트.gif) |
+
+---
+
 ## 라이선스
 
 This project is private and proprietary.

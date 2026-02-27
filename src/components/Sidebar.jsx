@@ -242,11 +242,10 @@ export const Sidebar = ({ onLogout }) => {
                 const result = await attendanceService.checkIn();
                 toast.success('출근 처리되었습니다.');
 
-                // 서버가 저장한 attendanceStart 기준으로 elapsed 계산 (네트워크 왕복 시간만큼만 차이)
-                const startTimestamp = new Date(result.attendanceStart).getTime();
-                const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+                // 서버(DB) 시간과 현재 로컬 PC 시간(Date.now) 사이에 약간의 오차(수 초)가 있을 수 있으므로,
+                // 방금 출근 버튼을 누른 이 순간만큼은 타이머가 정확히 0으로 시작하도록 강제합니다.
                 setIsClockedIn(true);
-                setWorkSeconds(elapsed > 0 ? elapsed : 0);
+                setWorkSeconds(0);
 
                 // 서버 기록 시간을 출근 시간으로 표시 (DB 값과 일치)
                 const serverInTime = result.attendanceStart.split('T')[1].substring(0, 5);

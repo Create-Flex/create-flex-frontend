@@ -155,9 +155,13 @@ create-flex-frontend/
 ## 주요 화면
 
 ### 인증
-| 관리자 | 매니저 | 직원 | 크리에이터 |
-|--------|--------|--------|--------|
-| ![관리자](./image/adminLogin.gif) | ![매니저](./image/managerLogin.gif) | ![직원](./image/employLogin.gif) | ![크리에이터](./image/creatorLogin.gif) |
+| 관리자 | 매니저 |
+|--------|--------|
+| ![관리자](./image/adminLogin.gif) | ![매니저](./image/managerLogin.gif) |
+
+| 직원 | 크리에이터 |
+|--------|--------|
+| ![직원](./image/employLogin.gif) | ![크리에이터](./image/creatorLogin.gif) |
 
 ### 마이페이지 & 칸반 보드
 | 마이페이지 | 칸반 보드 | 칸반 실시간 동기화 |

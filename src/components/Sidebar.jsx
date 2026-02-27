@@ -116,6 +116,7 @@ export const Sidebar = ({ onLogout }) => {
     const [dayProgress, setDayProgress] = useState(0);
 
     const timerRef = useRef(null);
+    const justClockedInRef = useRef(false);
 
     // Derived state (will be used after hooks, safe since they're just variable declarations)
     const isAdmin = user?.role === UserRole.ADMINISTRATOR || user?.memberRole === 'ADMINISTRATOR';
@@ -155,13 +156,14 @@ export const Sidebar = ({ onLogout }) => {
                             isEarlyLeave: false
                         });
 
-                        // Calculate seconds since clock in for the timer
-                        const [hours, minutes] = inTime.split(':').map(Number);
-                        const now = new Date();
-                        const clockInTime = new Date(now);
-                        clockInTime.setHours(hours, minutes, 0, 0);
-                        const diffSeconds = Math.floor((now - clockInTime) / 1000);
-                        setWorkSeconds(diffSeconds > 0 ? diffSeconds : 0);
+                        if (justClockedInRef.current) {
+                            justClockedInRef.current = false;
+                        } else {
+                            const clockInTime = new Date(myLog.attendanceStart);
+                            const now = new Date();
+                            const diffSeconds = Math.floor((now - clockInTime) / 1000);
+                            setWorkSeconds(diffSeconds > 0 ? diffSeconds : 0);
+                        }
 
                     } else if (inTime && outTime) {
                         // Clocked out for today
@@ -176,12 +178,10 @@ export const Sidebar = ({ onLogout }) => {
                             isEarlyLeave: isEarly
                         });
 
-                        const [h1, m1] = inTime.split(':').map(Number);
-                        const [h2, m2] = outTime.split(':').map(Number);
-                        const d1 = new Date(); d1.setHours(h1, m1, 0);
-                        const d2 = new Date(); d2.setHours(h2, m2, 0);
-                        const diff = (d2 - d1) / 1000;
-                        setLastWorkRecord(formatTime(diff));
+                        const d1 = new Date(myLog.attendanceStart);
+                        const d2 = new Date(myLog.attendanceEnd);
+                        const diff = Math.floor((d2 - d1) / 1000);
+                        setLastWorkRecord(formatTime(diff > 0 ? diff : 0));
                         setHasClockedOutToday(true);
                     }
                 } else {
@@ -237,9 +237,24 @@ export const Sidebar = ({ onLogout }) => {
 
         try {
             if (!isClockedIn) {
+                justClockedInRef.current = true;
                 // Processing Clock In
                 await attendanceService.checkIn();
                 toast.success('출근 처리되었습니다.');
+
+                setIsClockedIn(true);
+                setWorkSeconds(0);
+
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const timeStr = `${h}:${m}`;
+                setAttendanceState({
+                    inTime: timeStr,
+                    outTime: null,
+                    isLate: timeStr > '09:00',
+                    isEarlyLeave: false
+                });
 
                 // Trigger refresh for other components and sidebar itself
                 if (triggerAttendanceRefresh) triggerAttendanceRefresh();

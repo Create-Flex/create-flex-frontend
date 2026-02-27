@@ -56,6 +56,8 @@ export const HealthSection = ({
         RETEST_NEED: '재검 필요'
     };
 
+    const year = new Date().getFullYear();
+
     return (
         <HealthSectionContainer>
             {healthCheck === false && (
@@ -65,7 +67,7 @@ export const HealthSection = ({
                             <AlertBadge>대상자 알림</AlertBadge>
                             <AlertTitle>
                                 <span style={{ color: '#2563eb' }}>{profile}</span>님, <br />
-                                2024년 정기 건강검진 대상자입니다.
+                                {year}년 정기 건강검진 대상자입니다.
                             </AlertTitle>
                             <AlertText>
                                 올해 12월 31일까지 일반 건강검진을 완료해야 합니다.<br />

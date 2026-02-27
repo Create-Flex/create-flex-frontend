@@ -175,6 +175,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
+                            max="9999-12-31"
                         />
                         <DateRangeArrow>
                             <ArrowRight size={12} />
@@ -183,6 +184,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
+                            max="9999-12-31"
                         />
                     </DateFilter>
                     <SearchWrapper>
@@ -341,7 +343,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                                     <FileText size={20} />
                                                 </FileIconWrapper>
                                                 <div>
-                                                    <FileName>{selectedRecord.checkupName}_건강검진결과표.pdf</FileName>
+                                                    <FileName>{selectedRecord.checkupName}_건강검진결과표</FileName>
                                                     <FileSize>2.4 MB</FileSize>
                                                 </div>
                                             </FileContent>

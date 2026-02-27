@@ -239,20 +239,21 @@ export const Sidebar = ({ onLogout }) => {
             if (!isClockedIn) {
                 justClockedInRef.current = true;
                 // Processing Clock In
-                await attendanceService.checkIn();
+                const result = await attendanceService.checkIn();
                 toast.success('출근 처리되었습니다.');
 
+                // 서버가 저장한 attendanceStart 기준으로 elapsed 계산 (네트워크 왕복 시간만큼만 차이)
+                const startTimestamp = new Date(result.attendanceStart).getTime();
+                const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
                 setIsClockedIn(true);
-                setWorkSeconds(0);
+                setWorkSeconds(elapsed > 0 ? elapsed : 0);
 
-                const now = new Date();
-                const h = String(now.getHours()).padStart(2, '0');
-                const m = String(now.getMinutes()).padStart(2, '0');
-                const timeStr = `${h}:${m}`;
+                // 서버 기록 시간을 출근 시간으로 표시 (DB 값과 일치)
+                const serverInTime = result.attendanceStart.split('T')[1].substring(0, 5);
                 setAttendanceState({
-                    inTime: timeStr,
+                    inTime: serverInTime,
                     outTime: null,
-                    isLate: timeStr > '09:00',
+                    isLate: serverInTime > '09:00',
                     isEarlyLeave: false
                 });
 
@@ -268,6 +269,7 @@ export const Sidebar = ({ onLogout }) => {
                 if (triggerAttendanceRefresh) triggerAttendanceRefresh();
             }
         } catch (error) {
+            justClockedInRef.current = false; // API 실패 시 ref 초기화 (fetchStatus가 정상 동작하도록)
             console.error(error);
         }
     };

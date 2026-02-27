@@ -175,6 +175,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
+                            max="9999-12-31"
                         />
                         <DateRangeArrow>
                             <ArrowRight size={12} />
@@ -183,6 +184,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
+                            max="9999-12-31"
                         />
                     </DateFilter>
                     <SearchWrapper>

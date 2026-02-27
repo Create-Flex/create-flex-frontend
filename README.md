@@ -171,12 +171,12 @@ create-flex-frontend/
 ### 일정 & 근태 & 휴가
 | 나의 일정 관리 | 나의 근태 관리 | 나의 휴가 관리 |
 |--------|--------|--------|
-| ![나의 일정 관리](./image/일정관리.gif) | ![나의 근태 관리](./image/근태관리.gif) | ![나의 휴가 관리](./image/휴가관리.gif) |
+| ![나의 일정 관리](./image/mySchedule.gif) | ![나의 근태 관리](./image/myAttendance.gif) | ![나의 휴가 관리](./image/myVacation.gif) |
 
 ### 채팅 & 알림
 | 채팅 목록 | 채팅방 | 알림 |
 |--------|--------|--------|
-| ![채팅 목록](./image/채팅목록.gif) | ![채팅방](./image/채팅방.gif) | ![알림](./image/알림.gif) |
+| ![채팅 목록](./image/chatRoom.mp4.gif) | ![채팅방](./image/Chat.gif) | ![알림](./image/notification.mp4.gif) |
 
 ### 인사 관리 & 회사 부서 관리
 | 인사 관리 | 회사 부서 관리| 크리에이터 관리 |

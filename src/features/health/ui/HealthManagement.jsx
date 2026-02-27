@@ -343,7 +343,7 @@ export const HealthManagement = ({ healthRecords: initialRecords }) => {
                                                     <FileText size={20} />
                                                 </FileIconWrapper>
                                                 <div>
-                                                    <FileName>{selectedRecord.checkupName}_건강검진결과표.pdf</FileName>
+                                                    <FileName>{selectedRecord.checkupName}_건강검진결과표</FileName>
                                                     <FileSize>2.4 MB</FileSize>
                                                 </div>
                                             </FileContent>

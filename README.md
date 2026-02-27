@@ -176,12 +176,12 @@ create-flex-frontend/
 ### 채팅 & 알림
 | 채팅 목록 | 채팅방 | 알림 |
 |--------|--------|--------|
-| ![채팅 목록](./image/chatRoom.mp4.gif) | ![채팅방](./image/Chat.gif) | ![알림](./image/notification.mp4.gif) |
+| ![채팅 목록](./image/chatRoom.gif) | ![채팅방](./image/Chat.gif) | ![알림](./image/notification.gif) |
 
 ### 인사 관리 & 회사 부서 관리
 | 인사 관리 | 회사 부서 관리| 크리에이터 관리 |
 |--------|--------|--------|
-| ![인사 관리](./image/인사관리.gif) | ![회사 부서 관리](./image/조직도.gif) | ![크리에이터 관리](./image/크리에이터관리.gif) |
+| ![인사 관리](./image/PersonnelManagement.gif) | ![회사 부서 관리](./image/DepartmentManagement.gif) | ![크리에이터 관리](./image/CraterManagement.gif) |
 
 ### 건강 관리 & QA & AI
 | 건강 관리 | QA 게시판 | AI 어시스턴트 |

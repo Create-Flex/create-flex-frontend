@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_CONFIG } from '../../../api/config';
 
-const BASE_URL = 'http://localhost:8888';
+const BASE_URL = API_CONFIG.BASE_URL;
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -35,7 +36,7 @@ export const chatService = {
 
     // 모든 멤버 조회
     getAllMembers: async () => {
-        const response = await axios.get(`${BASE_URL}/api/members/all`, getAuthHeaders());
+        const response = await axios.get(`${BASE_URL}/members/all`, getAuthHeaders());
         return response.data;
     },
 

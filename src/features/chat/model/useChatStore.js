@@ -23,9 +23,9 @@ export const useChatStore = create((set, get) => ({
 
         if (get().stompClient && get().stompClient.active) return; // 이미 연결됨
 
-
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8888';
         const client = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8888/ws-stomp'),
+            webSocketFactory: () => new SockJS(`${baseUrl}/ws-stomp`),
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },

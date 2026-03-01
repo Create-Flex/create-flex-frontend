@@ -155,7 +155,9 @@ export const StaffManagement = ({ onUpdateEmployees, vacationLogs, departments }
 
     const handleSave = async () => {
         if (!staffForm.name || !staffForm.employeeId) return toast.error('필수 정보를 입력해주세요.');
-
+        if (!staffForm.employeeId?.trim()) return toast.error('사번을 입력해주세요.');
+        if (!staffForm.joinDate) return toast.error('입사일을 입력해주세요.');
+        if (modalType === 'reg' && !staffForm.password) return toast.error('비밀번호를 입력해주세요.');
         const permissionToEnum = {
             '직원': 'EMPLOYEE',
             '매니저': 'MANAGER',

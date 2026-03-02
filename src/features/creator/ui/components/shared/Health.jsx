@@ -539,7 +539,7 @@ export const CreatorHealthView = ({
                                         <FileText size={20} />
                                     </FileIconWrapper>
                                     <FileMeta>
-                                        <FileName>{selectedRecord.checkupName}_건강검진결과표.pdf</FileName>
+                                        <FileName>{selectedRecord.checkupName}</FileName>
                                         <FileSize>2.4 MB</FileSize>
                                     </FileMeta>
                                 </FileInfo>

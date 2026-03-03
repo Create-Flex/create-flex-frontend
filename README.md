@@ -104,7 +104,7 @@ create-flex-frontend/
 │   │   ├── qa_board/           # QA 게시판
 │   │   ├── support/            # 고객지원
 │   │   └── vacation/           # 휴가 관리
-│   ├── shared/                 # 공통 유틸·컴포넌트
+│   ├── shared/                 # 공통 유틸·컴포넌트.
 │   ├── App.jsx                 # 루트 컴포넌트 및 라우팅
 │   └── main.jsx                # 진입점
 ├── public/                     # 정적 파일

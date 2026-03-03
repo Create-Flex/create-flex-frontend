@@ -46,6 +46,9 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
     m.memberId !== currentUserId
   );
 
+  // 유저 디폴트 프로필 저장 (2026.03.02 추가)
+  const DEFAULT_AVATAR = 'https://i.postimg.cc/bJSGpBqg/Gemini-Generated-Image-s33rl9s33rl9s33r-(1).png';
+
   // 채팅방 이미지 렌더링 로직
   const renderChatAvatar = (chat) => {
     if (!chat.members || chat.members.length === 0) {
@@ -146,7 +149,9 @@ export const ChatList = ({ chats, selectedChatId, onSelectChat, onCreateRoom, fo
                   >
                     <S.UserAvatar>
                       {member.profileImage ? (
-                        <img src={member.profileImage} alt={member.memberName} />
+                        <img src={member.profileImage || DEFAULT_AVATAR} onError={(e) => {
+                          e.currentTarget.src = DEFAULT_AVATAR;
+                      }}  alt={member.memberName} />
                       ) : (
                         <User size={20} />
                       )}

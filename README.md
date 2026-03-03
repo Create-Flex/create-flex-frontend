@@ -186,10 +186,6 @@ create-flex-frontend/
 ### 건강 관리 & QA & AI
 | 건강 관리 | QA 게시판 | AI 어시스턴트 |
 |--------|--------|--------|
-| ![건강 관리](./image/건강관리.gif) | ![QA 게시판](./image/QA게시판.gif) | ![AI 어시스턴트](./image/AI어시스턴트.gif) |
+| ![건강 관리](./image/health.gif) | ![QA 게시판](./image/Qa.gif) | ![AI 어시스턴트](./image/Aichat.gif) |
 
 ---
-
-## 라이선스
-
-This project is private and proprietary.
